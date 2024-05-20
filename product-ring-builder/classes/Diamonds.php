@@ -6,214 +6,199 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Diamonds extends \OTW\WooRingBuilder\Plugin{
+class Diamonds extends \OTW\WooRingBuilder\Plugin {
 
-  use \OTW\GeneralWooRingBuilder\Traits\Singleton;
+	use \OTW\GeneralWooRingBuilder\Traits\Singleton;
 
-  public $page_size = 20;
+	public $page_size = 20;
 
-  public $diamonds_api_clarity = array(
-    '0' => 'FL',
-    '1' => 'IF',
-    '2' => 'VVS1',
-    '3' => 'VVS2',
-    '4' => 'VS1',
-    '5' => 'VS2',
-    '6' => 'SI1',
-    '7' => 'SI2',
-  );
+	public $diamonds_api_clarity = array(
+		'0' => 'FL',
+		'1' => 'IF',
+		'2' => 'VVS1',
+		'3' => 'VVS2',
+		'4' => 'VS1',
+		'5' => 'VS2',
+		'6' => 'SI1',
+		'7' => 'SI2',
+	);
 
-  public function __construct(){
+	public function __construct() {
+		add_action( 'init', array( $this, 'init' ) );
+	}
 
-    add_action('init', array($this, 'init'));
-    
-  }// construct function end here
+	/******************************************/
+	/***** init **********/
+	/******************************************/
+	public function init() {
+		add_action( 'wp_ajax_nopriv_fetch_stones', array( $this, 'fetch_stones' ) );
 
-  /******************************************/
-  /***** init **********/
-  /******************************************/
-  public function init() {
-    
-    // add_action('render_diamnods_loop_items', [ $this, 'render_diamnods_loop']);
+		add_action( 'wp_ajax_fetch_stones', array( $this, 'fetch_stones' ) );
 
-    add_action( 'wp_ajax_nopriv_fetch_stones', [ $this, 'fetch_stones'] );
-    add_action( 'wp_ajax_fetch_stones', [ $this, 'fetch_stones'] );
+		add_action( 'render_diamnod_similar_items', array( $this, 'render_diamnod_similar_items' ) );
+	}
 
-    add_action('render_diamnod_similar_items', [ $this, 'render_diamnod_similar_items']);
+	public function render_diamnod_similar_items( $diamond ) {
+		$args = array(
+			'type'             => 'Lab_grown_Diamond',
+			'markup_mode'      => 'true',
+			'shapes[]'         => $diamond['shape'],
+			'page_size'        => 4,
+			'show_unavailable' => 'true',
+			'page_number'      => 1,
+			'exchange_rate'    => '1',
+			'with_images'      => 'true',
+		);
 
-    
-  }
-
-  public function render_diamnod_similar_items($diamond){
-    // db($diamond);
-    $args = array(
-        'type' => 'Lab_grown_Diamond',
-        'markup_mode' => 'true',
-        'shapes[]' => $diamond['shape'],
-        'page_size' => 4,
-        'show_unavailable' => 'true',
-        // 'print_page_size' => 4,
-        'page_number' => 1,
-        'exchange_rate' => '1',
-        'with_images' => 'true',
-    );
-    
-    $this->get_loop_diamonds($args);
-  }
+		$this->get_loop_diamonds( $args );
+	}
 
 
-  /******************************************/
-  /***** render_diamnods_loop **********/
-  /******************************************/
-  public function get_default_diamond_api_args(){
+	/******************************************/
+	/***** render_diamnods_loop **********/
+	/******************************************/
+	public function get_default_diamond_api_args() {
+		$args = array(
+			'type'               => 'Lab_grown_Diamond',
+			'markup_mode'        => 'true',
+			'shapes[]'           => 'Radiant',
+			'page_size'          => $this->page_size,
+			'show_unavailable'   => 'true',
+			// 'print_page_size' => 24,
+			'page_number'        => 1,
+			'page_number_nivoda' => 1,
+			'page_number_vdb'    => 1,
+			'currency_code'      => 'USD',
+			'exchange_rate'      => '1',
+			'with_images'        => true,
+		);
+		// $args['type'] = 'Lab_grown_Diamond';
 
-    $args = array(
-      'type' => 'Lab_grown_Diamond',
-      'markup_mode' => 'true',
-      'shapes[]' => 'Radiant',
-      'page_size' => $this->page_size,
-      'show_unavailable' => 'true',
-      // 'print_page_size' => 24,
-      'page_number' => 1,
-      'page_number_nivoda' => 1,
-      'page_number_vdb' => 1,
-      'currency_code' => 'USD',
-      'exchange_rate' => '1',
-      'with_images' => true,
-    );
-    // $args['type'] = 'Lab_grown_Diamond';
-    
-    $shape = $this->get_current_selected_variation_shape();
-    if($shape && isset(gcpb_diamond_shapes_array()[$shape])){
-      $args['shapes[]'] = gcpb_diamond_shapes_array()[$shape];
-    }else{
-      unset($args['shapes[]']);
-    }
+		$shape = $this->get_current_selected_variation_shape();
+		if ( $shape && isset( gcpb_diamond_shapes_array()[ $shape ] ) ) {
+			$args['shapes[]'] = gcpb_diamond_shapes_array()[ $shape ];
+		} else {
+			unset( $args['shapes[]'] );
+		}
 
-    $args['size_from'] = 2.5;
-    $args['size_to'] = 3.5;
+		$args['size_from'] = 2.5;
+		$args['size_to'] = 3.5;
 
-    return $args;
-  }
+		return $args;
+	}
 
-  /******************************************/
-  /***** render_diamnods_loop **********/
-  /******************************************/
-  public function render_diamnods_loop(){
-    
-    
-    $this->get_loop_diamonds($this->get_default_diamond_api_args());
+	/******************************************/
+	/***** render_diamnods_loop **********/
+	/******************************************/
+	public function render_diamnods_loop() {
+		$this->get_loop_diamonds( $this->get_default_diamond_api_args() );
+	}
 
-  }
+	/******************************************/
+	/***** get_loop_diamonds **********/
+	/******************************************/
+	public function get_loop_diamonds( $args ) {
+		include_once plugin_dir_path( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'views/loop/diamond-loop.php';
+		$i = 1;
+		$total_diamonds_found = 0;
+		$output = '';
 
-  /******************************************/
-  /***** get_loop_diamonds **********/
-  /******************************************/
-  public function get_loop_diamonds($args){
+		$all_active_apis = $this->get_api_order();
+		$total_diamonds_found_array = array();
 
-    include_once(plugin_dir_path(OTW_WOO_RING_BUILDER_PLUGIN_FILE). 'views/loop/diamond-loop.php');
-    $i = 1;
-    $total_diamonds_found = 0;
-    $output = '';
+		if ( is_array( $all_active_apis ) && count( $all_active_apis ) >= 1 ) {
+			foreach ( $all_active_apis as $key => $single_api ) {
+				$api_data = $this->{'get_' . $key . '_diamonds_data'}( $args );
 
-    $all_active_apis = $this->get_api_order();
-    $total_diamonds_found_array = array();
-    
-    if(is_array($all_active_apis) && count($all_active_apis) >= 1){
-      foreach($all_active_apis as $key=>$single_api){
-        $api_data = $this->{'get_'.$key.'_diamonds_data'}($args);
+				if ( isset( $api_data['total_diamonds_found'] ) && $api_data['total_diamonds_found'] >= 1 ) {
+					$total_diamonds_found += $api_data['total_diamonds_found'];
+					$total_diamonds_found_array[ $i ] = $api_data['total_diamonds_found'];
+					// if($api_data['total_diamonds_found'] > 12){
+					//   break;
+					// }
+				}
 
-        if(isset($api_data['total_diamonds_found']) && $api_data['total_diamonds_found'] >= 1){
-          $total_diamonds_found += $api_data['total_diamonds_found'];
-          $total_diamonds_found_array[$i] = $api_data['total_diamonds_found'];
-          // if($api_data['total_diamonds_found'] > 12){
-          //   break;
-          // }
-        }
+				if ( $i >= 2 && $total_diamonds_found_array[ $i - 1 ] >= 12 ) {
+					break;
+				}
 
-        if($i >= 2 && $total_diamonds_found_array[$i-1] >= 12)
-          break;
+				if ( isset( $args[ 'page_number_' . $key ] ) && (int) $args[ 'page_number_' . $key ] >= 2 ) {
+					$args[ 'page_number_' . $key ] = (int) $args[ 'page_number_' . $key ] + 1;
+				} else {
+					$args[ 'page_number_' . $key ] = 2;
+				}
+				// if($i == 1 && ($total_diamonds_found < $args['page_size'] || (isset($args['page_number']) && $args['page_number'] >= 2 && $total_diamonds_found < $args['page_size']*$args['page_number']) )){
+				//   if(isset($args['page_number_'.$key]))
+				//     $args['page_number_'.$key] += $args['page_number_'.$key];
+				//   else
+				//     $args['page_number_'.$key] = 1;
+				// }
 
-        if(isset($args['page_number_'.$key]) && (int)$args['page_number_'.$key] >= 2){
-          $args['page_number_'.$key] = (int)$args['page_number_'.$key] + 1;
-        }
-        else{
-          $args['page_number_'.$key] = 2;
-        }
-        // if($i == 1 && ($total_diamonds_found < $args['page_size'] || (isset($args['page_number']) && $args['page_number'] >= 2 && $total_diamonds_found < $args['page_size']*$args['page_number']) )){
-        //   if(isset($args['page_number_'.$key]))
-        //     $args['page_number_'.$key] += $args['page_number_'.$key];
-        //   else
-        //     $args['page_number_'.$key] = 1;
-        // }
+				if ( is_array( $api_data ) && isset( $api_data['data'] ) && $api_data['data'] ) {
+					// if($total_diamonds_found < 13 && $i < 1)
+					$output .= $api_data['data'];
+				}
 
-        
+				// if(is_string($api_data)){
+				//   $error_vdb = $api_data;
+				// }
+				++$i;
+			}
+		}
+		echo $output;
+		if ( isset( $total_diamonds_found ) && $total_diamonds_found >= 1 ) {
+			$total_diamonds = $total_diamonds_found;
+			if ( $total_diamonds > $args['page_size'] ) {
+				echo '</div>';
+				echo $this->get_diamonds_pagination( $total_diamonds, $args );
+				echo '<div>';
+			}
+		}
 
-        if(is_array($api_data) && isset($api_data['data']) && $api_data['data']){
-          // if($total_diamonds_found < 13 && $i < 1)
-          $output .= $api_data['data'];
-        }
-        
-        
-        // if(is_string($api_data)){
-        //   $error_vdb = $api_data;
-        // }
-        $i++;
-      }
-    }
-    echo $output;
-    if(isset($total_diamonds_found) && $total_diamonds_found >= 1){
-      $total_diamonds = $total_diamonds_found;
-      if($total_diamonds > $args['page_size']){
-          echo '</div>';
-          echo $this->get_diamonds_pagination($total_diamonds, $args);
-          echo '<div>';
-      }
-    }
-
-    return true;
-  }
+		return true;
+	}
 
 
-  /******************************************/
-  /***** get_diamonds_pagination **********/
-  /******************************************/
-  public function get_diamonds_pagination($total_diamonds, $args){
-    $output = ' ';
-    $total_fetched = (int)$args['page_size'] * (int)$args['page_number'];
-    if($total_fetched < $total_diamonds){
-      $output .= '<div class="show_more_diamond_pagination"'; 
-        $output.= ' data-page_number="'.$args['page_number'].'"';
-        if(isset($args['page_number_vdb']))
-          $output.= ' data-page_number_vdb="'.$args['page_number_vdb'].'"';
-        if(isset($args['page_number_nivoda']))
-          $output.= ' data-page_number_nivoda="'.$args['page_number_nivoda'].'"';
-        
-        $output.= '>';
-      $output .= '<p style="margin-top:30px;">Showing <span class="otw_total_fetched_stones">'.$total_fetched.'</span> out of '.$total_diamonds.'</p>';
-      $output .= '<p><button class="gcpb-button gcpb-button-alt show_more_diamonds">Load More</button></p>';
-      $output .= '</div>';
-    }
-    
-    return $output;
-  }
+	/******************************************/
+	/***** get_diamonds_pagination **********/
+	/******************************************/
+	public function get_diamonds_pagination( $total_diamonds, $args ) {
+		$output = ' ';
+		$total_fetched = (int) $args['page_size'] * (int) $args['page_number'];
+		if ( $total_fetched < $total_diamonds ) {
+			$output .= '<div class="show_more_diamond_pagination"';
+			$output .= ' data-page_number="' . $args['page_number'] . '"';
+			if ( isset( $args['page_number_vdb'] ) ) {
+				$output .= ' data-page_number_vdb="' . $args['page_number_vdb'] . '"';
+			}
+			if ( isset( $args['page_number_nivoda'] ) ) {
+				$output .= ' data-page_number_nivoda="' . $args['page_number_nivoda'] . '"';
+			}
+
+			$output .= '>';
+			$output .= '<p style="margin-top:30px;">Showing <span class="otw_total_fetched_stones">' . $total_fetched . '</span> out of ' . $total_diamonds . '</p>';
+			$output .= '<p><button class="gcpb-button gcpb-button-alt show_more_diamonds">Load More</button></p>';
+			$output .= '</div>';
+		}
+
+		return $output;
+	}
 
 
-  /******************************************/
-  /***** fetch_stones **********/
-  /******************************************/
-  public function fetch_stones(){
-    if(isset($_POST['query_string']) && !empty($_POST['query_string'])) {
-        // $per_page = 24;
-        parse_str($_POST['query_string'], $params);
+	/******************************************/
+	/***** fetch_stones **********/
+	/******************************************/
+	public function fetch_stones() {
+		if ( isset( $_POST['query_string'] ) && ! empty( $_POST['query_string'] ) ) {
+			parse_str( $_POST['query_string'], $params );
 
-			if(isset($params['sort']) && !empty($params['sort'])) {
+			if ( isset( $params['sort'] ) && ! empty( $params['sort'] ) ) {
 				$args['orderby'] = 'meta_value_num';
 				$args['meta_key'] = '_price';
 
-				if( $params['sort'] == 'price-ascending') {
+				if ( $params['sort'] == 'price-ascending' ) {
 					$args['order'] = 'asc';
-				} elseif(  $params['sort'] == 'price-descending' ) {
+				} elseif ( $params['sort'] == 'price-descending' ) {
 					$args['order'] = 'desc';
 				} else {
 					$args['meta_key'] = 'total_sales';
@@ -222,467 +207,513 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin{
 				}
 			}
 
-			if(isset($params['paged']) && !empty($params['paged'])) {
+			if ( isset( $params['paged'] ) && ! empty( $params['paged'] ) ) {
 				$args['paged'] = $params['paged'];
 			}
 
-			if(isset($params['limit']) && !empty($params['limit'])) {
+			if ( isset( $params['limit'] ) && ! empty( $params['limit'] ) ) {
 				$args['posts_per_page'] = $params['limit'];
 			}
 
-      $diamonds_api_shapes = gcpb_diamond_shapes_array();
-      $diamonds_api_color = array(
-        '0' => 'D',
-        '1' => 'E',
-        '2' => 'F',
-        '3' => 'G',
-        '4' => 'H',
-        '5' => 'I',
-        '6' => 'J',
-        '7' => 'K',
-        '8' => 'L',
-      );
-      
-      // $diamonds_api_clarity = array(
-      //   '0' => 'SI2',
-      //   '1' => 'SI1',
-      //   '2' => 'VS2',
-      //   '3' => 'VS1',
-      //   '4' => 'VS1',
-      //   '5' => 'VS2',
-      //   '6' => 'SI1',
-      //   '7' => 'SI2',
-      // );
+			$diamonds_api_shapes = gcpb_diamond_shapes_array();
 
-      $diamonds_api_cut = array(
-        '0' => 'Fair',
-        '1' => 'Good',
-        '2' => 'Very Good',
-      );
+			$diamonds_api_color = array(
+				'0' => 'D',
+				'1' => 'E',
+				'2' => 'F',
+				'3' => 'G',
+				'4' => 'H',
+				'5' => 'I',
+				'6' => 'J',
+				'7' => 'K',
+				'8' => 'L',
+			);
 
-      $diamonds_api_polish = array(
-        '0' => 'Fair',
-        '1' => 'Good',
-        '2' => 'Very Good',
-      );
+			$diamonds_api_cut = array(
+				'0' => 'Fair',
+				'1' => 'Good',
+				'2' => 'Very Good',
+			);
 
-      $diamonds_api_symmetry = array(
-        '0' => 'Fair',
-        '1' => 'Good',
-        '2' => 'Very Good',
-      );
+			$diamonds_api_polish = array(
+				'0' => 'Fair',
+				'1' => 'Good',
+				'2' => 'Very Good',
+			);
 
+			$diamonds_api_symmetry = array(
+				'0' => 'Fair',
+				'1' => 'Good',
+				'2' => 'Very Good',
+			);
 
-      // $endpoint = $this->diamond_api_endpoint;
-      
-      $args = array(
-          'type' => 'Lab_grown_Diamond',
-          'markup_mode' => 'true',
-          // 'shapes[]' => 'Radiant',
-          'page_size' => $this->page_size,
-          'page_number_nivoda' => 1,
-          'page_number_vdb' => 1,
-          'page_number' => 1,
-          'exchange_rate' => '1',
-          'show_unavailable' => 'true',
-          'with_images' => true,
-      );
+			$args = array(
+				'type'               => 'Lab_grown_Diamond',
+				'markup_mode'        => 'true',
+				'page_size'          => $this->page_size,
+				'page_number_nivoda' => 1,
+				'page_number_vdb'    => 1,
+				'page_number'        => 1,
+				'exchange_rate'      => '1',
+				'show_unavailable'   => 'true',
+				'with_images'        => true,
+			);
 
-      
-      if(isset($params['page_number_vdb']) && $params['page_number_vdb'] && (int)$params['page_number_vdb'] >= 2){
-        $args['page_number_vdb'] = (int) $params['page_number_vdb'];
-      }
-      if(isset($params['page_number_nivoda']) && $params['page_number_nivoda'] && (int)$params['page_number_nivoda'] >= 2){
-        $args['page_number_nivoda'] = (int) $params['page_number_nivoda'];
-      }
+			if ( isset( $params['page_number_vdb'] ) && $params['page_number_vdb'] && (int) $params['page_number_vdb'] >= 2 ) {
+				$args['page_number_vdb'] = (int) $params['page_number_vdb'];
+			}
 
-      if(isset($params['page_number']) && $params['page_number']){
-        if((int)$params['page_number'] >= 2)
-          $args['page_number'] = (int) $params['page_number'];
-        else{
-          $args['page_number_vdb'] = 1;
-          $args['page_number_nivoda'] = 1;
-        }
-      }
-      
-      if(isset($params['type']))
-        $args['type'] = $params['type'];
-      // $args['type'] = 'Lab_grown_Diamond';
-      if(isset($params['shape']) && $params['shape'] && isset($diamonds_api_shapes[$params['shape']]))
-        $args['shapes[]'] = $diamonds_api_shapes[$params['shape']];
+			if ( isset( $params['page_number_nivoda'] ) && $params['page_number_nivoda'] && (int) $params['page_number_nivoda'] >= 2 ) {
+				$args['page_number_nivoda'] = (int) $params['page_number_nivoda'];
+			}
 
-      if(isset($params['color']) && $params['color'] /*&& isset($diamonds_api_color[$params['color']])*/){
-        $colors = explode('-', $params['color']);
-        if(is_array($colors) && isset($colors[0]) && isset($colors[1]) && isset($diamonds_api_color[$colors[0]]) && isset($diamonds_api_color[$colors[1]])){
-          $args['color_from'] = $diamonds_api_color[$colors[0]];
-          $args['color_to'] = $diamonds_api_color[$colors[1]];
-        }
-        $args['color_from'] = $colors[0];
-        $args['color_to'] = $colors[1];
-      }
+			if ( isset( $params['page_number'] ) && $params['page_number'] ) {
+				if ( (int) $params['page_number'] >= 2 ) {
+					$args['page_number'] = (int) $params['page_number'];
+				} else {
+					$args['page_number_vdb'] = 1;
+					$args['page_number_nivoda'] = 1;
+				}
+			}
 
-      if(isset($params['clarity']) && $params['clarity'] /*&& isset($diamonds_api_clarity[$params['clarity']])*/){
+			if ( isset( $params['type'] ) ) {
+				$args['type'] = $params['type'];
+			}
 
-        $clarity = explode('-', $params['clarity']);
-        // if(is_array($clarity) && isset($clarity[0]) && isset($clarity[1]) && isset($this->diamonds_api_clarity[$clarity[0]]) && isset($this->diamonds_api_clarity[$clarity[1]])){
-        //   $args['clarity_from'] = $this->diamonds_api_clarity[$clarity[0]];
-        //   $args['clarity_to'] = $this->diamonds_api_clarity[$clarity[1]];
-        // }
-        if(isset($clarity[0]) && isset($clarity[1])){
-          if($clarity[0] == 'VVS')
-            $args['clarity_from'] = 'VVS1';
-          elseif($clarity[0] == 'VS')
-            $args['clarity_from'] = 'VS1';
-          elseif($clarity[0] == 'SI')
-            $args['clarity_from'] = 'SI1';
+			if ( isset( $params['shape'] ) && $params['shape'] && isset( $diamonds_api_shapes[ $params['shape'] ] ) ) {
+				$args['shapes[]'] = $diamonds_api_shapes[ $params['shape'] ];
+			}
 
-          if($clarity[1] == 'VVS')
-            $args['clarity_to'] = 'VVS2';
-          elseif($clarity[1] == 'VS')
-            $args['clarity_to'] = 'VS2';
-          elseif($clarity[1] == 'SI')
-            $args['clarity_to'] = 'SI2';
-        }
-        // $args['clarity_from'] = $diamonds_api_clarity[$params['clarity']];
-        // $args['clarity_to'] = 'FL';
-      }
+			if ( isset( $params['color'] ) && $params['color'] ) {
+				$colors = explode( '-', $params['color'] );
+				if ( is_array( $colors ) && isset( $colors[0] ) && isset( $colors[1] ) && isset( $diamonds_api_color[ $colors[0] ] ) && isset( $diamonds_api_color[ $colors[1] ] ) ) {
+					$args['color_from'] = $diamonds_api_color[ $colors[0] ];
+					$args['color_to'] = $diamonds_api_color[ $colors[1] ];
+				}
+				$args['color_from'] = $colors[0];
+				$args['color_to'] = $colors[1];
+			}
 
-      if(isset($params['price']) && $params['price'] /*&& isset($diamonds_api_price[$params['price']])*/){
-        $prices = explode('-', $params['price']);
-        if(is_array($prices) && isset($prices[0]) && isset($prices[1])){
-          
-          
+			if ( isset( $params['clarity'] ) && $params['clarity'] ) {
+				$clarity = explode( '-', $params['clarity'] );
 
-          
-          // if(get_client_ip() == '182.178.182.40'){
-            // db($args);
-            // db(get_diamond_price_with_markup_only($prices[0]));
-            // db(get_diamond_price_with_markup_only($prices[1]));
-            
-            
-            // db($price_total_from);
-          // }
+				if ( isset( $clarity[0] ) && isset( $clarity[1] ) ) {
+					if ( $clarity[0] == 'VVS' ) {
+						$args['clarity_from'] = 'VVS1';
+					} elseif ( $clarity[0] == 'VS' ) {
+						$args['clarity_from'] = 'VS1';
+					} elseif ( $clarity[0] == 'SI' ) {
+						$args['clarity_from'] = 'SI1';
+					}
 
+					if ( $clarity[1] == 'VVS' ) {
+						$args['clarity_to'] = 'VVS2';
+					} elseif ( $clarity[1] == 'VS' ) {
+						$args['clarity_to'] = 'VS2';
+					} elseif ( $clarity[1] == 'SI' ) {
+						$args['clarity_to'] = 'SI2';
+					}
+				}
+			}
 
-          $args['price_total_from'] = $prices[0];
-          $args['price_total_to'] = $prices[1];
-        }
-      }
+			if ( isset( $params['price'] ) && $params['price'] ) {
+				$prices = explode( '-', $params['price'] );
 
-      if(isset($params['carat']) && $params['carat'] /*&& isset($diamonds_api_carat[$params['carat']])*/){
-        $carats = explode('-', $params['carat']);
-        if(is_array($carats) && isset($carats[0]) && isset($carats[1])){
-          $args['size_from'] = $carats[0];
-          $args['size_to'] = $carats[1];
-        }
-        elseif($params['carat'] == '1'){
-          $args['size_from'] = 2.5;
-          $args['size_to'] = 3.5;
-        }
-      }else{
-        $args['size_from'] = 2.5;
-        $args['size_to'] = 3.5;
-      }
-      
+				if ( is_array( $prices ) && isset( $prices[0] ) && isset( $prices[1] ) ) {
+					$args['price_total_from'] = $prices[0];
 
-      if(isset($params['cut']) && $params['cut'] && isset($diamonds_api_cut[$params['cut']])){
-        $args['cut_from'] = $diamonds_api_cut[$params['cut']];
-        $args['cut_to'] = 'Excellent';
-      }
+					$args['price_total_to'] = $prices[1];
+				}
+			}
 
-      if(isset($params['polish']) && $params['polish'] && isset($diamonds_api_polish[$params['polish']])){
-        $args['polish_from'] = $diamonds_api_polish[$params['polish']];
-        $args['polish_to'] = 'Excellent';
-      }
+			if ( isset( $params['carat'] ) && $params['carat'] ) {
+				$carats = explode( '-', $params['carat'] );
 
-      if(isset($params['symmetry']) && $params['symmetry'] && isset($diamonds_api_symmetry[$params['symmetry']])){
-        $args['symmetry_from'] = $diamonds_api_symmetry[$params['symmetry']];
-        $args['symmetry_to'] = 'Excellent';
-      }
+				if ( is_array( $carats ) && isset( $carats[0] ) && isset( $carats[1] ) ) {
+					$args['size_from'] = $carats[0];
+					$args['size_to'] = $carats[1];
+				} elseif ( $params['carat'] == '1' ) {
+					$args['size_from'] = 2.5;
+					$args['size_to'] = 3.5;
+				}
+			} else {
+				$args['size_from'] = 2.5;
+				$args['size_to'] = 3.5;
+			}
 
-      $output = '';
-      include_once(plugin_dir_path(OTW_WOO_RING_BUILDER_PLUGIN_FILE). 'views/loop/diamond-loop.php');
-      $i = 1;
-      $total_diamonds_found = 0;
+			if ( isset( $params['cut'] ) && $params['cut'] && isset( $diamonds_api_cut[ $params['cut'] ] ) ) {
+				$args['cut_from'] = $diamonds_api_cut[ $params['cut'] ];
+				$args['cut_to'] = 'Excellent';
+			}
 
-      $error_vdb = '';
-      $error_nivoda = '';
-      // $total_diamonds_found_array = array();
+			if ( isset( $params['polish'] ) && $params['polish'] && isset( $diamonds_api_polish[ $params['polish'] ] ) ) {
+				$args['polish_from'] = $diamonds_api_polish[ $params['polish'] ];
+				$args['polish_to'] = 'Excellent';
+			}
 
+			if ( isset( $params['symmetry'] ) && $params['symmetry'] && isset( $diamonds_api_symmetry[ $params['symmetry'] ] ) ) {
+				$args['symmetry_from'] = $diamonds_api_symmetry[ $params['symmetry'] ];
+				$args['symmetry_to'] = 'Excellent';
+			}
 
-      $all_active_apis = $this->get_api_order();
-      if(is_array($all_active_apis) && count($all_active_apis) >= 1){
-        foreach($all_active_apis as $key=>$single_api){
-          $api_data = $this->{'get_'.$key.'_diamonds_data'}($args);
+			if ( isset( $params['markup_mode'] ) && $params['markup_mode'] === 'false' ) {
+				$args['markup_mode'] = 'false';
+			}
 
-          if(isset($api_data['total_diamonds_found']) && $api_data['total_diamonds_found'] >= 1){
-            $total_diamonds_found += $api_data['total_diamonds_found'];
-            // $total_diamonds_found_array[$i] = $api_data['total_diamonds_found'];
-          }
+			$output = '';
 
-          if($output)
-            break;
+			include_once plugin_dir_path( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'views/loop/diamond-loop.php';
 
-          if(isset($args['page_number_'.$key]) && (int)$args['page_number_'.$key] >= 2){
-            $args['page_number_'.$key] = (int)$args['page_number_'.$key] + 1;
-          }
-          else{
-            $args['page_number_'.$key] = 2;
-          }
-          // if($i == 1 && ($total_diamonds_found < $args['page_size'] || (isset($args['page_number']) && $args['page_number'] >= 2 && $total_diamonds_found < $args['page_size']*$args['page_number']) )){
-          
-          // }
-          
-          
+			$i = 1;
 
-          if(is_array($api_data) && isset($api_data['data']) && $api_data['data']){
-            $output .= $api_data['data'];
-          }
-          
-          // if(is_string($api_data)){
-          //   $error_vdb = $api_data;
-          // }
-          $i++;
-        }
-      }
-      // if($total_diamonds_found_array)
-      //   $total_diamonds_found = array_sum($total_diamonds_found_array);
+			$total_diamonds_found = 0;
 
-      $pagination_html = '';
-      if(isset($total_diamonds_found) && $total_diamonds_found >= 1){
-        $total_diamonds = $total_diamonds_found;
-        if($total_diamonds > $args['page_size']){
-          $pagination_html = $this->get_diamonds_pagination($total_diamonds, $args);
-        }
-      }
+			$error_vdb = '';
 
-      wp_send_json_success(array('message' => 'success', 'data' => $output, 'pagination_html' => $pagination_html, 'page_number' => $args['page_number']));
-      die();
+			$error_nivoda = '';
 
-    }
-  }
+			$all_active_apis = $this->get_api_order();
 
+			$data = array();
 
-  /******************************************/
-  /***** get_diamond_by_stock_num **********/
-  /******************************************/
-  public function get_diamond_by_stock_num($stock_num){
+			if ( is_array( $all_active_apis ) && count( $all_active_apis ) >= 1 ) {
+				foreach ( $all_active_apis as $key => $single_api ) {
+					$api_data = $this->{'get_' . $key . '_diamonds_data'}( $args );
 
-    // if(isset($_GET['test'])){
-    //   db($_SESSION['current_diamond']);
-    //   db($_GET['stock_num']);
-    // }
+					if ( isset( $api_data['total_diamonds_found'] ) && $api_data['total_diamonds_found'] >= 1 ) {
+						$total_diamonds_found += $api_data['total_diamonds_found'];
+					}
 
-    if(isset($this->current_diamond) && $this->current_diamond && isset($this->current_diamond['stock_num']) && $this->current_diamond['stock_num'] == $stock_num)
-      return $this->current_diamond;
+					if ( $output ) {
+						break;
+					}
 
-    // if(isset($_SESSION['current_diamond']) && $_SESSION['current_diamond'] && isset($_SESSION['current_diamond']['stock_num']) && $_GET['stock_num'] == $_SESSION['current_diamond']['stock_num']){
-    //   $this->current_diamond = $_SESSION['current_diamond'];
-    //   return $this->current_diamond;
-    // }
-    
-    if(function_exists('WC') && isset(WC()->session) && is_object(WC()->session) /*&& strpos($_SERVER['REQUEST_URI'], 'complete-your-ring') === false*/){
+					if ( isset( $args[ 'page_number_' . $key ] ) && (int) $args[ 'page_number_' . $key ] >= 2 ) {
+						$args[ 'page_number_' . $key ] = (int) $args[ 'page_number_' . $key ] + 1;
+					} else {
+						$args[ 'page_number_' . $key ] = 2;
+					}
 
-      // Empty session data.
-      // WC()->session->set( 'gcpb_current_diamond', null );
+					if ( is_array( $api_data ) && isset( $api_data['data'] ) && $api_data['data'] ) {
+						if ( isset( $args['markup_mode'] ) && $args['markup_mode'] === 'false' ) {
+							$data[] = $api_data['data'];
+						} else {
+							$output .= $api_data['data'];
+						}
+					}
 
-      $sessioned_diamond = WC()->session->get('gcpb_current_diamond');
-      if($sessioned_diamond && isset($sessioned_diamond['stock_num']) && $_GET['stock_num'] == $sessioned_diamond['stock_num']){
-        $this->current_diamond = $sessioned_diamond;
-        return $this->current_diamond;
-      }
-    }
+					++$i;
+				}
+			}
 
-    if($this->is_nivoda_diamond($stock_num))
-      $diamond = otw_woo_ring_builder()->nivoda_diamonds->get_diamond_by_stock_num($stock_num);
-    else
-      $diamond = otw_woo_ring_builder()->vdb_diamonds->get_diamond_by_stock_num($stock_num);
-    
+			$pagination_html = '';
 
-    if(!is_array($diamond)){
-      $error_message = 'Sorry, we could not connect with diamonds API';
-      return $error_message;
-    }
+			if ( isset( $total_diamonds_found ) && $total_diamonds_found >= 1 ) {
+				$total_diamonds = $total_diamonds_found;
 
-    
-    
-    $this->current_diamond = $diamond;
+				if ( $total_diamonds > $args['page_size'] ) {
+					$pagination_html = $this->get_diamonds_pagination( $total_diamonds, $args );
+				}
+			}
 
-    if(function_exists('WC') && isset(WC()->session) && is_object(WC()->session)){
-      WC()->session->set( 'gcpb_current_diamond', $diamond);
-    }
-    // $_SESSION['current_diamond'] = $diamond;
-    // db($body['data']['diamonds_by_query']);
-    return $diamond;
+			if ( isset( $args['markup_mode'] ) && $args['markup_mode'] === 'false' ) {
+				wp_send_json_success(
+					array(
+						'message'     => 'success',
+						'data'        => wp_json_encode( $data ),
+						'page_number' => $args['page_number'],
+					)
+				);
+			} else {
+				wp_send_json_success(
+					array(
+						'message'         => 'success',
+						'data'            => $output,
+						'pagination_html' => $pagination_html,
+						'page_number'     => $args['page_number'],
+					)
+				);
+			}
 
-    
-    // return $response;
-  }
+			die();
+		}
+	}
 
+	/******************************************/
+	/***** get_diamond_by_stock_num **********/
+	/******************************************/
+	public function get_diamond_by_stock_num( $stock_num ) {
 
-  /******************************************/
-  /***** get_current_diamond **********/
-  /******************************************/
-  public function get_current_diamond(){
-    if(!(isset($_GET['stock_num']) && $_GET['stock_num']))
-      return false;
+		// if(isset($_GET['test'])){
+		//   db($_SESSION['current_diamond']);
+		//   db($_GET['stock_num']);
+		// }
 
-    $stock_num = $_GET['stock_num'];
-    $diamond = $this->get_diamond_by_stock_num($stock_num);
+		if ( isset( $this->current_diamond ) && $this->current_diamond && isset( $this->current_diamond['stock_num'] ) && $this->current_diamond['stock_num'] == $stock_num ) {
+			return $this->current_diamond;
+		}
 
-    if(!is_array($diamond)){
-      $error_message = 'Sorry, we could not connect with diamonds API';
-      return $error_message;
-    }
-    return $diamond;
-  }
+		// if(isset($_SESSION['current_diamond']) && $_SESSION['current_diamond'] && isset($_SESSION['current_diamond']['stock_num']) && $_GET['stock_num'] == $_SESSION['current_diamond']['stock_num']){
+		//   $this->current_diamond = $_SESSION['current_diamond'];
+		//   return $this->current_diamond;
+		// }
 
+		if ( function_exists( 'WC' ) && isset( WC()->session ) && is_object( WC()->session ) /*&& strpos($_SERVER['REQUEST_URI'], 'complete-your-ring') === false*/ ) {
 
-  /******************************************/
-  /***** exclude_diamond **********/
-  /******************************************/
-  public function exclude_diamond($diamond){
-    // if (strpos($diamond['stock_num'], 'Demo') !== false)
-    //   return true;
-    $diamond_shape = strtolower($diamond['shape']);
-    if(!in_array($diamond['clarity'], $this->diamonds_api_clarity))
-      return true;
+			// Empty session data.
+			// WC()->session->set( 'gcpb_current_diamond', null );
 
-    $diamonds_api_shapes = gcpb_diamond_shapes_array();
-    if(!isset($diamonds_api_shapes[$diamond_shape]))
-      return true;
+			$sessioned_diamond = WC()->session->get( 'gcpb_current_diamond' );
+			if ( $sessioned_diamond && isset( $sessioned_diamond['stock_num'] ) && $_GET['stock_num'] == $sessioned_diamond['stock_num'] ) {
+				$this->current_diamond = $sessioned_diamond;
+				return $this->current_diamond;
+			}
+		}
 
-    if(!isset($diamond['image_url']) || empty($diamond['image_url']))
-      return true;
+		if ( $this->is_nivoda_diamond( $stock_num ) ) {
+			$diamond = otw_woo_ring_builder()->nivoda_diamonds->get_diamond_by_stock_num( $stock_num );
+		} else {
+			$diamond = otw_woo_ring_builder()->vdb_diamonds->get_diamond_by_stock_num( $stock_num );
+		}
 
-    $selected_setting_shapes = $this->get_current_selected_variation_shapes();
-    if($selected_setting_shapes && is_array($selected_setting_shapes) && count($selected_setting_shapes) >= 1 && !in_array($diamond_shape, $selected_setting_shapes)){
-      return true;
-    }
+		if ( ! is_array( $diamond ) ) {
+			$error_message = 'Sorry, we could not connect with diamonds API';
+			return $error_message;
+		}
 
-    return false;
-  }
+		$this->current_diamond = $diamond;
 
+		if ( function_exists( 'WC' ) && isset( WC()->session ) && is_object( WC()->session ) ) {
+			WC()->session->set( 'gcpb_current_diamond', $diamond );
+		}
+		// $_SESSION['current_diamond'] = $diamond;
+		// db($body['data']['diamonds_by_query']);
+		return $diamond;
 
-  /******************************************/
-  /***** is_nivoda_diamond **********/
-  /******************************************/
-  public function is_nivoda_diamond($stock_num){
-    $result = substr($stock_num, 0, 7);
-    if($result == 'nivoda-')
-      return true;
-    return false;
-  }
+		// return $response;
+	}
 
-  /******************************************/
-  /***** is_nivoda_diamond **********/
-  /******************************************/
-  public function get_api_order(){
-    $output = array();
-    $vdb_api = $this->get_option('vdb_api');
-    $vdb_api_order = (int) $this->get_option('vdb_api_order');
-    $nivoda_api = $this->get_option('nivoda_api');
-    $nivoda_api_order = (int) $this->get_option('nivoda_api_order');
-    if($vdb_api && $vdb_api_order)
-      $output['vdb'] = $vdb_api_order;
-    if($nivoda_api && $nivoda_api_order)
-      $output['nivoda'] = $nivoda_api_order;
-    if($output)
-      asort($output);
-    return $output;
-  }
+	/******************************************/
+	/***** get_current_diamond **********/
+	/******************************************/
+	public function get_current_diamond() {
+		if ( ! ( isset( $_GET['stock_num'] ) && $_GET['stock_num'] ) ) {
+			return false;
+		}
 
+		$stock_num = $_GET['stock_num'];
+		$diamond = $this->get_diamond_by_stock_num( $stock_num );
 
-  /******************************************/
-  /***** get_vdb_diamonds_data **********/
-  /******************************************/
-  public function get_vdb_diamonds_data($args){
-    $total_diamonds_found = 0;
-    $output_string = '';
-    $error = '';
-    $query_response_all_data = otw_woo_ring_builder()->vdb_diamonds->get_diamonds($args);
-    // db($query_response_all_data);
-    if(!($query_response_all_data && is_array($query_response_all_data) && count($query_response_all_data) >= 1 && isset($query_response_all_data['diamonds']) /**&& is_array($query_response_all_data['diamonds']) && count($query_response_all_data['diamonds']) >= 1*/)){
-      
-      if(is_string($query_response_all_data))
-        $error = $query_response_all_data;
-      else
-        $error = 'Unknown Error';
-      
-      if($error)
-        return $error;
-      //wp_send_json_error($error);
-    }
-    $query_response = $query_response_all_data['diamonds'];
-    foreach($query_response as $diamond){
-      if($this->exclude_diamond($diamond))
-        continue;
-      
-      $diamond = otw_woo_ring_builder()->vdb_diamonds->format_diamond_data($diamond);
+		if ( ! is_array( $diamond ) ) {
+			$error_message = 'Sorry, we could not connect with diamonds API';
+			return $error_message;
+		}
+		return $diamond;
+	}
 
-      $output_string .= get_looped_diamond_html($diamond);
-      if($counter == 3 && $args['page_number_vdb'] < 2)
-        $output_string .= '<div class="mobile_extra_looped_diamond extra_looped_diamond"></div>';
-      elseif($counter == 8 && $args['page_number_vdb'] < 2)
-        $output_string .= '<div class="desktop_extra_looped_diamond extra_looped_diamond"></div>';
-      // if($args['print_page_size'] == $i)
-      //   break;
-      // $i++;
-    }
-    if(isset($query_response_all_data['total_diamonds_found'])){
-      $total_diamonds_found = $query_response_all_data['total_diamonds_found'];
-    }
-    return array('total_diamonds_found' => $total_diamonds_found, 'data' => $output_string);
-  }
+	/******************************************/
+	/***** exclude_diamond **********/
+	/******************************************/
+	public function exclude_diamond( $diamond ) {
+		// if (strpos($diamond['stock_num'], 'Demo') !== false)
+		//   return true;
+		$diamond_shape = strtolower( $diamond['shape'] );
+		if ( ! in_array( $diamond['clarity'], $this->diamonds_api_clarity ) ) {
+			return true;
+		}
 
+		$diamonds_api_shapes = gcpb_diamond_shapes_array();
+		if ( ! isset( $diamonds_api_shapes[ $diamond_shape ] ) ) {
+			return true;
+		}
 
-  /******************************************/
-  /***** get_nivoda_diamonds_data **********/
-  /******************************************/
-  public function get_nivoda_diamonds_data($args){
-    $total_diamonds_found = 0;
-    $output_string = '';
-    $error = '';
+		if ( ! isset( $diamond['image_url'] ) || empty( $diamond['image_url'] ) ) {
+			return true;
+		}
 
-    $query_response_all_data = otw_woo_ring_builder()->nivoda_diamonds->get_diamonds($args);
+		$selected_setting_shapes = $this->get_current_selected_variation_shapes();
+		if ( $selected_setting_shapes && is_array( $selected_setting_shapes ) && count( $selected_setting_shapes ) >= 1 && ! in_array( $diamond_shape, $selected_setting_shapes ) ) {
+			return true;
+		}
 
-    if(!($query_response_all_data && is_array($query_response_all_data) && count($query_response_all_data) >= 1 && isset($query_response_all_data['diamonds_by_query']) && isset($query_response_all_data['diamonds_by_query']['items']) && is_array($query_response_all_data['diamonds_by_query']['items']) /*&& count($query_response_all_data['diamonds_by_query']['items']) >= 1*/)){
-      if(is_string($query_response_all_data))
-        $error = $query_response_all_data;
-      else
-        $error = 'Unknown Error';
-      
-      if($error)
-        return $error;
-    }
-    $query_response = $query_response_all_data['diamonds_by_query']['items'];
-    
-    $counter = 1;
-    foreach($query_response as $diamond){
-      if(isset($diamond['api']) && $diamond['api'] == '1'){
-        $formated_diamond = otw_woo_ring_builder()->nivoda_diamonds->convert_local_to_vdb($diamond);
-      }else{
-        $formated_diamond = otw_woo_ring_builder()->nivoda_diamonds->convert_nivoda_to_vdb($diamond);
-        if($this->exclude_diamond($formated_diamond))
-          continue;
-      }
-      
+		return false;
+	}
 
-      
-      $output_string .= get_looped_diamond_html($formated_diamond);
-      if($counter == 3 && $args['page_number_nivoda'] < 2)
-        $output_string .= '<div class="mobile_extra_looped_diamond extra_looped_diamond"></div>';
-      elseif($counter == 8 && $args['page_number_nivoda'] < 2)
-        $output_string .= '<div class="desktop_extra_looped_diamond extra_looped_diamond"></div>';
-      
-      // if($args['print_page_size'] == $i)
-      //   break;
-      // $i++;
-      $counter++;
-    }
-    if(isset($query_response_all_data['diamonds_by_query_count']) && $query_response_all_data['diamonds_by_query_count'] >= 1){
-      $total_diamonds_found = $query_response_all_data['diamonds_by_query_count'];
-    }
-    return array('total_diamonds_found' => $total_diamonds_found, 'data' => $output_string);
-  }
+	/******************************************/
+	/***** is_nivoda_diamond **********/
+	/******************************************/
+	public function is_nivoda_diamond( $stock_num ) {
+		$result = substr( $stock_num, 0, 7 );
+		if ( $result == 'nivoda-' ) {
+			return true;
+		}
+		return false;
+	}
+
+	/******************************************/
+	/***** get_api_order **********/
+	/******************************************/
+	public function get_api_order() {
+		$output = array();
+
+		$vdb_api = $this->get_option( 'vdb_api' );
+
+		$vdb_api_order = (int) $this->get_option( 'vdb_api_order' );
+
+		$nivoda_api = $this->get_option( 'nivoda_api' );
+
+		$nivoda_api_order = (int) $this->get_option( 'nivoda_api_order' );
+
+		if ( $vdb_api && $vdb_api_order ) {
+			$output['vdb'] = $vdb_api_order;
+		}
+
+		if ( $nivoda_api && $nivoda_api_order ) {
+			$output['nivoda'] = $nivoda_api_order;
+		}
+
+		if ( $output ) {
+			asort( $output );
+		}
+
+		return $output;
+	}
+
+	/******************************************/
+	/***** get_vdb_diamonds_data **********/
+	/******************************************/
+	public function get_vdb_diamonds_data( $args ) {
+		$total_diamonds_found = 0;
+
+		$output_string = '';
+
+		$data = array();
+
+		$error = '';
+
+		$query_response_all_data = otw_woo_ring_builder()->vdb_diamonds->get_diamonds( $args );
+
+		if ( ! ( $query_response_all_data && is_array( $query_response_all_data ) && count( $query_response_all_data ) >= 1 && isset( $query_response_all_data['diamonds'] ) ) ) {
+			if ( is_string( $query_response_all_data ) ) {
+				$error = $query_response_all_data;
+			} else {
+				$error = 'Unknown Error';
+			}
+
+			if ( $error ) {
+				return $error;
+			}
+		}
+
+		$query_response = $query_response_all_data['diamonds'];
+
+		foreach ( $query_response as $diamond ) {
+			if ( $this->exclude_diamond( $diamond ) ) {
+				continue;
+			}
+
+			$diamond = otw_woo_ring_builder()->vdb_diamonds->format_diamond_data( $diamond );
+
+			if ( isset( $args['markup_mode'] ) && $args['markup_mode'] === 'false' ) {
+				$data[] = $diamond;
+			} else {
+				$output_string .= get_looped_diamond_html( $diamond );
+
+				if ( $counter == 3 && $args['page_number_vdb'] < 2 ) {
+					$output_string .= '<div class="mobile_extra_looped_diamond extra_looped_diamond"></div>';
+				} elseif ( $counter == 8 && $args['page_number_vdb'] < 2 ) {
+					$output_string .= '<div class="desktop_extra_looped_diamond extra_looped_diamond"></div>';
+				}
+			}
+		}
+
+		if ( isset( $query_response_all_data['total_diamonds_found'] ) ) {
+			$total_diamonds_found = $query_response_all_data['total_diamonds_found'];
+		}
+
+		if ( isset( $args['markup_mode'] ) && $args['markup_mode'] === 'false' ) {
+			return array(
+				'total_diamonds_found' => $total_diamonds_found,
+				'data'                 => $data,
+			);
+		} else {
+			return array(
+				'total_diamonds_found' => $total_diamonds_found,
+				'data'                 => $output_string,
+			);
+		}
+	}
+
+	/******************************************/
+	/***** get_nivoda_diamonds_data **********/
+	/******************************************/
+	public function get_nivoda_diamonds_data( $args ) {
+		$total_diamonds_found = 0;
+
+		$output_string = '';
+
+		$data = array();
+
+		$error = '';
+
+		$query_response_all_data = otw_woo_ring_builder()->nivoda_diamonds->get_diamonds( $args );
+
+		if ( ! ( $query_response_all_data && is_array( $query_response_all_data ) && count( $query_response_all_data ) >= 1 && isset( $query_response_all_data['diamonds_by_query'] ) && isset( $query_response_all_data['diamonds_by_query']['items'] ) && is_array( $query_response_all_data['diamonds_by_query']['items'] ) /*&& count($query_response_all_data['diamonds_by_query']['items']) >= 1*/ ) ) {
+			if ( is_string( $query_response_all_data ) ) {
+				$error = $query_response_all_data;
+			} else {
+				$error = 'Unknown Error';
+			}
+
+			if ( $error ) {
+				return $error;
+			}
+		}
+
+		$query_response = $query_response_all_data['diamonds_by_query']['items'];
+
+		$counter = 1;
+
+		foreach ( $query_response as $diamond ) {
+			if ( isset( $diamond['api'] ) && $diamond['api'] == '1' ) {
+				$formated_diamond = otw_woo_ring_builder()->nivoda_diamonds->convert_local_to_vdb( $diamond );
+			} else {
+				$formated_diamond = otw_woo_ring_builder()->nivoda_diamonds->convert_nivoda_to_vdb( $diamond );
+
+				if ( $this->exclude_diamond( $formated_diamond ) ) {
+					continue;
+				}
+			}
+
+			if ( isset( $args['markup_mode'] ) && $args['markup_mode'] === 'false' ) {
+				$data[] = $formated_diamond;
+			} else {
+				$output_string .= get_looped_diamond_html( $formated_diamond );
+
+				if ( $counter == 3 && $args['page_number_nivoda'] < 2 ) {
+						$output_string .= '<div class="mobile_extra_looped_diamond extra_looped_diamond"></div>';
+				} elseif ( $counter == 8 && $args['page_number_nivoda'] < 2 ) {
+						$output_string .= '<div class="desktop_extra_looped_diamond extra_looped_diamond"></div>';
+				}
+			}
+
+			++$counter;
+		}
+
+		if ( isset( $query_response_all_data['diamonds_by_query_count'] ) && $query_response_all_data['diamonds_by_query_count'] >= 1 ) {
+			$total_diamonds_found = $query_response_all_data['diamonds_by_query_count'];
+		}
+
+		if ( isset( $args['markup_mode'] ) && $args['markup_mode'] === 'false' ) {
+			return array(
+				'total_diamonds_found' => $total_diamonds_found,
+				'data'                 => $data,
+			);
+		} else {
+			return array(
+				'total_diamonds_found' => $total_diamonds_found,
+				'data'                 => $output_string,
+			);
+		}
+	}
 }
