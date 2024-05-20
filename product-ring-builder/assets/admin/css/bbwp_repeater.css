@@ -1,0 +1,39 @@
+
+.bbwp_repeatable_fields{
+  margin:0px;
+  padding:0px;
+  list-style-type: none;
+}
+.bbwp_repeatable_fields li{
+  border:1px solid #d5dadf;
+  padding:0;
+  margin:0 0 15px 0;
+}
+.bbwp_repeatable_fields li h3{
+  border-bottom:1px solid #d5dadf;
+  background-color: #ccc;
+  /*float:left;*/
+  margin:0px 0 0px 0;
+  padding:10px;
+  display:flex;
+  justify-content: space-between;
+}
+.bbwp_repeatable_fields li .bbwp_repeater_delete_item{
+  z-index: 2;
+  cursor: pointer;
+}
+.bbwp_repeatable_fields li .bbwp_repeater_delete_item:hover{
+  color:#f00;
+}
+.bbwp_repeatable_fields .bbwp_repeater_item_container{
+  padding:10px;
+}
+.bbwp_repeater_add_new_item_button{
+  text-transform: uppercase;
+  display:inline-flex!important;
+  align-items: center;
+  font-size:15px;
+}
+.bbwp_repeater_add_new_item_button span{
+  margin-right:5px;
+}

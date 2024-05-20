@@ -1,0 +1,100 @@
+.gcpb-repeater {
+    background-color: #fff;
+    padding: 24px;
+    width: 100%;
+    max-width: 750px;
+}
+.gcpb-repeater-item {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+}
+.gcpb-repeater-item {
+    display: flex;
+}
+.gcpb-field.gcpb-field-filter {
+    padding: 10px 10px;
+    margin-bottom: 16px;
+}
+.gcpb-field {
+    padding: 10px 10px;
+}
+.gcpb-field label {
+    display: block;
+    margin-bottom: 5px;
+}
+.gcpb-inner-repeater {
+    border: 1px solid grey;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+.gcpb-field.gcpb-field-term {
+    width: 40%;
+}
+.gcpb-field.gcpb-field-icon a {
+    border: none;
+}
+.gcpb-field.gcpb-field-icon {
+    width: 20%;
+}
+.gcpb-field.gcpb-field-icon img {
+    width: 60px;
+    height: 60px;
+}
+.gcpb-field.gcpb-field-action {
+    width: 15%;
+}
+.gcpb-inner-repeater .gcpb-inner-list {
+    width: 40%;
+}
+.gcpb-field .gcpb-upload img {
+    display: block;
+    max-width: 100%;
+}
+.gcpb-sub-repeater-field {
+    display: flex;
+    width: 100%;
+}
+.gcpb-repeater-child {
+    display: flex;
+    width: 100%;
+}
+.gcpb-parent.ui-sortable-handle {
+    --spacing: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing);
+    margin-bottom: var(--spacing);
+    border-bottom: 1px solid;
+    padding-bottom: var(--spacing);
+}
+
+.gcpb-repeater-parent {
+    display: flex;
+    gap: 1rem;
+}
+
+
+.gcpb-field {
+    min-width: 250px;
+}
+
+
+.drag.gcpb-child.repeater-block.ui-sortable {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing);
+}
+
+.gcpb-repeater-child {
+    display: flex;
+    gap: 1rem;
+}
+
+.gcpb-field.gcpb-field-icon img {
+    max-width: 150px;
+}
+
+.gcpb-field-media img {
+    max-width: 200px;
+}

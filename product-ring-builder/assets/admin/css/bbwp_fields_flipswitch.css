@@ -1,0 +1,50 @@
+.bbwp_fields_container .bbwp_flipswitch {
+  position: relative;
+  background: #CECECE;
+  width: 40px;
+  height: 18px;
+  -webkit-appearance: initial;
+  border-radius: 15px;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  outline: none;
+  font-size: 14px;
+  font-family: Trebuchet, Arial, sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+.bbwp_fields_container .bbwp_flipswitch:after {
+  position: absolute;
+  top: 5%;
+  display: block;
+  line-height: 32px;
+  width: 41%;
+  height: 87%;
+  background: #fff;
+  box-sizing: border-box;
+  text-align: center;
+  transition: all 0.3s ease-in 0s;
+  color: black;
+  border: #888 1px solid;
+  border-radius: 50%;
+}
+.bbwp_fields_container .bbwp_flipswitch:after {
+  left: 2%;
+  content: "";
+  background-color: #fff;
+}
+.bbwp_fields_container .bbwp_flipswitch:checked:after {
+  left: 53%;
+  content: "";
+  background-color: #fff;
+}
+.bbwp_fields_container .bbwp_flipswitch:checked:before {
+  display: none;
+}
+.bbwp_fields_container .bbwp_flipswitch:checked {
+  background: #2296F4;
+}
+/*.bbwp_fields_container .bbwp_flipswitch:checked + .module-setting {
+  display: block;
+}*/

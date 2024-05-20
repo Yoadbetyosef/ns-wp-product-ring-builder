@@ -1,0 +1,51 @@
+@import "bbwp_fields_flipswitch.css";
+@import "bbwp_fields_image.css";
+@import "bbwp_repeater.css";
+.form-table textarea, 
+.form-table input[type='text'], 
+.form-table input[type='password'], 
+.form-table input[type='email'], 
+.form-table input[type='url'],
+.form-table input[type='number']
+{
+	width:600px;
+	max-width: 100%;
+}
+.form-table .select2-container{
+	width:600px!important;
+	max-width: 100%!important;
+}
+a.bbwp_dismiss_icon{
+	text-decoration: none;
+	cursor: pointer;
+	width: 20px;
+	height: 20px;
+}
+a.bbwp_dismiss_icon:hover::before{
+	color:#f00;
+}
+a.bbwp_dismiss_icon::before{
+	background: 0 0;
+  color: #b4b9be;
+  content: "\f153";
+  display: inline-block;
+  font: 400 20px/20px dashicons;
+  height: 20px;
+  text-align: center;
+  width: 20px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.bbwp_fields_tag_check_list span{
+	display: block;
+  margin-top:5px;
+}
+.bbwp_fields_tag_check_list span a{
+	display: inline-block;
+	position:relative;
+}
+.bbwp_fields_tag_check_list span a::before{
+	display: block;
+	top:0px;
+	position: absolute;
+}
