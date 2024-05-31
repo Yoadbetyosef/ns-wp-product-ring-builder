@@ -396,7 +396,7 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 
 					if ( is_array( $api_data ) && isset( $api_data['data'] ) && $api_data['data'] ) {
 						if ( isset( $args['markup_mode'] ) && $args['markup_mode'] === 'false' ) {
-							$data[] = $api_data['data'];
+							$data = array_merge( $data, $api_data['data'] );
 						} else {
 							$output .= $api_data['data'];
 						}
@@ -422,6 +422,8 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 						'message'     => 'success',
 						'data'        => wp_json_encode( $data ),
 						'page_number' => $args['page_number'],
+						'page_size'   => $args['page_size'],
+						'total'       => $total_diamonds,
 					)
 				);
 			} else {

@@ -1232,7 +1232,6 @@ jQuery(document).ready(function($){
                 
             },
             success: function(result){
-                
                 // variation_data = result;
                 $this.parents('.gcpb-product-wrapper').find(".gcpb-product-image picture webgi-viewer").remove();
 
@@ -1359,7 +1358,6 @@ const gcpb_utility_functions = {
         }
     },
     create_swiper: function(data, target){
-
         if(!data.length >= 1)
             return false;
         
