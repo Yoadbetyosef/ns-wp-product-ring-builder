@@ -2586,6 +2586,16 @@ img.gcpb-available-metal-swatch.gcpb-swatch {
     filter: grayscale(1) brightness(0)!important;
 }
 
+.swiper-button-next:after,
+.swiper-button-prev:after {
+    content: none !important;
+}
+
+.swiper-wrapper {
+    overflow: visible !important;
+}
+
+
 
 /* QUERIED PRODUCTS GRID  */
 li.gcpb-product-grid-insert {

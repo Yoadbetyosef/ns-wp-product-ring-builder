@@ -1,4 +1,5 @@
 var otw_gcpb_current_post_request;
+
 if (typeof mobileAndTabletCheck != 'function') {
 function mobileAndTabletCheck() {
     let check = false;
@@ -7,6 +8,7 @@ function mobileAndTabletCheck() {
     return check
 }
 }
+
 if (typeof setup_three_d_viewer != 'function') {
     function setup_three_d_viewer(viewer) {
         // viewer.addPlugin(DebugPlugin);
@@ -41,7 +43,6 @@ if (typeof setup_three_d_viewer != 'function') {
         //
     }
 }
-
 
 if (typeof generateRandomString != 'function') {
     function generateRandomString(length) {
@@ -86,12 +87,13 @@ if (typeof dom_setup_three_d_viewer != 'function') {
             });
         });
     }
-};
+}
+
 if (typeof dispose_all_webgi_viewers != 'function') {
     function dispose_all_webgi_viewers() {
         jQuery("webgi-viewer").remove();
     }
-};
+}
 
 if (typeof scroll_to_specific_element != 'function') {
     function scroll_to_specific_element(element) {
@@ -256,7 +258,6 @@ if (typeof get_selected_single_setting_filter_mobile != 'function') {
     }
 }
 
-
 if (typeof get_selected_clarity_data != 'function') {
     function get_selected_clarity_data() {
         var output = '';
@@ -352,12 +353,10 @@ if (typeof create_selected_clarity_data != 'function') {
     }
 }
 
-
-
-
 jQuery(document).ready(function($){
     dom_setup_three_d_viewer();
 });
+
 jQuery(document).ready(function($){
     // gcpb_new_products_loaded();
     if(!otw_woo_ring_builder.wp_is_mobile)
@@ -1387,7 +1386,7 @@ const gcpb_utility_functions = {
             slidesPerView: 1,
             spaceBetween: 10,
             loop: true,
-            autoplay: true,
+            autoplay: false,
             // loopedSlides: 4,
             navigation: {
                 nextEl: '#gcpb_swiper_'+random_id+' .gcpb_swiper_arrows .swiper-button-next',
@@ -1473,7 +1472,8 @@ const gcpb_utility_functions = {
         if (!results[2]) return '';
         return decodeURIComponent(results[2].replace(/\+/g, ' '));
     }
-};
+}
+
 jQuery(document).ready(function($){
 
     gcpb_utility_functions.init();
@@ -1482,8 +1482,6 @@ jQuery(document).ready(function($){
     if(shape_mismatch != 'undefined' && shape_mismatch && shape_mismatch == 'mismatch')
         $(".gcpb-diamond-out-of-stock").show();
 });
-    
-
 
 /****************************** */
 /***** Product loop page javascript *******/
@@ -1562,7 +1560,8 @@ const gcpb_product_loop_data = {
                 return false;
             });
     },
-};
+}
+
 jQuery(document).ready(function($){
     gcpb_product_loop_data.init();
 
@@ -1803,9 +1802,6 @@ if (typeof update_total_fetched_stones != 'function') {
         console.log(jQuery(".otw_total_fetched_stones").html());
     }
 }
-
-
-
 
 function trigger_stone_filter_more() {
     if(jQuery(".show_more_diamond_pagination").length >= 1){
@@ -2146,6 +2142,7 @@ jQuery(document).ready(function($){
     
     
 });
+
 /****************************** */
 /***** Select Diamonds Page *******/
 /****************************** */
@@ -2157,6 +2154,7 @@ jQuery(document).ready(function($){
 /****************************** */
 /***** Product loop page javascript *******/
 /****************************** */
+
 const gcpb_single_product_data = {
 
     // view: {},
@@ -2277,6 +2275,7 @@ jQuery(document).ready(function($){
 /****************************** */
 /***** checkout page script *******/
 /****************************** */
+
 jQuery(document).ready(function($){
 
     $('.gcpb-diamond-certificate-toggle').on('click', function(event) {
@@ -2369,6 +2368,7 @@ jQuery(document).ready(function($){
     });
     
 });
+
 /****************************** */
 /***** checkout page script *******/
 /****************************** */
@@ -2449,6 +2449,7 @@ jQuery(document).ready(function($){
 /****************************** */
 /***** All pages script *******/
 /****************************** */
+
 jQuery(document).ready(function($){
 
     
