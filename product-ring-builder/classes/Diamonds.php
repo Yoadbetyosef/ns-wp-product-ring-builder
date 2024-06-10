@@ -434,12 +434,20 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 					$data = otw_woo_ring_builder()->vdb_diamonds->get_diamond_by_stock_num( $stock_num );
 				}
 
-				wp_send_json_success(
-					array(
-						'message' => 'success',
-						'data'    => wp_json_encode( $data ),
-					)
-				);
+				if ( ! is_array( $data ) ) {
+					wp_send_json_success(
+						array(
+							'message' => 'error',
+						)
+					);
+				} else {
+					wp_send_json_success(
+						array(
+							'message' => 'success',
+							'data'    => wp_json_encode( $data ),
+						)
+					);
+				}
 
 				die();
 			}
