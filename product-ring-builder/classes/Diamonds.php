@@ -1,7 +1,6 @@
 <?php
 namespace OTW\WooRingBuilder\Classes;
 
-// exit if file is called directly
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -447,9 +446,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		}
 	}
 
-	/******************************************/
-	/***** get_diamond_by_stock_num **********/
-	/******************************************/
 	public function get_diamond_by_stock_num( $stock_num ) {
 		if ( isset( $this->current_diamond ) &&
 			$this->current_diamond &&
@@ -498,9 +494,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		return $diamond;
 	}
 
-	/******************************************/
-	/***** get_current_diamond **********/
-	/******************************************/
 	public function get_current_diamond() {
 		if ( ! ( isset( $_GET['stock_num'] ) && $_GET['stock_num'] ) ) {
 			return false;
@@ -518,9 +511,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		return $diamond;
 	}
 
-	/******************************************/
-	/***** exclude_diamond **********/
-	/******************************************/
 	public function exclude_diamond( $diamond ) {
 		// if (strpos($diamond['stock_num'], 'Demo') !== false)
 		//   return true;
@@ -546,9 +536,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		return false;
 	}
 
-	/******************************************/
-	/***** is_nivoda_diamond **********/
-	/******************************************/
 	public function is_nivoda_diamond( $stock_num ) {
 		$result = substr( $stock_num, 0, 7 );
 		if ( $result == 'nivoda-' ) {
@@ -557,9 +544,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		return false;
 	}
 
-	/******************************************/
-	/***** get_api_order **********/
-	/******************************************/
 	public function get_api_order() {
 		$output = array();
 
@@ -586,9 +570,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		return $output;
 	}
 
-	/******************************************/
-	/***** get_vdb_diamonds_data **********/
-	/******************************************/
 	public function get_vdb_diamonds_data( $args ) {
 		$total_diamonds_found = 0;
 
@@ -651,9 +632,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		}
 	}
 
-	/******************************************/
-	/***** get_nivoda_diamonds_data **********/
-	/******************************************/
 	public function get_nivoda_diamonds_data( $args ) {
 		$total_diamonds_found = 0;
 
