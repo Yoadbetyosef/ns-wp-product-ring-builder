@@ -7,7 +7,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class Diamonds extends \OTW\WooRingBuilder\Plugin {
-
 	use \OTW\GeneralWooRingBuilder\Traits\Singleton;
 
 	public $page_size = 20;
@@ -27,15 +26,16 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		add_action( 'init', array( $this, 'init' ) );
 	}
 
-	/******************************************/
-	/***** init **********/
-	/******************************************/
 	public function init() {
 		add_action( 'wp_ajax_nopriv_fetch_stones', array( $this, 'fetch_stones' ) );
 
 		add_action( 'wp_ajax_fetch_stones', array( $this, 'fetch_stones' ) );
 
 		add_action( 'render_diamnod_similar_items', array( $this, 'render_diamnod_similar_items' ) );
+
+		add_action( 'wp_ajax_nopriv_fetch_stone_by_id', array( $this, 'fetch_stone_by_id' ) );
+
+		add_action( 'wp_ajax_fetch_stone_by_id', array( $this, 'fetch_stone_by_id' ) );
 	}
 
 	public function render_diamnod_similar_items( $diamond ) {
@@ -53,10 +53,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		$this->get_loop_diamonds( $args );
 	}
 
-
-	/******************************************/
-	/***** render_diamnods_loop **********/
-	/******************************************/
 	public function get_default_diamond_api_args() {
 		$args = array(
 			'type'               => 'Lab_grown_Diamond',
@@ -87,16 +83,10 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		return $args;
 	}
 
-	/******************************************/
-	/***** render_diamnods_loop **********/
-	/******************************************/
 	public function render_diamnods_loop() {
 		$this->get_loop_diamonds( $this->get_default_diamond_api_args() );
 	}
 
-	/******************************************/
-	/***** get_loop_diamonds **********/
-	/******************************************/
 	public function get_loop_diamonds( $args ) {
 		include_once plugin_dir_path( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'views/loop/diamond-loop.php';
 		$i = 1;
@@ -158,10 +148,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		return true;
 	}
 
-
-	/******************************************/
-	/***** get_diamonds_pagination **********/
-	/******************************************/
 	public function get_diamonds_pagination( $total_diamonds, $args ) {
 		$output = ' ';
 		$total_fetched = (int) $args['page_size'] * (int) $args['page_number'];
@@ -184,10 +170,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		return $output;
 	}
 
-
-	/******************************************/
-	/***** fetch_stones **********/
-	/******************************************/
 	public function fetch_stones() {
 		if ( isset( $_POST['query_string'] ) && ! empty( $_POST['query_string'] ) ) {
 			parse_str( $_POST['query_string'], $params );
@@ -441,33 +423,54 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		}
 	}
 
+	public function fetch_stone_by_id() {
+		if ( isset( $_POST['query_string'] ) && ! empty( $_POST['query_string'] ) ) {
+			parse_str( $_POST['query_string'], $params );
+			if ( isset( $params['diamond_id'] ) && ! empty( $params['diamond_id'] ) ) {
+				$stock_num = $params['diamond_id'];
+
+				if ( $this->is_nivoda_diamond( $stock_num ) ) {
+					$data = otw_woo_ring_builder()->nivoda_diamonds->get_diamond_by_stock_num( $stock_num );
+				} else {
+					$data = otw_woo_ring_builder()->vdb_diamonds->get_diamond_by_stock_num( $stock_num );
+				}
+
+				wp_send_json_success(
+					array(
+						'message' => 'success',
+						'data'    => wp_json_encode( $data ),
+					)
+				);
+
+				die();
+			}
+		}
+	}
+
 	/******************************************/
 	/***** get_diamond_by_stock_num **********/
 	/******************************************/
 	public function get_diamond_by_stock_num( $stock_num ) {
-
-		// if(isset($_GET['test'])){
-		//   db($_SESSION['current_diamond']);
-		//   db($_GET['stock_num']);
-		// }
-
-		if ( isset( $this->current_diamond ) && $this->current_diamond && isset( $this->current_diamond['stock_num'] ) && $this->current_diamond['stock_num'] == $stock_num ) {
+		if ( isset( $this->current_diamond ) &&
+			$this->current_diamond &&
+			isset( $this->current_diamond['stock_num'] ) &&
+			$this->current_diamond['stock_num'] == $stock_num
+		) {
 			return $this->current_diamond;
 		}
 
-		// if(isset($_SESSION['current_diamond']) && $_SESSION['current_diamond'] && isset($_SESSION['current_diamond']['stock_num']) && $_GET['stock_num'] == $_SESSION['current_diamond']['stock_num']){
-		//   $this->current_diamond = $_SESSION['current_diamond'];
-		//   return $this->current_diamond;
-		// }
-
-		if ( function_exists( 'WC' ) && isset( WC()->session ) && is_object( WC()->session ) /*&& strpos($_SERVER['REQUEST_URI'], 'complete-your-ring') === false*/ ) {
-
-			// Empty session data.
-			// WC()->session->set( 'gcpb_current_diamond', null );
-
+		if ( function_exists( 'WC' ) &&
+			isset( WC()->session ) &&
+			is_object( WC()->session )
+		) {
 			$sessioned_diamond = WC()->session->get( 'gcpb_current_diamond' );
-			if ( $sessioned_diamond && isset( $sessioned_diamond['stock_num'] ) && $_GET['stock_num'] == $sessioned_diamond['stock_num'] ) {
+
+			if ( $sessioned_diamond &&
+				isset( $sessioned_diamond['stock_num'] ) &&
+				$_GET['stock_num'] == $sessioned_diamond['stock_num']
+			) {
 				$this->current_diamond = $sessioned_diamond;
+
 				return $this->current_diamond;
 			}
 		}
@@ -485,14 +488,14 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 
 		$this->current_diamond = $diamond;
 
-		if ( function_exists( 'WC' ) && isset( WC()->session ) && is_object( WC()->session ) ) {
+		if ( function_exists( 'WC' ) &&
+			isset( WC()->session ) &&
+			is_object( WC()->session )
+		) {
 			WC()->session->set( 'gcpb_current_diamond', $diamond );
 		}
-		// $_SESSION['current_diamond'] = $diamond;
-		// db($body['data']['diamonds_by_query']);
-		return $diamond;
 
-		// return $response;
+		return $diamond;
 	}
 
 	/******************************************/
@@ -504,12 +507,14 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		}
 
 		$stock_num = $_GET['stock_num'];
+
 		$diamond = $this->get_diamond_by_stock_num( $stock_num );
 
 		if ( ! is_array( $diamond ) ) {
 			$error_message = 'Sorry, we could not connect with diamonds API';
 			return $error_message;
 		}
+
 		return $diamond;
 	}
 

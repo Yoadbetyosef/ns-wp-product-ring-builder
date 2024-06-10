@@ -359,14 +359,17 @@ jQuery(document).ready(function($){
 
 jQuery(document).ready(function($){
     // gcpb_new_products_loaded();
-    if(!otw_woo_ring_builder.wp_is_mobile)
+    if (!otw_woo_ring_builder.wp_is_mobile) {
         gcpb_load_video();
+    }
 
     get_selected_setting_filter_mobile();
-    get_selected_single_setting_filter_mobile();
-    get_selected_diamond_filter_mobile();
-    var query_string;
 
+    get_selected_single_setting_filter_mobile();
+
+    get_selected_diamond_filter_mobile();
+
+    var query_string;
 
     if($('.js-product-archive-grid').length > 0) {
         // console.log(otw_woo_ring_builder);
@@ -390,7 +393,6 @@ jQuery(document).ready(function($){
         trigger_product_filter(query_string, false);
     }
 
-    /* query builder for products */
     function build_filter_query(query_params = {}) {
 
         var query_string = 'filter=1';
@@ -514,9 +516,7 @@ jQuery(document).ready(function($){
             },
         });
     }
-    
 
-    /* main filter for products  */
     $(document).on('click', '.gcpb-custom-filter-button', function(event){
 
         setLocalStorage($(this).data('filter-name'), $(this).data('filter-value'));
@@ -549,8 +549,6 @@ jQuery(document).ready(function($){
         return false;
         // console.log(query_string);
     });
-
-    
 
     /* specific product variation loader inside loop  */
     function get_single_product_variation_data($this, variation_query) {
@@ -708,18 +706,13 @@ jQuery(document).ready(function($){
         // $('body').trigger('click');
         // $(this).find(".gcpb-media-tabs-product-loop .tab-3d").trigger('click');
     });
-    // $(document).on('mouseover','.gcpb-product-card', function(){
-    //     if(otw_woo_ring_builder.wp_is_mobile)
-    //         return false;
-    //     $(this)./*parents(".gcpb-product-card").*/addClass('opened');
-    //     $(this)./*parents(".gcpb-product-card").*/removeClass('card-opened');
-    //     $('body').addClass("card-opened");
-    // });
     
     /* laod 3d model image on hover */
     $(document).on('mouseleave','.gcpb-prod-card__images:not(.gcpb-prod-card__images.model-loaded,.gcpb-prod-card__images.model-loading)', function(){
-        if(otw_woo_ring_builder.wp_is_mobile)
+        if (otw_woo_ring_builder.wp_is_mobile) {
             return false;
+        }
+
         $(this).removeClass('gcpb-mouseover');
     });
 
@@ -1161,43 +1154,6 @@ jQuery(document).ready(function($){
         
     });
 
-    /* link product to setting page */
-
-    // $(document).on('click', '.js-product-link',function(event){
-    //     event.preventDefault();
-
-    //     var $product_card = $(this).parents('.gcpb-product-card');
-
-    //     var $variation_id = $product_card.attr('data-variation-id');
-    //     var $product_id = $product_card.attr('data-product-id');
-
-    //     console.log($product_id);
-    //     console.log($variation_id);
-
-    //     $.ajax({
-    //         type: 'POST',
-    //         url: ajax_ring_obj.ajaxurl,
-    //         async:   true,
-    //         data: { 
-    //             'action': 'gcpb_link_single_product', 
-    //             'variation_id': $variation_id,
-    //             'product_id' : $product_id
-    //         },
-    //         beforeSend: function() {
-    //             // $this.parents('.gcpb-product-card').addClass('loading');
-    //         },
-    //         success: function(data){
-    //             var result = JSON.parse(data);
-                
-                 
-    //         },
-    //         error: function(xhr) { // if error occured
-    //             alert("Error occured.please try again");
-    //         },
-    //     });
-
-    // });
-
     /* single product accordian */
 
     $('.gcpb-accordion-title').on('click', function(event){
@@ -1346,8 +1302,6 @@ jQuery(document).ready(function($){
         event.stopImmediatePropagation();
         return false;
     });
-    
-
 });
 
 const gcpb_utility_functions = {
@@ -1483,9 +1437,6 @@ jQuery(document).ready(function($){
         $(".gcpb-diamond-out-of-stock").show();
 });
 
-/****************************** */
-/***** Product loop page javascript *******/
-/****************************** */
 const gcpb_product_loop_data = {
 
     // view: {},
@@ -1572,11 +1523,6 @@ jQuery(document).ready(function($){
     });
 });
 
-
-/****************************** */
-/***** Select Diamonds Page Loop *******/
-/****************************** */
-
 function render_3d_stone_with_iframe($this){
     if($this.hasClass('gcpb-mouseover')){
         // $this.addClass('model-loading');
@@ -1611,7 +1557,6 @@ function render_3d_stone_with_iframe($this){
     }
 }
 
-/* query builder for products */
 function build_filter_stone_query(query_params = {}) {
     let query_string = 'filter=1';
     jQuery('.gcpb-custom-filter-button.selected').each(function(){
@@ -1877,6 +1822,7 @@ if (typeof gcpb_remove_iframe_loading_class != 'function') {
         });
     }
 }
+
 jQuery(document).ready(function($){
 
     // window.addEventListener(
@@ -2138,9 +2084,6 @@ jQuery(document).ready(function($){
             gcpb_product_card_toggle($(this), event);
         });
     }
-
-    
-    
 });
 
 /****************************** */
@@ -2156,26 +2099,19 @@ jQuery(document).ready(function($){
 /****************************** */
 
 const gcpb_single_product_data = {
-
-    // view: {},
-    // active_status: '',
-
     init: function () {
-
         jQuery(document).on('click','.gcpb-media-tabs .gcpb-media-tab', function(event){
-            
             event.preventDefault();
+
             event.stopPropagation();
+
             event.stopImmediatePropagation();
 
-            jQuery('.gcpb-product-image-wrapper').removeClass('otw_container_loading');
-    
-            // if(jQuery(this).hasClass("active"))
-            //     return false;
-    
+            jQuery('.gcpb-product-image-wrapper').removeClass('otw_container_loading');    
                 
             if(jQuery(this).hasClass("tab-video")){
                 setLocalStorage('gcpb_selected_media_tab', 'video');
+
                 if(!jQuery(".gcpb-product-image-wrapper .gcpb-product-image video").length >= 1){
                     jQuery(".gcpb-product-image-wrapper .gcpb-product-image picture").append(jQuery(".gcpb-thumbnails__content video").clone());
                     if(jQuery('body').hasClass("page-template-template-setting-single") && otw_woo_ring_builder.wp_is_mobile){
@@ -2183,16 +2119,20 @@ const gcpb_single_product_data = {
                     }
                     gcpb_load_video();
                 }
+
                 jQuery(".gcpb-product-image-wrapper .gcpb-product-image video").show();
+
                 jQuery(".gcpb-product-image-wrapper .gcpb-product-image webgi-viewer").hide();
+
                 jQuery(".gcpb-product-image-wrapper .gcpb-product-image .gcpb_swiper").hide();
-            }else if(jQuery(this).hasClass("tab-gallery")){
-                
+            }else if(jQuery(this).hasClass("tab-gallery")){                
                 setLocalStorage('gcpb_selected_media_tab', 'gallery');
+
                 let gcbp_product_card_media_wrapper = jQuery(".gcpb-product-image-wrapper .gcpb-product-image");
                 
                 if(!gcbp_product_card_media_wrapper.find('.gcpb_swiper').length >= 1){
                     let gallery_images = [];
+
                     jQuery(".gcpb-thumbnails__content img").each(function(){
                         if(jQuery(this).hasClass("gcpb-product-gallery-thumb")){
                             if(jQuery(this).attr('data-lazy-src') && jQuery(this).attr('data-lazy-src') != 'undefined')
@@ -2209,7 +2149,9 @@ const gcpb_single_product_data = {
                 }
 
                 jQuery(".gcpb-product-image-wrapper .gcpb-product-image video").hide();
+
                 jQuery(".gcpb-product-image-wrapper .gcpb-product-image webgi-viewer").hide();
+
                 jQuery(".gcpb-product-image-wrapper .gcpb-product-image .gcpb_swiper").show();
             }else{
                 setLocalStorage('gcpb_selected_media_tab', 'webgi-viewer');
@@ -2222,37 +2164,46 @@ const gcpb_single_product_data = {
             }
     
             jQuery('.gcpb-media-tabs .gcpb-media-tab').removeClass('active');
+
             jQuery(this).addClass("active");
+
             return false;
         });
         
-    },
-    
-    
+    }  
 };
 
+/****************************** */
+/***** Single product page script *******/
+/****************************** */
+
 jQuery(document).ready(function($){
-
-    
-
     $(document).on('click','.otw_select_diamond_dynamic_url', function(event){
         let redirect_url = $(this).data('stone-url');
+
         let product_id = $(this).data('product_id');
+
         let variation_id = $(this).data('variation_id');
+
         let stock_num = $(this).data('stock_num');
 
         if(product_id)
             redirect_url += "?product_id="+product_id;
+
         if(variation_id)
             redirect_url += "&variation_id="+variation_id;
+
         if(stock_num)
             redirect_url += "&stock_num="+stock_num;
 
         window.location.href = redirect_url;
         
         event.preventDefault();
+
         event.stopPropagation();
+
         event.stopImmediatePropagation();
+
         return false;
     });
 
@@ -2269,23 +2220,15 @@ jQuery(document).ready(function($){
 });
 
 /****************************** */
-/***** Single product page script *******/
-/****************************** */
-
-/****************************** */
 /***** checkout page script *******/
 /****************************** */
 
 jQuery(document).ready(function($){
-
     $('.gcpb-diamond-certificate-toggle').on('click', function(event) {
 		event.preventDefault();
 		$('.gcpb-diamond-certificate-popup').toggleClass('open');
         $('body').toggleClass('card-opened');
 	});
-
-    // $(".gcpb-selected-images__featured_setting picture webgi-viewer").css("display", "none");
-    // $(".gcpb-selected-images__featured_stone picture .diamond_3d_stone").css("display", "none");
     
     $(document).on('click','.gcpb_variation_featured_image', function(event){
         $(".gcpb-selected-images__featured_setting picture img").show();
@@ -2295,6 +2238,7 @@ jQuery(document).ready(function($){
         event.stopImmediatePropagation();
         return false;
     });
+
     $(document).on('click','.gcpb_variation_three_d_image', function(event){
         $(".gcpb-selected-images__featured_setting picture img").hide();
         $(".gcpb-selected-images__featured_setting picture webgi-viewer").css("display", "block");
@@ -2304,7 +2248,6 @@ jQuery(document).ready(function($){
         return false;
     });
 
-
     $(document).on('click','.gcpb_stone_featured_image', function(event){
         $(".gcpb-selected-images__featured_stone picture img").show();
         $(".gcpb-selected-images__featured_stone picture .diamond_3d_stone").css("display", "none");
@@ -2313,6 +2256,7 @@ jQuery(document).ready(function($){
         event.stopImmediatePropagation();
         return false;
     });
+
     $(document).on('click','.gcpb_stone_three_d_image', function(event){
         $(".gcpb-selected-images__featured_stone picture img").hide();
         $(".gcpb-selected-images__featured_stone picture .diamond_3d_stone").css("display", "block");
@@ -2323,8 +2267,8 @@ jQuery(document).ready(function($){
     });
 
     $(document).on('click','.gcpb-product-content-wrapper form button.gcpb-button', function(event){
-        console.log('testss');
         let size_value = $(this).parents('form').find('#size-selector').val();
+
         if(size_value && size_value != '' && size_value != '0'){
                 return true;
         }else{
@@ -2334,39 +2278,16 @@ jQuery(document).ready(function($){
             }
             $(this).parents('form').find('.form_error').html('Please select ring size.');
         }
+
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
         return false;
     });
+
     $(document).on('change','#size-selector', function(event){
         $(this).parents('form').find('.form_error').html('');
     });
-
-    $(document).on('click','.gcpb-add-to-cart-button', function(event){
-        
-        /*let size_value = $(this).parents('form').find('#size-selector').val();
-        if(size_value && size_value != '' && size_value != '0'){
-            let redirect_url = $(this).attr('href');
-            redirect_url = redirect_url+'&size-selector='+size_value;
-            window.location.href = redirect_url;
-            event.preventDefault();
-            event.stopPropagation();
-            event.stopImmediatePropagation();
-            return false;
-        }else{
-            let form_error = $(this).parents('form').find('.required_fields_message');
-            if(form_error.length <= 0){
-                $(this).parents('form').find('.gcpb-completed-total-price').after('<p class="required_fields_message"></p>');
-            }
-            $(this).parents('form').find('.required_fields_message').html('Please select size.').show();
-        }
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-        return false;*/
-    });
-    
 });
 
 /****************************** */
@@ -2376,25 +2297,36 @@ jQuery(document).ready(function($){
 jQuery(document).ready(function($){
     $(document).on('click','.gcpb-completed-wrapper form .gcpb-checkout-button', function(event){
         let size_selector_value = $("#size-selector").val();
-        if(size_selector_value && size_selector_value != '0')
-            return true;
+        
+        if (size_selector_value && size_selector_value != '0') return true;
+        
         $(".required_fields_message").show();
+        
         event.preventDefault();
+        
         event.stopPropagation();
+        
         event.stopImmediatePropagation();
-        // window.location.href = $(this).data('url');
-        // $(this).find(".gcpb-step__title").trigger("click");
+
         return false;
     });
 
     $(document).on('click','.gcpb-completed-wrapper form .gcpb-add-to-cart-button', function(event){
         let size_selector_value = $(this).parents('form').find('#size-selector').val();
+
         let product_id = $(this).data('product_id');
+
         let variation_id = $(this).data('variation_id');
-        // console.log(product_id);
-        if(size_selector_value && size_selector_value != '' && size_selector_value != '0' && product_id && variation_id)
-        {
+
+        if (
+            size_selector_value && 
+            size_selector_value != '' && 
+            size_selector_value != '0' && 
+            product_id && 
+            variation_id
+        ) {
             $(this).parents('form').find('.required_fields_message').hide();
+
             $.ajax({
                 type: 'POST',
                 url: ajax_ring_obj.ajaxurl,
@@ -2406,10 +2338,9 @@ jQuery(document).ready(function($){
                     'product_id': product_id,
                 },
                 beforeSend: function() {
-                        $('body').addClass('otw_container_loading');
+                    $('body').addClass('otw_container_loading');
                 },
                 success: function(data){
-
                     if(typeof data == 'object'){
                         for (var key in data) {
                             if (data.hasOwnProperty(key)) {
@@ -2418,32 +2349,38 @@ jQuery(document).ready(function($){
                                 }
                             }
                         }
-                        $(".elementor-menu-cart__subtotal strong").html("Total: ");
-                        $(".sidecart-toggle .cart-icon").trigger('click');
 
+                        $(".elementor-menu-cart__subtotal strong").html("Total: ");
+
+                        $(".sidecart-toggle .cart-icon").trigger('click');
                     }
+
                     $('body').removeClass('otw_container_loading');
-                    // var result = JSON.parse(data);
-                    // console.log(result);
                 },
-                error: function(xhr) { // if error occured
+                error: function(xhr) {
                     alert("Error occured.please try again");
+
                     $('body').removeClass('otw_container_loading');
                 },
             });
-        }else{
+        } else {
             let form_error = $(this).parents('form').find('.required_fields_message');
+
             if(form_error.length <= 0){
                 $(this).parents('form').find('.gcpb-completed-total-price').after('<p class="required_fields_message"></p>');
             }
+
             $(this).parents('form').find('.required_fields_message').html('Please select size.').show();
         }
+
         event.preventDefault();
+
         event.stopPropagation();
+
         event.stopImmediatePropagation();
+
         return false;
     });
-    
 });
 
 /****************************** */
@@ -2451,48 +2388,53 @@ jQuery(document).ready(function($){
 /****************************** */
 
 jQuery(document).ready(function($){
-
-    
     $(".elementor-menu-cart__subtotal strong").html("Total: ");
-    $(document).on('click','.gcpb-step1, .gcpb-step2', function(event){
 
-        if($(this).hasClass('gcpb-step-completed'))
+    $(document).on('click','.gcpb-step1, .gcpb-step2', function(event){
+        if ($(this).hasClass('gcpb-step-completed')) {
             return true;
+        }
         
-        if($('body').hasClass("page-template-template-setting-single")){
+        if ($('body').hasClass("page-template-template-setting-single")){
             $(".gcpb-product-actions .otw_select_diamond_dynamic_url").trigger('click');
             return true;
         }
 
-        if($('body').hasClass("page-template-template-stone-single")){
+        if ($('body').hasClass("page-template-template-stone-single")){
             $(".gcpb-product-content-wrapper a.gcpb-product-select-btn").trigger('click');
             return true;
         }
 
         let event_object = $(event.target);
-        if(event_object.hasClass('gcpb-view-btn') || event_object.hasClass('gcpb-remove-btn') || event_object.hasClass('gcpb-step__title'))
+
+        if (event_object.hasClass('gcpb-view-btn') || event_object.hasClass('gcpb-remove-btn') || event_object.hasClass('gcpb-step__title')) {
             return true;
-        // console.log(event_object);
-        // console.log();
+        }
         
         event.preventDefault();
+
         event.stopPropagation();
+
         event.stopImmediatePropagation();
+
         window.location.href = $(this).find(".gcpb-step__title_link").attr('href');
-        // $(this).find(".gcpb-step__title").trigger("click");
+
         return false;
     });
 
     $(document).on('click','.gcpb-step3', function(event){
-
-        if(!$(this).data('url'))
+        if (!$(this).data('url')) {
             return true;
+        }
         
         event.preventDefault();
+
         event.stopPropagation();
+
         event.stopImmediatePropagation();
+
         window.location.href = $(this).data('url');
-        // $(this).find(".gcpb-step__title").trigger("click");
+
         return false;
     });
 });
