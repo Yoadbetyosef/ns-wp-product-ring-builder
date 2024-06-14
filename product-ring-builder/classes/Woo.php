@@ -16,40 +16,44 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 	}
 
 	public function init() {
+		add_action( 'init', array( $this, 'catch_url_params' ) );
+
+		// 1
+		add_action( 'wp_ajax_nopriv_gcpb_add_to_cart', array( $this, 'gcpb_add_to_cart' ) );
+		add_action( 'wp_ajax_gcpb_add_to_cart', array( $this, 'gcpb_add_to_cart' ) );
+
+		// 2
 		add_filter( 'woocommerce_add_cart_item_data', array( $this, 'add_cart_item_data' ), 25, 2 );
 
-		add_filter( 'woocommerce_get_item_data', array( $this, 'get_item_data' ), 10, 2 );
-
-		add_action( 'woocommerce_before_calculate_totals', array( $this, 'before_calculate_totals' ), 11 );
-
-		add_filter( 'woocommerce_cart_item_price', array( $this, 'cart_item_price' ), 10, 3 );
-
-		add_action( 'woocommerce_add_order_item_meta', array( $this, 'add_order_item_meta' ), 10, 3 );
-
-		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'checkout_create_order_line_item' ), 10, 4 );
-
+		// 3
 		add_action( 'woocommerce_add_to_cart', array( $this, 'woocommerce_add_to_cart' ), 99, 6 );
 
-		add_action( 'wp_ajax_nopriv_gcpb_add_to_cart', array( $this, 'gcpb_add_to_cart' ) );
+		// 4
+		add_filter( 'woocommerce_cart_item_price', array( $this, 'cart_item_price' ), 10, 3 );
 
-		add_action( 'wp_ajax_gcpb_add_to_cart', array( $this, 'gcpb_add_to_cart' ) );
+		// 5
+		add_filter( 'woocommerce_get_item_data', array( $this, 'get_item_data' ), 10, 2 );
+
+		// *
+		add_action( 'woocommerce_before_calculate_totals', array( $this, 'before_calculate_totals' ), 11 );
+
+		// *
+		add_action( 'woocommerce_add_order_item_meta', array( $this, 'add_order_item_meta' ), 10, 3 );
+
+		// *
+		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'checkout_create_order_line_item' ), 10, 4 );
 
 		add_filter( 'gettext', array( $this, 'gettext' ), 10, 3 );
 	}
 
-	public function gettext( $translated_text, $original_text, $domain ) {
-		if ( 'Checkout' === $original_text ) {
-			$translated_text = 'Secure Checkout';
-		}
-
-		if ( 'Subtotal:' === $original_text ) {
-			$translated_text = 'Total:';
-		}
-
-		return $translated_text;
+	public function catch_url_params() {
+		error_log( 'URL parameters detected: ' . print_r( $_GET, true ) );
 	}
 
+	// *
 	public function gcpb_add_to_cart() {
+		error_log( 'gcpb_add_to_cart' );
+
 		$data = array( 'error' => true );
 
 		if ( isset( $_POST['variation_id'] ) &&
@@ -98,7 +102,99 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		die();
 	}
 
-	public function woocommerce_add_to_cart( $cart_id, $product_id, $request_quantity, $variation_id, $variation, $cart_item_data ) {
+	// *
+	public function add_cart_item_data( $cart_item_data, $product_id ) {
+		error_log( 'add_cart_item_data: session id: ' . WC()->session->get_customer_id() );
+		error_log( 'add_cart_item_data: session diamond: ' . WC()->session->get( 'diamond' ) );
+
+		$parent_product = wc_get_product( $product_id );
+
+		$woocommerce_product_extra_data = isset( $_SERVER['HTTP_WOOCOMMERCE_PRODUCT_EXTRA_DATA'] )
+			? sanitize_text_field( $_SERVER['HTTP_WOOCOMMERCE_PRODUCT_EXTRA_DATA'] )
+			: null;
+
+		if ( isset( $woocommerce_product_extra_data ) ) {
+			$extra_data = json_decode( stripslashes( $woocommerce_product_extra_data ), true );
+
+			if ( json_last_error() === JSON_ERROR_NONE ) {
+				WC()->session->set( 'next_session', true );
+
+				WC()->session->set( 'next_diamond_id', $extra_data['diamond_id'] );
+
+				$ring_size = isset( $extra_data['ring_size'] ) ? sanitize_text_field( $extra_data['ring_size'] ) : '';
+			}
+		}
+
+		if ( ! $parent_product ) {
+			return $cart_item_data;
+		}
+
+		$product_cats_ids = wc_get_product_term_ids( $parent_product->get_id(), 'product_cat' );
+
+		if ( ! (
+			$product_cats_ids &&
+			is_array( $product_cats_ids ) &&
+			count( $product_cats_ids ) >= 1 &&
+			in_array( $this->get_option( 'setting_category' ), $product_cats_ids )
+		) ) {
+			return $cart_item_data;
+		}
+
+		if ( ! (
+			otw_woo_ring_builder()->diamonds &&
+			isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
+			otw_woo_ring_builder()->diamonds->current_diamond
+		) ) {
+			otw_woo_ring_builder()->diamonds->get_current_diamond();
+		}
+
+		if ( ! (
+			otw_woo_ring_builder()->diamonds &&
+			isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
+			otw_woo_ring_builder()->diamonds->current_diamond
+		) ) {
+			return $cart_item_data;
+		}
+
+		$diamond = otw_woo_ring_builder()->diamonds->current_diamond;
+
+		$cart_item_data['diamond'] = $diamond;
+
+		WC()->session->set( 'diamond', $diamond );
+
+		if ( isset( $ring_size ) ) {
+			$cart_item_data['ring_size'] = $ring_size;
+
+			WC()->session->set( 'ring_size', $ring_size );
+		}
+
+		if ( isset( $_REQUEST['size-selector'] ) && $_REQUEST['size-selector'] ) {
+			$cart_item_data['ring_size'] = $_REQUEST['size-selector'];
+
+			WC()->session->set( 'ring_size', $_REQUEST['size-selector'] );
+		}
+
+		return $cart_item_data;
+	}
+
+	// *
+	public function woocommerce_add_to_cart(
+		$cart_id,
+		$product_id,
+		$request_quantity,
+		$variation_id,
+		$variation,
+		$cart_item_data
+	) {
+		// error_log( 'woocommerce_add_to_cart: cart_id: ' . $cart_id );
+		// error_log( 'woocommerce_add_to_cart: product_id: ' . $product_id );
+		// error_log( 'woocommerce_add_to_cart: request_quantity: ' . $request_quantity );
+		// error_log( 'woocommerce_add_to_cart: variation_id: ' . $variation_id );
+		// error_log( 'woocommerce_add_to_cart: variation: ' . print_r( $variation, true ) );
+		// error_log( 'woocommerce_add_to_cart: cart_item_data: ' . print_r( $cart_item_data, true ) );
+		error_log( 'woocommerce_add_to_cart: session id: ' . WC()->session->get_customer_id() );
+		error_log( 'woocommerce_add_to_cart: session diamond: ' . WC()->session->get( 'diamond' ) );
+
 		if ( empty( $variation_id ) || ! $variation_id ) {
 			return true;
 		}
@@ -116,47 +212,71 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		$cart_items = WC()->cart->get_cart();
 
 		foreach ( $cart_items as $cart_key => $cart_item ) {
+			// error_log( 'woocommerce_add_to_cart:cart_id: ' . $cart_id );
+			// error_log( 'woocommerce_add_to_cart:cart_key: ' . $cart_key );
+			// error_log( 'woocommerce_add_to_cart:$cart_item: ' . print_r( $cart_item, true ) );
+
 			if ( $this->is_setting_product( $cart_item['data'] ) && $cart_key != $cart_id ) {
 				WC()->cart->remove_cart_item( $cart_key );
 			}
 		}
 	}
 
-	public function checkout_create_order_line_item( $item, $cart_item_key, $values, $order ) {
-		if ( ! isset( $values['diamond'] ) ) {
-			return false;
+	// *
+	public function cart_item_price( $price_html, $cart_item, $cart_item_key ) {
+		error_log( 'cart_item_price' );
+
+		if ( $this->is_setting_product( $cart_item['data'] ) ) {
+			if ( ! (
+				otw_woo_ring_builder()->diamonds &&
+				isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
+				otw_woo_ring_builder()->diamonds->current_diamond
+			) ) {
+				otw_woo_ring_builder()->diamonds->get_current_diamond();
+			}
+
+			if ( otw_woo_ring_builder()->diamonds &&
+				isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
+				otw_woo_ring_builder()->diamonds->current_diamond
+			) {
+				$diamond = otw_woo_ring_builder()->diamonds->current_diamond;
+
+				$_product = wc_get_product( $cart_item['data']->get_id() );
+
+				if ( $this->is_setting_product( $_product ) &&
+					( ( (float) $cart_item['data']->get_price() ) <= (float) $_product->get_price() )
+				) {
+					$total_ring_price = ( (float) $diamond['total_sales_price'] ) + ( (float) $cart_item['data']->get_price() );
+
+					return wc_price( $total_ring_price );
+				}
+			}
 		}
 
-		if ( isset( $values['ring_size'] ) ) {
-			$item->add_meta_data( 'Ring Size: ', $values['ring_size'] );
+		return $price_html;
+
+		if ( isset( $cart_item['custom_price'] ) ) {
+			$args = array( 'price' => 40 );
+
+			if ( WC()->cart->display_prices_including_tax() ) {
+				$product_price = wc_get_price_including_tax( $cart_item['data'], $args );
+			} else {
+				$product_price = wc_get_price_excluding_tax( $cart_item['data'], $args );
+			}
+
+			return wc_price( $product_price );
 		}
 
-		$item->add_meta_data( 'Stone', $values['diamond']['short_title'] );
-
-		if ( isset( $values['diamond']['meas_length'] ) && $values['diamond']['meas_length'] ) {
-			$item->add_meta_data( 'Dimensions', $values['diamond']['meas_length'] . '/' . $values['diamond']['meas_width'] );
-		}
-
-		if ( isset( $values['diamond']['cert_num'] ) && $values['diamond']['cert_num'] ) {
-			$item->add_meta_data( 'Certificate', $values['diamond']['cert_num'] );
-		}
-
-		$item->add_meta_data( 'Diamond SKU: ', $values['diamond']['stock_num'] );
+		return $price_html;
 	}
 
-	function admin_order_data_after_order_details( $order ) {
-		$delivery_order_id = wc_get_order_item_meta( $order->get_id(), 'diamond_data' );
-
-		db( $delivery_order_id );
-
-		exit();
-
-		$delivery_id = ! empty( $delivery_order_id ) ? $delivery_order_id : '<span style="color:red">' . __( 'Not yet.' ) . '</span>';
-
-		echo '<br clear="all"><p><strong>' . __( 'Delivery Order Id' ) . ':</strong> ' . $delivery_id . '</p>';
-	}
-
+	// *
 	public function get_item_data( $item_data, $cart_item ) {
+		error_log( 'get_item_data' );
+
+		// error_log( 'get_item_data:  $item_data: ' . print_r( $item_data, true ) );
+		// error_log( 'get_item_data:  $cart_item: ' . print_r( $cart_item, true ) );
+
 		if ( ! is_array( $item_data ) ) {
 			$item_data = array();
 		}
@@ -235,14 +355,44 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		return $item_data;
 	}
 
+	// *
+	public function checkout_create_order_line_item( $item, $cart_item_key, $values, $order ) {
+		error_log( 'checkout_create_order_line_item' );
+
+		if ( ! isset( $values['diamond'] ) ) {
+			return false;
+		}
+
+		if ( isset( $values['ring_size'] ) ) {
+			$item->add_meta_data( 'Ring Size: ', $values['ring_size'] );
+		}
+
+		$item->add_meta_data( 'Stone', $values['diamond']['short_title'] );
+
+		if ( isset( $values['diamond']['meas_length'] ) && $values['diamond']['meas_length'] ) {
+			$item->add_meta_data( 'Dimensions', $values['diamond']['meas_length'] . '/' . $values['diamond']['meas_width'] );
+		}
+
+		if ( isset( $values['diamond']['cert_num'] ) && $values['diamond']['cert_num'] ) {
+			$item->add_meta_data( 'Certificate', $values['diamond']['cert_num'] );
+		}
+
+		$item->add_meta_data( 'Diamond SKU: ', $values['diamond']['stock_num'] );
+	}
+
+	// *
 	public function before_calculate_totals( $cart ) {
+		error_log( 'before_calculate_totals: session id: ' . WC()->session->get_customer_id() );
+		error_log( 'before_calculate_totals: session diamond: ' . WC()->session->get( 'diamond' ) );
+		error_log( 'before_calculate_totals: session next: ' . WC()->session->get( 'next' ) );
+		error_log( 'before_calculate_totals: current diamond: ' . otw_woo_ring_builder()->diamonds->get_current_diamond() );
+
 		if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
 			return;
 		}
 
 		foreach ( $cart->get_cart() as $cart_item ) {
 			if ( $this->is_setting_product( $cart_item['data'] ) ) {
-
 				if ( ! ( otw_woo_ring_builder()->diamonds && isset( otw_woo_ring_builder()->diamonds->current_diamond ) && otw_woo_ring_builder()->diamonds->current_diamond ) ) {
 					otw_woo_ring_builder()->diamonds->get_current_diamond();
 				}
@@ -256,47 +406,55 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 						$total_ring_price = ( (float) $diamond['total_sales_price'] ) + ( (float) $cart_item['data']->get_price() );
 
 						$cart_item['data']->set_price( $total_ring_price );
+
+						error_log( 'condition 3: ' . print_r( $cart_item, true ) );
 					}
 				} else {
 					$stone_archive_page = otw_woo_ring_builder()->get_option( 'stone_archive_page' );
+
 					$stone_single_page = otw_woo_ring_builder()->get_option( 'stone_single_page' );
+
 					$stone_single_page_full_url = get_permalink( $stone_archive_page );
+
 					wp_redirect( $stone_single_page_full_url );
+
 					exit();
 				}
 			}
 		}
 	}
 
-	public function cart_item_price( $price_html, $cart_item, $cart_item_key ) {
-		if ( $this->is_setting_product( $cart_item['data'] ) ) {
-			if ( ! ( otw_woo_ring_builder()->diamonds && isset( otw_woo_ring_builder()->diamonds->current_diamond ) && otw_woo_ring_builder()->diamonds->current_diamond ) ) {
-				otw_woo_ring_builder()->diamonds->get_current_diamond();
-			}
-			if ( otw_woo_ring_builder()->diamonds && isset( otw_woo_ring_builder()->diamonds->current_diamond ) && otw_woo_ring_builder()->diamonds->current_diamond ) {
-				$diamond = otw_woo_ring_builder()->diamonds->current_diamond;
-				$_product = wc_get_product( $cart_item['data']->get_id() );
-				if ( $this->is_setting_product( $_product ) && ( ( (float) $cart_item['data']->get_price() ) <= (float) $_product->get_price() ) ) {
-					$total_ring_price = ( (float) $diamond['total_sales_price'] ) + ( (float) $cart_item['data']->get_price() );
-					return wc_price( $total_ring_price );
-				}
-			}
+	// *
+	public function add_order_item_meta( $item_id, $cart_item, $cart_item_key ) {
+		error_log( 'add_order_item_meta' );
+
+		if ( isset( $cart_item['diamond'] ) ) {
+			wc_add_order_item_meta( $item_id, 'diamond_data', $cart_item['diamond'] );
+		}
+	}
+
+	public function gettext( $translated_text, $original_text, $domain ) {
+		if ( 'Checkout' === $original_text ) {
+			$translated_text = 'Secure Checkout';
 		}
 
-		return $price_html;
-
-		if ( isset( $cart_item['custom_price'] ) ) {
-			$args = array( 'price' => 40 );
-
-			if ( WC()->cart->display_prices_including_tax() ) {
-				$product_price = wc_get_price_including_tax( $cart_item['data'], $args );
-			} else {
-				$product_price = wc_get_price_excluding_tax( $cart_item['data'], $args );
-			}
-			return wc_price( $product_price );
+		if ( 'Subtotal:' === $original_text ) {
+			$translated_text = 'Total:';
 		}
 
-		return $price_html;
+		return $translated_text;
+	}
+
+	function admin_order_data_after_order_details( $order ) {
+		$delivery_order_id = wc_get_order_item_meta( $order->get_id(), 'diamond_data' );
+
+		db( $delivery_order_id );
+
+		exit();
+
+		$delivery_id = ! empty( $delivery_order_id ) ? $delivery_order_id : '<span style="color:red">' . __( 'Not yet.' ) . '</span>';
+
+		echo '<br clear="all"><p><strong>' . __( 'Delivery Order Id' ) . ':</strong> ' . $delivery_id . '</p>';
 	}
 
 	public function is_setting_product( $_product ) {
@@ -306,7 +464,11 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 		$product_cats_ids = wc_get_product_term_ids( $_product->get_parent_id(), 'product_cat' );
 
-		if ( $product_cats_ids && is_array( $product_cats_ids ) && count( $product_cats_ids ) >= 1 && in_array( $this->get_option( 'setting_category' ), $product_cats_ids ) ) {
+		if ( $product_cats_ids &&
+			is_array( $product_cats_ids ) &&
+			count( $product_cats_ids ) >= 1 &&
+			in_array( $this->get_option( 'setting_category' ), $product_cats_ids )
+		) {
 			return true;
 		}
 
@@ -319,61 +481,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		}
 
 		return $url;
-	}
-
-	public function add_cart_item_data( $cart_item_data, $product_id ) {
-		$parent_product = wc_get_product( $product_id );
-
-		if ( ! $parent_product ) {
-			return $cart_item_data;
-		}
-
-		$product_cats_ids = wc_get_product_term_ids( $parent_product->get_id(), 'product_cat' );
-
-		if ( ! (
-			$product_cats_ids &&
-			is_array( $product_cats_ids ) &&
-			count( $product_cats_ids ) >= 1 &&
-			in_array( $this->get_option( 'setting_category' ), $product_cats_ids )
-		) ) {
-			return $cart_item_data;
-		}
-
-		if ( ! (
-			otw_woo_ring_builder()->diamonds &&
-			isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
-			otw_woo_ring_builder()->diamonds->current_diamond
-		) ) {
-			otw_woo_ring_builder()->diamonds->get_current_diamond();
-		}
-
-		if ( ! (
-			otw_woo_ring_builder()->diamonds &&
-			isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
-			otw_woo_ring_builder()->diamonds->current_diamond
-		) ) {
-			return $cart_item_data;
-		}
-
-		$diamond = otw_woo_ring_builder()->diamonds->current_diamond;
-
-		$cart_item_data['diamond'] = $diamond;
-
-		WC()->session->set( 'diamond', $diamond );
-
-		if ( isset( $_REQUEST['size-selector'] ) && $_REQUEST['size-selector'] ) {
-			$cart_item_data['ring_size'] = $_REQUEST['size-selector'];
-
-			WC()->session->set( 'ring_size', $_REQUEST['size-selector'] );
-		}
-
-		return $cart_item_data;
-	}
-
-	public function add_order_item_meta( $item_id, $cart_item, $cart_item_key ) {
-		if ( isset( $cart_item['diamond'] ) ) {
-			wc_add_order_item_meta( $item_id, 'diamond_data', $cart_item['diamond'] );
-		}
 	}
 }
 

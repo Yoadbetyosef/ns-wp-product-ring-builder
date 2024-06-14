@@ -2595,6 +2595,10 @@ img.gcpb-available-metal-swatch.gcpb-swatch {
     overflow: visible !important;
 }
 
+.swiper-pagination-bullet {
+    display: none !important;
+}
+
 
 
 /* QUERIED PRODUCTS GRID  */

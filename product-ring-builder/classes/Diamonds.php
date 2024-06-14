@@ -67,9 +67,9 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 			'exchange_rate'      => '1',
 			'with_images'        => true,
 		);
-		// $args['type'] = 'Lab_grown_Diamond';
 
 		$shape = $this->get_current_selected_variation_shape();
+
 		if ( $shape && isset( gcpb_diamond_shapes_array()[ $shape ] ) ) {
 			$args['shapes[]'] = gcpb_diamond_shapes_array()[ $shape ];
 		} else {
@@ -77,6 +77,7 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		}
 
 		$args['size_from'] = 2.5;
+
 		$args['size_to'] = 3.5;
 
 		return $args;
@@ -425,6 +426,7 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 	public function fetch_stone_by_id() {
 		if ( isset( $_POST['query_string'] ) && ! empty( $_POST['query_string'] ) ) {
 			parse_str( $_POST['query_string'], $params );
+
 			if ( isset( $params['diamond_id'] ) && ! empty( $params['diamond_id'] ) ) {
 				$stock_num = $params['diamond_id'];
 
@@ -444,6 +446,7 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 					wp_send_json_success(
 						array(
 							'message' => 'success',
+							'test'    => 'test',
 							'data'    => wp_json_encode( $data ),
 						)
 					);
@@ -502,17 +505,22 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		return $diamond;
 	}
 
-	public function get_current_diamond() {
-		if ( ! ( isset( $_GET['stock_num'] ) && $_GET['stock_num'] ) ) {
-			return false;
-		}
+	public function get_current_diamond( $diamond_id = null ) {
+		if ( isset( WC()->session ) && WC()->session->get( 'next_session' ) === true ) {
+			$stock_num = WC()->session->get( 'next_diamond_id' );
+		} else {
+			if ( ! ( isset( $_GET['stock_num'] ) && $_GET['stock_num'] ) ) {
+				return false;
+			}
 
-		$stock_num = $_GET['stock_num'];
+			$stock_num = $_GET['stock_num'];
+		}
 
 		$diamond = $this->get_diamond_by_stock_num( $stock_num );
 
 		if ( ! is_array( $diamond ) ) {
 			$error_message = 'Sorry, we could not connect with diamonds API';
+
 			return $error_message;
 		}
 
@@ -520,14 +528,14 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 	}
 
 	public function exclude_diamond( $diamond ) {
-		// if (strpos($diamond['stock_num'], 'Demo') !== false)
-		//   return true;
 		$diamond_shape = strtolower( $diamond['shape'] );
+
 		if ( ! in_array( $diamond['clarity'], $this->diamonds_api_clarity ) ) {
 			return true;
 		}
 
 		$diamonds_api_shapes = gcpb_diamond_shapes_array();
+
 		if ( ! isset( $diamonds_api_shapes[ $diamond_shape ] ) ) {
 			return true;
 		}
@@ -537,7 +545,12 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		}
 
 		$selected_setting_shapes = $this->get_current_selected_variation_shapes();
-		if ( $selected_setting_shapes && is_array( $selected_setting_shapes ) && count( $selected_setting_shapes ) >= 1 && ! in_array( $diamond_shape, $selected_setting_shapes ) ) {
+
+		if ( $selected_setting_shapes &&
+			is_array( $selected_setting_shapes ) &&
+			count( $selected_setting_shapes ) >= 1 &&
+			! in_array( $diamond_shape, $selected_setting_shapes )
+		) {
 			return true;
 		}
 
