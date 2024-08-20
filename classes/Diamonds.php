@@ -167,23 +167,9 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 	}
 
 	public function fetch_stones() {
+
 		if ( isset( $_POST['query_string'] ) && ! empty( $_POST['query_string'] ) ) {
 			parse_str( $_POST['query_string'], $params );
-
-			if ( isset( $params['sort'] ) && ! empty( $params['sort'] ) ) {
-				$args['orderby'] = 'meta_value_num';
-				$args['meta_key'] = 'price';
-
-				if ( $params['sort'] === 'price-ascending' ) {
-					$args['order'] = 'asc';
-				} elseif ( $params['sort'] === 'price-descending' ) {
-					$args['order'] = 'desc';
-				} else {
-					$args['meta_key'] = 'total_sales';
-					$args['orderby'] = 'meta_value_num';
-					$args['order'] = 'desc';
-				}
-			}
 
 			if ( isset( $params['paged'] ) && ! empty( $params['paged'] ) ) {
 				$args['paged'] = $params['paged'];
@@ -235,7 +221,15 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 				'exchange_rate'      => '1',
 				'show_unavailable'   => 'true',
 				'with_images'        => true,
+				'sortBy'             => 'price',
+				'order'              => 'asc',
 			);
+
+			if ( isset( $params['sortBy'] ) && isset( $params['sortOrder'] ) ) {
+				$args['sortBy'] = $params['sortBy'];
+
+				$args['sortOrder'] = $params['sortOrder'];
+			}
 
 			if ( isset( $params['page_number_vdb'] ) && $params['page_number_vdb'] && (int) $params['page_number_vdb'] >= 2 ) {
 				$args['page_number_vdb'] = (int) $params['page_number_vdb'];

@@ -362,8 +362,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 	// *
 	public function add_order_item_meta( $item_id, $cart_item, $cart_item_key ) {
-		error_log( 'add_order_item_meta' );
-
 		if ( isset( $cart_item['diamond'] ) ) {
 			wc_add_order_item_meta( $item_id, 'diamond_data', $cart_item['diamond'] );
 		}
