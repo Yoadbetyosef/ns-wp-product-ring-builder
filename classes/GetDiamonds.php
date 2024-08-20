@@ -6,7 +6,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class GetDiamonds extends \OTW\WooRingBuilder\Plugin{
-
 	use \OTW\GeneralWooRingBuilder\Traits\Singleton;
 
 	public $diamond_api_endpoint = 'http://apiservices.vdbapp.com/v2/diamonds';
@@ -48,7 +47,11 @@ class GetDiamonds extends \OTW\WooRingBuilder\Plugin{
 
 		$error_message = '';
 
-		if ( ! ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) && isset( $response['body'] ) ) ) {
+		if ( ! (
+				! is_wp_error( $response ) &&
+				200 === wp_remote_retrieve_response_code( $response ) &&
+				isset( $response['body'] )
+			) ) {
 			$error_message = 'Sorry, we could not connect with diamonds API';
 
 			return $error_message;
@@ -58,7 +61,12 @@ class GetDiamonds extends \OTW\WooRingBuilder\Plugin{
 
 		$body = @json_decode( $body, true );
 
-		if ( ! ( isset( $body['response'] ) && isset( $body['response']['body'] ) && isset( $body['response']['body']['diamonds'] ) && isset( $body['response']['body']['total_diamonds_found'] ) && $body['response']['body']['total_diamonds_found'] >= 1 ) ) {
+		if ( ! ( isset( $body['response'] ) &&
+			isset( $body['response']['body'] ) &&
+			isset( $body['response']['body']['diamonds'] ) &&
+			isset( $body['response']['body']['total_diamonds_found'] ) &&
+			$body['response']['body']['total_diamonds_found'] >= 1 )
+		) {
 			$error_message = 'Sorry, we don\'t have any diamonds for your search.';
 
 			return $error_message;

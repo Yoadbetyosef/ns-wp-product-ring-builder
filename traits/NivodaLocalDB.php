@@ -40,9 +40,13 @@ trait NivodaLocalDB{
 
 		$query = $this->get_search_query( $query, $args );
 
-		error_log( print_r( $args, true ) );
+		if ( isset( $args['sortBy'] ) && isset( $args['sortOrder'] ) ) {
+			$query .= ' ORDER BY ' . $args['sortBy'] . ' ' . $args['sortOrder'];
+		} else {
+			$query .= ' ORDER BY price ASC';
+		}
 
-		$query .= ' ORDER BY price DESC';
+		error_log( $query );
 
 		$args_pagination = array(
 			'items_per_page' => 20,
@@ -176,7 +180,7 @@ trait NivodaLocalDB{
 		return $diamond;
 	}
 
-	public function wpbb_paginate_links( $args, $linkArgs = array() ) {
+	public function wpbb_paginate_links( $args ) {
 		global $wpdb;
 
 		$defaults = array(

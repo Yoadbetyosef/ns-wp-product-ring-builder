@@ -167,7 +167,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 	}
 
 	public function fetch_stones() {
-
 		if ( isset( $_POST['query_string'] ) && ! empty( $_POST['query_string'] ) ) {
 			parse_str( $_POST['query_string'], $params );
 
@@ -222,7 +221,7 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 				'show_unavailable'   => 'true',
 				'with_images'        => true,
 				'sortBy'             => 'price',
-				'sortOrder'          => 'asc',
+				'sortOrder'          => 'ASC',
 			);
 
 			if ( isset( $params['sortBy'] ) && isset( $params['sortOrder'] ) ) {
