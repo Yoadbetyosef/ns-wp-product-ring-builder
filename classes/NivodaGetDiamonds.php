@@ -239,6 +239,7 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 		}
 
 		$sortByQuery = 'type:price';
+
 		$sortOrderQuery = 'direction:ASC';
 
 		if ( isset( $args['sortBy'] ) ) {
@@ -253,10 +254,14 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 
 		$sort = $sortByQuery . ',' . $sortOrderQuery;
 
+		error_log( '🔥' . $sort );
+
 		$query = 'query{
       diamonds_by_query(order:{' . $sort . '},query:' . $search_query . $offset . '){total_count,items{id,price,markup_price,diamond{video,image,certificate{id,certNumber,carats,cut,clarity,polish,symmetry,color,shape,image,video,lab,pdfUrl,length,width,depth}}}},
       diamonds_by_query_count(query:' . $search_query . ')
     }';
+
+		error_log( '🔥' . $query );
 
 		if ( isset( $args['diamonds_by_query_count'] ) && $args['diamonds_by_query_count'] == 'no' ) {
 			$query = 'query{
