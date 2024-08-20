@@ -263,7 +263,7 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
       }';
 		}
 
-		error_log( print_r( $query, true ) );
+		error_log( $query );
 
 		$body = array( 'query' => $query );
 
