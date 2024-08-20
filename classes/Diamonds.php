@@ -222,7 +222,7 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 				'show_unavailable'   => 'true',
 				'with_images'        => true,
 				'sortBy'             => 'price',
-				'order'              => 'asc',
+				'sortOrder'          => 'asc',
 			);
 
 			if ( isset( $params['sortBy'] ) && isset( $params['sortOrder'] ) ) {
