@@ -42,13 +42,6 @@ class Plugin{
 	}
 
 	public function is_compatible() {
-		// Check if Elementor installed and activated
-		/*if ( ! did_action( 'elementor/loaded' ) ) {
-		$this->message = __('OTW Elementor Form CRM require Elementor Pro to be installed and active.', 'otw-elementor-form-crm-td');
-		$this->messageClass = 'warning';
-			add_action( 'admin_notices', [ $this, 'admin_notices' ] );
-			return false;
-		}*/
 		return true;
 	}
 
