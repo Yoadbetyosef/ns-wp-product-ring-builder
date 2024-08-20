@@ -10,6 +10,7 @@ class PluginDefault extends Plugin{
 	use \OTW\WooRingBuilder\Traits\LocalDBCron;
 
 	public function __construct() {
+
 		$this->set_get_variables();
 
 		add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ) );
@@ -20,7 +21,6 @@ class PluginDefault extends Plugin{
 			register_activation_hook( plugin_basename( OTW_WOO_RING_BUILDER_PLUGIN_FILE ), array( $this, 'PluginActivation' ) );
 
 			\OTW\WooRingBuilder\Admin\PageSettings::instance();
-
 			\OTW\WooRingBuilder\Admin\VariationsMetaData::instance();
 
 			add_action( 'admin_enqueue_scripts', array( $this, 'wp_admin_style_scripts' ) );
@@ -43,27 +43,15 @@ class PluginDefault extends Plugin{
 		add_action( 'init', array( $this, 'init' ) );
 	}
 
-	public function init() {
-		if ( $this->get_option( 'nivoda_api' ) ) {
-			$this->local_db_cron_init();
-		}
-
-		add_filter( 'wp_all_export_available_data', array( $this, 'wp_all_export_available_data' ) );
-
-		$this->empty_cart();
-
-		add_action( 'wp_footer', array( $this, 'wp_footer' ) );
-	}
-
 	function redirect_settings() {
 		global $post;
-
 		if ( is_singular( 'product' ) && is_product() && isset( $post->ID ) ) {
+
 			$product = wc_get_product( $post->ID );
 
 			if ( $product &&
-				$product->is_type( 'variable' ) &&
-				has_term( 'crb_setting', 'product_cat' )
+			$product->is_type( 'variable' ) &&
+			has_term( 'crb_setting', 'product_cat' )
 			) {
 				foreach ( $product->get_available_variations() as $variation_values ) {
 					foreach ( $variation_values['attributes'] as $key => $attribute_value ) {
@@ -129,6 +117,10 @@ class PluginDefault extends Plugin{
 			if ( ! isset( $_GET['product_id'] ) ) {
 				$_GET['product_id'] = $_COOKIE['product_id'];
 			}
+		} elseif ( function_exists( 'WC' ) && isset( WC()->session ) && is_object( WC()->session ) /*&& WC()->session->get( 'gcpb_product_id')*/ ) {
+			// if(get_client_ip() == '182.178.231.168'){
+			//   db(WC()->session->get( 'gcpb_product_id'));db($_GET);exit();
+			// }
 		}
 
 		if ( isset( $_COOKIE['variation_id'] ) && $_COOKIE['variation_id'] ) {
@@ -225,6 +217,7 @@ class PluginDefault extends Plugin{
 	}
 
 	public function wp_footer_cookies() {
+
 		if ( isset( $_GET['product_id'] ) && $_GET['product_id'] ) {
 			$this->setcookie( 'product_id', $_GET['product_id'] );
 		}
@@ -245,36 +238,63 @@ class PluginDefault extends Plugin{
 	}
 
 	function upload_mimes( $mimes ) {
+
+		//https://www.htmlstrip.com/mime-file-type-checker
+		// New allowed mime types.
 		$mimes['glb']  = 'application/octet-stream';
+
+		// Optional. Remove a mime type.
+		// unset( $mimes['exe'] );
 
 		return $mimes;
 	}
 
+	/******************************************/
+	/***** add settings page link in plugin activation screen.**********/
+	/******************************************/
 	public function plugin_action_links( $links ) {
 		$page_url = add_query_arg( array( 'page' => $this->prefix ), admin_url( 'admin.php' ) );
-
 		$links[] = '<a href="' . $page_url . '">' . __( 'Settings', 'otw-woo-ring-builder-td' ) . '</a>';
-
+		// $links[] = '<a href="'. esc_url(get_admin_url(null, 'options-general.php?page='.$this->prefix)) .'">'.__('Settings', 'otw-woo-ring-builder-td').'</a>';
 		return $links;
 	}
 
+	/******************************************/
+	/***** Plugin activation function **********/
+	/******************************************/
 	public function PluginActivation() {
+
 		global $wpdb;
-
 		$this->create_custom_table();
-
 		if ( $this->get_option( 'nivoda_api' ) ) {
-			$this->start_cron_event();
+			$this->StartCronEvent();
 		}
+		/*$ver = "1.0";
+		if(!(isset(self::$options['ver']) && self::$options['ver'] == $ver))
+		$this->set_option('ver', $ver);*/
 	}
 
+	/******************************************/
+	/***** plugin deactivation function **********/
+	/******************************************/
 	public function PluginDeactivation() {
 	}
 
+	/******************************************/
+	/***** localization function **********/
+	/******************************************/
 	public function plugins_loaded() {
+
 		load_plugin_textdomain( 'otw-woo-ring-builder-td', false, plugin_dir_path( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'languages/' );
+
+		/*if ( $this->is_compatible() ) {
+		add_action( 'elementor/init', [ $this, 'init' ] );
+		}*/
 	}
 
+	/******************************************/
+	/***** add javascript and css to wp-admin dashboard. **********/
+	/******************************************/
 	public function wp_admin_style_scripts() {
 		if ( is_admin() ) {
 			wp_register_script( 'vue3', plugin_dir_url( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'assets/admin/js/vue-global-3-2-11.js', array(), '3.2.11' );
@@ -387,13 +407,31 @@ class PluginDefault extends Plugin{
 		}
 	}
 
+	/******************************************/
+	/***** Intialize the elementor and other plugins extended classes and functions. **********/
+	/******************************************/
+	public function init() {
+		if ( $this->is_compatible() ) {
+
+			if ( $this->get_option( 'nivoda_api' ) ) {
+				$this->LocalDBCron_init();
+			}
+
+			add_filter( 'wp_all_export_available_data', array( $this, 'wp_all_export_available_data' ) );
+
+			$this->empty_cart();
+
+			add_action( 'wp_footer', array( $this, 'wp_footer' ) );
+		}
+	}
+
 	public function wp_footer() {
 		?>
-			<script>
-				jQuery(document).ready(function($){
-				$(".elementor-menu-cart__subtotal strong").html("Total: ");
-				});
-			</script>	
+	<script>
+		jQuery(document).ready(function($){
+		$(".elementor-menu-cart__subtotal strong").html("Total: ");
+		});
+	</script>	
 		<?php
 	}
 
@@ -415,132 +453,133 @@ class PluginDefault extends Plugin{
 
 	public function w3_modal() {
 		?>
-			<div id="otw_w3_modal" class="otw_w3_modal">
-				<!-- Modal content -->
-				<div class="otw_w3_modal_content">
-				<div class="otw_w3_modal_header">
-					<span class="otw_w3_close">X<!--&times;--></span>
-				</div>
-				<div class="otw_w3_modal_body">
-				</div>
-				</div>
+	<div id="otw_w3_modal" class="otw_w3_modal">
+		<!-- Modal content -->
+		<div class="otw_w3_modal_content">
+		<div class="otw_w3_modal_header">
+			<span class="otw_w3_close">X<!--&times;--></span>
+		</div>
+		<div class="otw_w3_modal_body">
+		</div>
+		</div>
 
-			</div>
+	</div>
 
-			<script>
-				jQuery(document).ready(function($){
-					$(document).on('click', '.open_w3_modal', function(event){
-						$('.otw_w3_modal').show();
-					});
+	<script>
+		jQuery(document).ready(function($){
+	
+			$(document).on('click', '.open_w3_modal', function(event){
+				$('.otw_w3_modal').show();
+			});
 
-					$(document).on('click', '.otw_w3_close', function(event){
-						$('.otw_w3_modal').hide();
-					});
+			$(document).on('click', '.otw_w3_close', function(event){
+				$('.otw_w3_modal').hide();
+			});
 
-					$(document).on('click', function(event){
-						if ($(event.target).hasClass('otw_w3_modal')) {
-							$('.otw_w3_modal').hide();
-						}
-					});
-
-
-					$(document).on('click', '.gcpb-product-wrapper webgi-viewer', function(event){
-						if($(this).attr('src')){
-							let three_d_viewer_id = generateRandomString(8);
-							let embed_html = '<webgi-viewer src="'+$(this).attr('src')+'" id="'+three_d_viewer_id+'" disposeOnRemove="true" style="width: 100%; height: 500px; z-index: 9999999; display: block; position:relative;" />';
-							if($('.otw_w3_modal_body').find("webgi-viewer").length <= 0){
-								$('.otw_w3_modal_body').append(embed_html);
-								dom_setup_three_d_viewer();
-							}
-							$('.otw_w3_modal').show();
-						}
-						
-					});
-
-				});
-			</script>
-
-			<style>
-				.otw_w3_modal {
-					display: none; /* Hidden by default */
-					position: fixed; /* Stay in place */
-					z-index: 999999; /* Sit on top */
-					padding-top: 100px; /* Location of the box */
-					left: 0;
-					top: 0;
-					width: 100%; /* Full width */
-					height: 100%; /* Full height */
-					overflow: auto; /* Enable scroll if needed */
-					background-color: rgb(0,0,0); /* Fallback color */
-					background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+			$(document).on('click', function(event){
+				if ($(event.target).hasClass('otw_w3_modal')) {
+					$('.otw_w3_modal').hide();
 				}
+			});
 
-				/* Modal Content */
-				.otw_w3_modal_content {
-					position: relative;
-					background-color: #fefefe;
-					margin: auto;
-					padding: 0;
-					border: 1px solid #888;
-					width: 80%;
-					box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
-					-webkit-animation-name: animatetop;
-					-webkit-animation-duration: 0.4s;
-					animation-name: animatetop;
-					animation-duration: 0.4s
+
+			$(document).on('click', '.gcpb-product-wrapper webgi-viewer', function(event){
+				if($(this).attr('src')){
+					let three_d_viewer_id = generateRandomString(8);
+					let embed_html = '<webgi-viewer src="'+$(this).attr('src')+'" id="'+three_d_viewer_id+'" disposeOnRemove="true" style="width: 100%; height: 500px; z-index: 9999999; display: block; position:relative;" />';
+					if($('.otw_w3_modal_body').find("webgi-viewer").length <= 0){
+						$('.otw_w3_modal_body').append(embed_html);
+						dom_setup_three_d_viewer();
+					}
+					$('.otw_w3_modal').show();
 				}
+			  
+			});
 
-				/* Add Animation */
-				@-webkit-keyframes animatetop {
-					from {top:-300px; opacity:0} 
-					to {top:0; opacity:1}
-				}
+		});
+	</script>
 
-				@keyframes animatetop {
-					from {top:-300px; opacity:0}
-					to {top:0; opacity:1}
-				}
+	<style>
+		.otw_w3_modal {
+			display: none; /* Hidden by default */
+			position: fixed; /* Stay in place */
+			z-index: 999999; /* Sit on top */
+			padding-top: 100px; /* Location of the box */
+			left: 0;
+			top: 0;
+			width: 100%; /* Full width */
+			height: 100%; /* Full height */
+			overflow: auto; /* Enable scroll if needed */
+			background-color: rgb(0,0,0); /* Fallback color */
+			background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+		}
 
-				/* The Close Button */
-				.otw_w3_close {
-					color: #000;
-					float: right;
-					font-size: 24px;
-					font-weight: bold;
-				}
+		/* Modal Content */
+		.otw_w3_modal_content {
+			position: relative;
+			background-color: #fefefe;
+			margin: auto;
+			padding: 0;
+			border: 1px solid #888;
+			width: 80%;
+			box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+			-webkit-animation-name: animatetop;
+			-webkit-animation-duration: 0.4s;
+			animation-name: animatetop;
+			animation-duration: 0.4s
+		}
 
-				.otw_w3_close:hover,
-				.otw_w3_close:focus {
-					color: #f00;
-					text-decoration: none;
-					cursor: pointer;
-				}
+		/* Add Animation */
+		@-webkit-keyframes animatetop {
+			from {top:-300px; opacity:0} 
+			to {top:0; opacity:1}
+		}
 
-				.otw_w3_modal_header {
-					padding: 2px 16px;
-					/* background-color: #5cb85c; */
-					color: white;
-				}
+		@keyframes animatetop {
+			from {top:-300px; opacity:0}
+			to {top:0; opacity:1}
+		}
 
-				.otw_w3_modal_body {padding: 30px 16px 30px 16px;}
+		/* The Close Button */
+		.otw_w3_close {
+			color: #000;
+			float: right;
+			font-size: 24px;
+			font-weight: bold;
+		}
 
-				.otw_w3_modal_footer {
-					padding: 2px 16px;
-					background-color: #5cb85c;
-					color: white;
-				}
-				/* ********************* */
-				/* The Modal */
-				/* ********************* */
-			</style>
+		.otw_w3_close:hover,
+		.otw_w3_close:focus {
+			color: #f00;
+			text-decoration: none;
+			cursor: pointer;
+		}
+
+		.otw_w3_modal_header {
+			padding: 2px 16px;
+			/* background-color: #5cb85c; */
+			color: white;
+		}
+
+		.otw_w3_modal_body {padding: 30px 16px 30px 16px;}
+
+		.otw_w3_modal_footer {
+			padding: 2px 16px;
+			background-color: #5cb85c;
+			color: white;
+		}
+		/* ********************* */
+		/* The Modal */
+		/* ********************* */
+	</style>
 		<?php
 	}
 
 	public function wp_footer_css() {
 		?>
-			<style>
-			
-			</style>  
+	<style>
+	
+	</style>  
 		<?php
 	}
 }
