@@ -97,7 +97,7 @@ class Ring_Builder_Setting {
 			array( $this, 'gcpb_setting_admin_page' ),
 			'',
 			100
-		)
+		);
 	}
 
 	public function gcpb_field_initialize() {
