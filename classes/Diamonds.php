@@ -268,8 +268,14 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 					$args['color_from'] = $diamonds_api_color[ $colors[0] ];
 					$args['color_to'] = $diamonds_api_color[ $colors[1] ];
 				}
-				$args['color_from'] = $colors[0];
-				$args['color_to'] = $colors[1];
+
+				if ( is_array( $colors ) && isset( $colors[0] ) ) {
+					$args['color_from'] = $colors[0];
+				}
+
+				if ( is_array( $colors ) && isset( $colors[1] ) ) {
+					$args['color_to'] = $colors[1];
+				}
 			}
 
 			if ( isset( $params['clarity'] ) && $params['clarity'] ) {

@@ -247,6 +247,7 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 
 		if ( isset( $args['sortOrder'] ) ) {
 			$direction = $args['sortOrder'] === 'desc' ? 'DESC' : 'ASC';
+
 			$sortOrderQuery = 'direction:' . $direction;
 		}
 
