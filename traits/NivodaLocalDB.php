@@ -46,8 +46,6 @@ trait NivodaLocalDB{
 			$query .= ' ORDER BY price ASC';
 		}
 
-		error_log( $query );
-
 		$args_pagination = array(
 			'items_per_page' => 20,
 			'sql'            => $query,
