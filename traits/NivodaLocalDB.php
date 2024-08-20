@@ -40,7 +40,9 @@ trait NivodaLocalDB{
 
 		$query = $this->get_search_query( $query, $args );
 
-		$query .= ' ORDER BY price ASC';
+		error_log( print_r( $args, true ) );
+
+		$query .= ' ORDER BY price DESC';
 
 		$args_pagination = array(
 			'items_per_page' => 20,

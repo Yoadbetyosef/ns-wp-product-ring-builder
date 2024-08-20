@@ -167,11 +167,9 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 	}
 
 	public function get_diamonds( $args ) {
-		error_log( '🔥' . print_r( $args, true ) );
-
-		// if ( $this->nivoda_api_type === 'local' ) {
-		//  return $this->get_local_diamonds( $args );
-		// }
+		if ( $this->nivoda_api_type === 'local' ) {
+			return $this->get_local_diamonds( $args );
+		}
 
 		if ( isset( $args['page_number_nivoda'] ) &&
 			$args['page_number_nivoda'] &&
@@ -254,22 +252,16 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 
 		$sort = $sortByQuery . ',' . $sortOrderQuery;
 
-		error_log( '🔥' . $sort );
-
 		$query = 'query{
       diamonds_by_query(order:{' . $sort . '},query:' . $search_query . $offset . '){total_count,items{id,price,markup_price,diamond{video,image,certificate{id,certNumber,carats,cut,clarity,polish,symmetry,color,shape,image,video,lab,pdfUrl,length,width,depth}}}},
       diamonds_by_query_count(query:' . $search_query . ')
     }';
-
-		error_log( '🔥' . $query );
 
 		if ( isset( $args['diamonds_by_query_count'] ) && $args['diamonds_by_query_count'] == 'no' ) {
 			$query = 'query{
         diamonds_by_query(order:{' . $sort . '},query:' . $search_query . $offset . '){total_count,items{id,price,markup_price,diamond{video,image,certificate{id,certNumber,carats,cut,clarity,polish,symmetry,color,shape,image,video,lab,pdfUrl,length,width,depth}}}}
       }';
 		}
-
-		error_log( '🔥' . $query );
 
 		$body = array( 'query' => $query );
 
