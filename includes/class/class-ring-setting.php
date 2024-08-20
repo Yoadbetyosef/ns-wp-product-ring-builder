@@ -70,6 +70,25 @@ class Ring_Builder_Setting {
 	}
 
 	public function gcpb_setting_page() {
+		// add_menu_page(
+		//  'GCP Builder',
+		//  'GCP Builder',
+		//  'manage_options',
+		//  'gcpb-setting',
+		//  array( $this, 'gcpb_setting_admin_page' ),
+		//  '',
+		//  100
+		// );
+
+		// add_submenu_page(
+		//  'gcpb-setting',
+		//  __( 'GCP Builder', 'otw-woo-ring-builder-td' ),
+		//  __( 'GCP Builder', 'otw-woo-ring-builder-td' ),
+		//  'manage_options',
+		//  'gcpb-setting',
+		//  array( $this, 'gcpb_setting_admin_page' )
+		// );
+
 		add_menu_page(
 			'GCP Builder',
 			'GCP Builder',
@@ -78,16 +97,7 @@ class Ring_Builder_Setting {
 			array( $this, 'gcpb_setting_admin_page' ),
 			'',
 			100
-		);
-
-		add_submenu_page(
-			'gcpb-setting',
-			__( 'GCP Builder', 'otw-woo-ring-builder-td' ),
-			__( 'GCP Builder', 'otw-woo-ring-builder-td' ),
-			'manage_options',
-			'gcpb-setting',
-			array( $this, 'gcpb_setting_admin_page' )
-		);
+		)
 	}
 
 	public function gcpb_field_initialize() {
