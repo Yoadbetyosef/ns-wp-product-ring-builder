@@ -167,11 +167,16 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 	}
 
 	public function get_diamonds( $args ) {
-		if ( $this->nivoda_api_type == 'local' ) {
+		error_log( 'NivodaGetDiamonds :: get_diamonds...' . print_r( $args, true ) );
+
+		if ( $this->nivoda_api_type === 'local' ) {
 			return $this->get_local_diamonds( $args );
 		}
 
-		if ( isset( $args['page_number_nivoda'] ) && $args['page_number_nivoda'] && (int) $args['page_number_nivoda'] >= 2 ) {
+		if ( isset( $args['page_number_nivoda'] ) &&
+			$args['page_number_nivoda'] &&
+			(int) $args['page_number_nivoda'] >= 2
+		) {
 			$args['page_number'] = (int) $args['page_number_nivoda'];
 		} else {
 			$args['page_number'] = 1;
@@ -186,7 +191,7 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 		$search_query .= ',has_image:true';
 
 		if ( isset( $args['type'] ) && $args['type'] ) {
-			if ( $args['type'] == 'Lab_grown_Diamond' ) {
+			if ( $args['type'] === 'Lab_grown_Diamond' ) {
 				$search_query .= ',labgrown:true';
 			} else {
 				$search_query .= ',labgrown:false';
@@ -246,9 +251,7 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 
 		$body = array( 'query' => $query );
 
-		$headers = array(
-			'Authorization' => 'Bearer ' . $auth_token,
-		);
+		$headers = array( 'Authorization' => 'Bearer ' . $auth_token );
 
 		$response = $this->wp_remote_post( $this->diamond_api_endpoint, $body, $headers );
 

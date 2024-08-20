@@ -16,7 +16,7 @@ class GetDiamonds extends \OTW\WooRingBuilder\Plugin{
 	public function init() {}
 
 	public function get_diamonds( $args ) {
-		if ( isset( $args['type'] ) && $args['type'] != 'Lab_grown_Diamond' ) {
+		if ( isset( $args['type'] ) && $args['type'] !== 'Lab_grown_Diamond' ) {
 			return '';
 		}
 
