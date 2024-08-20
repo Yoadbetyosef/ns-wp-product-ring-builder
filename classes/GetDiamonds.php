@@ -11,6 +11,12 @@ class GetDiamonds extends \OTW\WooRingBuilder\Plugin{
 
 	public $diamond_api_endpoint = 'http://apiservices.vdbapp.com/v2/diamonds';
 
+	public function __construct() {
+		// add_action('init', array($this, 'init'));
+	}
+
+	public function init() {}
+
 	public function get_diamonds( $args ) {
 		if ( isset( $args['type'] ) && $args['type'] != 'Lab_grown_Diamond' ) {
 			return '';
@@ -94,12 +100,31 @@ class GetDiamonds extends \OTW\WooRingBuilder\Plugin{
 		}
 
 		return $this->format_diamond_data( $body['response']['body']['diamonds'][0] );
+
+		return $response;
 	}
 
 	function format_diamond_data( $diamond ) {
+
 		if ( isset( $diamond['total_sales_price'] ) && $diamond['total_sales_price'] ) {
+
+			// $diamond['orig_sales_price'] = $diamond['total_sales_price'];
 			$diamond['total_sales_price'] = get_diamond_price_with_markup( $diamond['total_sales_price'] );
+
+			// $db_rate = (int) $this->get_option('vdb_price_percentage');
+			// if($db_rate){
+			//   $db_rate = ($diamond['total_sales_price'] * $db_rate)/100;
+			//   $diamond['total_sales_price'] += $db_rate;
+			// }
+			// if(isset($diamond['markup_price']) && isset($diamond['markup_price']) && $diamond['markup_price'])
+			//   $diamond['total_sales_price'] = (float)number_format(((int)$diamond['markup_price'] /100), 0, '.', '');
+			// else
+			//   $diamond['total_sales_price'] = (float)number_format(((int)$diamond['price'] /100), 0, '.', '');
 		}
+
+		// if(isset($_GET['test'])){
+		//   db($diamond);exit();
+		// }
 
 		return $diamond;
 	}

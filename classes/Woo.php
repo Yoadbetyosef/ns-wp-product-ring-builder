@@ -47,7 +47,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 	}
 
 	// public function catch_url_params() {
-	//  error_log( 'URL parameters detected: ' . print_r( $_GET, true ) );
+	// 	error_log( 'URL parameters detected: ' . print_r( $_GET, true ) );
 	// }
 
 	// *
@@ -156,6 +156,18 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		$cart_item_data['diamond'] = $diamond;
 
 		WC()->session->set( 'diamond', $diamond );
+
+		// if ( isset( $ring_size ) ) {
+		// 	$cart_item_data['ring_size'] = $ring_size;
+
+		// 	WC()->session->set( 'ring_size', $ring_size );
+		// }
+
+		// if ( isset( $_REQUEST['size-selector'] ) && $_REQUEST['size-selector'] ) {
+		// 	$cart_item_data['ring_size'] = $_REQUEST['size-selector'];
+
+		// 	WC()->session->set( 'ring_size', $_REQUEST['size-selector'] );
+		// }
 
 		return $cart_item_data;
 	}
@@ -281,6 +293,15 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 			return $item_data;
 		}
 
+		// if ( isset( $cart_item['ring_size'] ) && $cart_item['ring_size'] ) {
+		//  $item_data[] = array(
+		//      'type'  => 'text',
+		//      'name'  => 'ring_size',
+		//      'key'   => 'Ring Size',
+		//      'value' => $cart_item['ring_size'] . ' ',
+		//  );
+		// }
+
 		$item_data[] = array(
 			'type'  => 'text',
 			'name'  => 'Stone',
@@ -314,6 +335,10 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		if ( ! isset( $values['diamond'] ) ) {
 			return false;
 		}
+
+		// if ( isset( $values['ring_size'] ) ) {
+		//  $item->add_meta_data( 'Ring Size: ', $values['ring_size'] );
+		// }
 
 		$item->add_meta_data( 'Stone', $values['diamond']['short_title'] );
 
@@ -349,6 +374,8 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 						$total_ring_price = ( (float) $diamond['total_sales_price'] ) + ( (float) $cart_item['data']->get_price() );
 
 						$cart_item['data']->set_price( $total_ring_price );
+
+						error_log( 'condition 3: ' . print_r( $cart_item, true ) );
 					}
 				} else {
 					$stone_archive_page = otw_woo_ring_builder()->get_option( 'stone_archive_page' );

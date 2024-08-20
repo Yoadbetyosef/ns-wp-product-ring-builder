@@ -8,17 +8,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 	use \OTW\GeneralWooRingBuilder\Traits\Singleton;
-
 	use \OTW\WooRingBuilder\Traits\NivodaLocalDB;
 
 	// public $diamond_api_endpoint = 'http://wdc-intg-customer-staging.herokuapp.com/api/diamonds';
-
 	public $diamond_api_endpoint = 'https://integrations.nivoda.net/api/diamonds';
 
 	public function __construct() {
 		if ( $this->get_option( 'nivoda_api_environment' ) == 'staging' ) {
 			$this->diamond_api_endpoint = 'http://wdc-intg-customer-staging.herokuapp.com/api/diamonds';
 		}
+	}
+
+	public function init() {
 	}
 
 	function convert_nivoda_to_vdb( $diamond ) {
@@ -140,9 +141,10 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 			return $auth_token;
 		}
 
-		error_Log( 'nivoda passowrd: ' . $this->get_option( 'nivoda_api_password' ) );
-
 		$auth_token = '';
+
+		//staging username and password
+		// $body = "query {authenticate{username_and_password(username:\"testaccount@sample.com\",password:\"staging-nivoda-22\"){token}}}";
 
 		$body = 'query {authenticate{username_and_password(username:"' . $this->get_option( 'nivoda_api_username' ) . '",password:"' . $this->get_option( 'nivoda_api_password' ) . '"){token}}}';
 
@@ -208,7 +210,7 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 		}
 
 		if ( isset( $args['color_from'] ) && $args['color_from'] && isset( $args['color_to'] ) && $args['color_to'] ) {
-			$found_colors = get_all_values_between_range( $args['color_from'], $args['color_to'], $this->get_colors_list() );
+			$found_colors = get_all_values_between_range( $args['color_from'], $args['color_to'], $this->get_colorsS_list() );
 
 			if ( $found_colors ) {
 				$search_query .= ',color:[' . implode( ',', $found_colors ) . ']';
@@ -336,7 +338,7 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 		return $output;
 	}
 
-	public function get_colors_list() {
+	public function get_colorsS_list() {
 		return array(
 			'D',
 			'E',
