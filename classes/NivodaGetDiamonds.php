@@ -263,6 +263,8 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
       }';
 		}
 
+		error_log( print_r( $query, true ) );
+
 		$body = array( 'query' => $query );
 
 		$headers = array( 'Authorization' => 'Bearer ' . $auth_token );
