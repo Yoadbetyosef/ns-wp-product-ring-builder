@@ -167,7 +167,7 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 	}
 
 	public function get_diamonds( $args ) {
-		error_log( 'NivodaGetDiamonds :: get_diamonds...' . print_r( $args, true ) );
+		error_log( '🔥' . print_r( $args, true ) );
 
 		if ( $this->nivoda_api_type === 'local' ) {
 			return $this->get_local_diamonds( $args );
@@ -263,7 +263,7 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
       }';
 		}
 
-		error_log( $query );
+		error_log( '🔥' . $query );
 
 		$body = array( 'query' => $query );
 

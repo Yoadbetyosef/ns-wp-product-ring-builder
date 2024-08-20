@@ -258,7 +258,13 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 
 			if ( isset( $params['color'] ) && $params['color'] ) {
 				$colors = explode( '-', $params['color'] );
-				if ( is_array( $colors ) && isset( $colors[0] ) && isset( $colors[1] ) && isset( $diamonds_api_color[ $colors[0] ] ) && isset( $diamonds_api_color[ $colors[1] ] ) ) {
+
+				if ( is_array( $colors ) &&
+					isset( $colors[0] ) &&
+					isset( $colors[1] ) &&
+					isset( $diamonds_api_color[ $colors[0] ] ) &&
+					isset( $diamonds_api_color[ $colors[1] ] )
+				) {
 					$args['color_from'] = $diamonds_api_color[ $colors[0] ];
 					$args['color_to'] = $diamonds_api_color[ $colors[1] ];
 				}
@@ -270,19 +276,19 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 				$clarity = explode( '-', $params['clarity'] );
 
 				if ( isset( $clarity[0] ) && isset( $clarity[1] ) ) {
-					if ( $clarity[0] == 'VVS' ) {
+					if ( $clarity[0] === 'VVS' ) {
 						$args['clarity_from'] = 'VVS1';
-					} elseif ( $clarity[0] == 'VS' ) {
+					} elseif ( $clarity[0] === 'VS' ) {
 						$args['clarity_from'] = 'VS1';
-					} elseif ( $clarity[0] == 'SI' ) {
+					} elseif ( $clarity[0] === 'SI' ) {
 						$args['clarity_from'] = 'SI1';
 					}
 
-					if ( $clarity[1] == 'VVS' ) {
+					if ( $clarity[1] === 'VVS' ) {
 						$args['clarity_to'] = 'VVS2';
-					} elseif ( $clarity[1] == 'VS' ) {
+					} elseif ( $clarity[1] === 'VS' ) {
 						$args['clarity_to'] = 'VS2';
-					} elseif ( $clarity[1] == 'SI' ) {
+					} elseif ( $clarity[1] === 'SI' ) {
 						$args['clarity_to'] = 'SI2';
 					}
 				}
