@@ -59,7 +59,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 			'shapes[]'           => 'Radiant',
 			'page_size'          => $this->page_size,
 			'show_unavailable'   => 'true',
-			// 'print_page_size' => 24,
 			'page_number'        => 1,
 			'page_number_nivoda' => 1,
 			'page_number_vdb'    => 1,
@@ -89,11 +88,15 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 
 	public function get_loop_diamonds( $args ) {
 		include_once plugin_dir_path( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'views/loop/diamond-loop.php';
+
 		$i = 1;
+
 		$total_diamonds_found = 0;
+
 		$output = '';
 
 		$all_active_apis = $this->get_api_order();
+
 		$total_diamonds_found_array = array();
 
 		if ( is_array( $all_active_apis ) && count( $all_active_apis ) >= 1 ) {
@@ -102,10 +105,8 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 
 				if ( isset( $api_data['total_diamonds_found'] ) && $api_data['total_diamonds_found'] >= 1 ) {
 					$total_diamonds_found += $api_data['total_diamonds_found'];
+
 					$total_diamonds_found_array[ $i ] = $api_data['total_diamonds_found'];
-					// if($api_data['total_diamonds_found'] > 12){
-					//   break;
-					// }
 				}
 
 				if ( $i >= 2 && $total_diamonds_found_array[ $i - 1 ] >= 12 ) {
@@ -117,30 +118,25 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 				} else {
 					$args[ 'page_number_' . $key ] = 2;
 				}
-				// if($i == 1 && ($total_diamonds_found < $args['page_size'] || (isset($args['page_number']) && $args['page_number'] >= 2 && $total_diamonds_found < $args['page_size']*$args['page_number']) )){
-				//   if(isset($args['page_number_'.$key]))
-				//     $args['page_number_'.$key] += $args['page_number_'.$key];
-				//   else
-				//     $args['page_number_'.$key] = 1;
-				// }
 
 				if ( is_array( $api_data ) && isset( $api_data['data'] ) && $api_data['data'] ) {
-					// if($total_diamonds_found < 13 && $i < 1)
 					$output .= $api_data['data'];
 				}
 
-				// if(is_string($api_data)){
-				//   $error_vdb = $api_data;
-				// }
 				++$i;
 			}
 		}
+
 		echo $output;
+
 		if ( isset( $total_diamonds_found ) && $total_diamonds_found >= 1 ) {
 			$total_diamonds = $total_diamonds_found;
+
 			if ( $total_diamonds > $args['page_size'] ) {
 				echo '</div>';
+
 				echo $this->get_diamonds_pagination( $total_diamonds, $args );
+
 				echo '<div>';
 			}
 		}

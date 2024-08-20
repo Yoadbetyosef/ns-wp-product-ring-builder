@@ -1,7 +1,6 @@
 <?php
 namespace OTW\WooRingBuilder\Classes;
 
-// exit if file is called directly
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -45,10 +44,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 		add_filter( 'gettext', array( $this, 'gettext' ), 10, 3 );
 	}
-
-	// public function catch_url_params() {
-	//  error_log( 'URL parameters detected: ' . print_r( $_GET, true ) );
-	// }
 
 	// *
 	public function gcpb_add_to_cart() {
@@ -424,8 +419,3 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		return $url;
 	}
 }
-
-//buggy orders
-//74171
-//74476
-//https://wordpress-1167849-4081336.cloudwaysapps.com/select-diamond/?stock_num=LV22-48

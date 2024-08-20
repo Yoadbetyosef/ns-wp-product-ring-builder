@@ -11,9 +11,7 @@ class GetDiamonds extends \OTW\WooRingBuilder\Plugin{
 
 	public $diamond_api_endpoint = 'http://apiservices.vdbapp.com/v2/diamonds';
 
-	public function __construct() {
-		// add_action('init', array($this, 'init'));
-	}
+	public function __construct() {}
 
 	public function init() {}
 

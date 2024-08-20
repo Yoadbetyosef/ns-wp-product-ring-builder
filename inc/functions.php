@@ -11,7 +11,6 @@ if ( ! function_exists( 'alert' ) ) {
 	}
 }
 
-
 if ( ! function_exists( 'js_log' ) ) {
 	function js_log( $alertText ) {
 		echo '<script type="text/javascript">';
@@ -20,7 +19,6 @@ if ( ! function_exists( 'js_log' ) ) {
 	}
 
 }
-
 
 if ( ! function_exists( 'db' ) ) {
 	function db( $array1 ) {
