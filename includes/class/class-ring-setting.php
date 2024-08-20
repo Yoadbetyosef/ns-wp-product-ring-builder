@@ -81,12 +81,15 @@ class Ring_Builder_Setting {
 		// );
 
 		add_menu_page(
-			'gcpb-setting',
-			__( 'GCP Builder', 'otw-woo-ring-builder-td' ),
-			__( 'GCP Builder', 'otw-woo-ring-builder-td' ),
+			'GCP Builder',
+			'GCP Builder',
+			// __( 'GCP Builder', 'otw-woo-ring-builder-td' ),
+			// __( 'GCP Builder', 'otw-woo-ring-builder-td' ),
 			'manage_options',
 			'gcpb-setting',
-			array( $this, 'gcpb_setting_admin_page' )
+			array( $this, 'gcpb_setting_admin_page' ),
+			'',
+			100
 		);
 	}
 
