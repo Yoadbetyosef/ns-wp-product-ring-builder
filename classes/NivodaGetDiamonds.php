@@ -169,9 +169,9 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 	public function get_diamonds( $args ) {
 		error_log( '🔥' . print_r( $args, true ) );
 
-		if ( $this->nivoda_api_type === 'local' ) {
-			return $this->get_local_diamonds( $args );
-		}
+		// if ( $this->nivoda_api_type === 'local' ) {
+		//  return $this->get_local_diamonds( $args );
+		// }
 
 		if ( isset( $args['page_number_nivoda'] ) &&
 			$args['page_number_nivoda'] &&

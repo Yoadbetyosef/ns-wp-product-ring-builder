@@ -6,7 +6,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 trait NivodaLocalDB{
-
 	public $nivoda_api_type = 'local';
 
 	public function get_local_diamond_by_stock_num( $stock_num ) {
