@@ -171,7 +171,7 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 			parse_str( $_POST['query_string'], $params );
 
 			if ( isset( $params['sort'] ) && ! empty( $params['sort'] ) ) {
-				$args['orderby'] = 'meta_value_num';
+				$args['orderby'] = 'price';
 				$args['meta_key'] = '_price';
 
 				if ( $params['sort'] === 'price-ascending' ) {
