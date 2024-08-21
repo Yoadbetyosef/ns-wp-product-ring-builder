@@ -109,7 +109,9 @@ trait NivodaLocalDB{
 		) {
 			if ( ! ( $args['size_from'] == '0.3' && $args['size_from'] == '14.5' ) ) {
 				$size_from = (float) $args['size_from'];
+
 				$size_to = (float) $args['size_to'];
+
 				$query .= " AND (carat_size >= {$size_from} AND carat_size <= {$size_to})";
 			}
 		}
@@ -123,7 +125,11 @@ trait NivodaLocalDB{
 
 			$args['color_to'] = strtoupper( $args['color_to'] );
 
-			$found_colors = get_all_values_between_range( $args['color_from'], $args['color_to'], $this->nivoda_diamonds->get_colors_list() );
+			$found_colors = get_all_values_between_range(
+				$args['color_from'],
+				$args['color_to'],
+				$this->nivoda_diamonds->get_colors_list()
+			);
 
 			if ( $found_colors ) {
 				$fancy_query = '';

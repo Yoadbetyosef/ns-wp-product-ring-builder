@@ -41,10 +41,6 @@ class Plugin{
 		);
 	}
 
-	public function is_compatible() {
-		return true;
-	}
-
 	public function setcookie( $name, $value = '', $time = '', $path = COOKIEPATH, $cookie_domain = '', $secure = true, $http_only = true ) {
 		$samesite = 'Strict';
 

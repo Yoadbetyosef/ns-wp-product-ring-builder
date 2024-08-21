@@ -315,13 +315,7 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 				if ( is_array( $carats ) && isset( $carats[0] ) && isset( $carats[1] ) ) {
 					$args['size_from'] = $carats[0];
 					$args['size_to'] = $carats[1];
-				} elseif ( $params['carat'] == '1' ) {
-					$args['size_from'] = 2.5;
-					$args['size_to'] = 3.5;
 				}
-			} else {
-				$args['size_from'] = 2.5;
-				$args['size_to'] = 3.5;
 			}
 
 			if ( isset( $params['cut'] ) && $params['cut'] && isset( $diamonds_api_cut[ $params['cut'] ] ) ) {
