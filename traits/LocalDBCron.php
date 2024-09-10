@@ -19,59 +19,17 @@ trait LocalDBCron {
 			$this->diamonds = \OTW\WooRingBuilder\Classes\Diamonds::instance();
 		}
 
-		add_action(
-			'wp_footer',
-			function () {
-				if ( isset( $_GET['nivoda_start_cron_event'] ) ) {
-					$this->start_cron_event();
-				}
+		add_filter( 'cron_schedules', array( $this, 'add_custom_cron_schedules' ) );
 
-				if ( isset( $_GET['every_ten_minute_cron'] ) ) {
-					$this->every_ten_minute_cron();
-				}
-			}
-		);
-
-		if ( isset( $_GET['run_csv_import'] ) ) {
-			$last_started_date = $this->get_option( 'last_nivoda_update_key' );
-
-			if ( $last_started_date ) {
-				echo wp_date( 'Y-m-d H:i:s', $last_started_date );
-			}
-
-			echo '<br />';
-
-			echo wp_date( 'Y-m-d H:i:s' );
-
-			db( $this->get_option( 'current_import_file' ) );
-		}
-
-		if ( isset( $_GET['nivoda_single_cron_event'] ) ) {
-		}
-
-		if ( isset( $_GET['delete_old_nivoda_diamonds'] ) ) {
-			$this->delete_old_nivoda_diamonds();
-		}
-
-		add_filter( 'cron_schedules', array( $this, 'add_weekly_cron' ) );
+		add_action( $this->prefix . '_every_four_hour', array( $this, 'every_four_hour_cron' ) );
 
 		add_action( $this->prefix . '_every_ten_minute', array( $this, 'every_ten_minute_cron' ) );
 
 		add_action( $this->prefix . '_nivoda_copy_import_files', array( $this, 'nivoda_copy_import_files' ) );
 
-		add_action( $this->prefix . '_nivoda_cron_event', array( $this, 'nivoda_start_cron_event' ) );
-
 		add_action( $this->prefix . '_nivoda_single_cron_event', array( $this, 'nivoda_single_cron_event_csv' ) );
 
-		add_action( 'wp_ajax_check_nivoda_cron_status', array( $this, 'check_nivoda_cron_status' ) );
-
-		add_action( 'wp_ajax_nopriv_check_nivoda_cron_status', array( $this, 'check_nivoda_cron_status' ) );
-
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
-
-		if ( ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
-			add_action( 'wp_footer', array( $this, 'nivoda_wp_footer' ) );
-		}
 
 		if ( ! wp_next_scheduled( $this->prefix . '_nivoda_single_cron_event' ) ) {
 			$files_list = $this->get_option( 'import_nivoda_csv_files' );
@@ -82,17 +40,14 @@ trait LocalDBCron {
 		}
 	}
 
-	public function nivoda_single_cron_event_csv() {
-		$this->run_csv_import();
-	}
+	////////////////////////
+	//// CRON SCHEDULES ////
+	////////////////////////
 
-	public function add_weekly_cron( $schedules ) {
-
+	public function add_custom_cron_schedules( $schedules ) {
 		if ( ! isset( $schedules['every_four_hour'] ) ) {
-			// add a 'weekly' schedule to the existing set
 			$schedules['every_four_hour'] = array(
-				'interval' => 60 * 60 * 4, # 604,800, seconds in a week
-			//'interval' => 30,
+				'interval' => 60 * 60 * 4,
 				'display'  => __( 'Every 4 hour' ),
 			);
 		}
@@ -104,47 +59,7 @@ trait LocalDBCron {
 			);
 		}
 
-		if ( ! isset( $schedules['every_thirty_minute'] ) ) {
-			$schedules['every_thirty_minute'] = array(
-				'interval' => 60 * 30,
-				'display'  => __( 'Every 30 minute' ),
-			);
-		}
-
-		// db($schedules);exit();
 		return $schedules;
-	}
-
-	public function start_cron_event() {
-		$recurrence = $this->get_option( 'recurrence' );
-
-		$recurrence = 'every_four_hour';
-
-		if ( ! $recurrence ) {
-			$recurrence = 'hourly';
-		}
-
-		if ( $recurrence == 'oneoff' && wp_next_scheduled( $this->prefix . '_nivoda_cron_event' ) ) {
-			wp_clear_scheduled_hook( $this->prefix . '_nivoda_cron_event' );
-		} elseif ( ! wp_next_scheduled( $this->prefix . '_nivoda_cron_event' ) ) {
-			wp_schedule_event( wp_date( 'U' ) + 1, $recurrence, $this->prefix . '_nivoda_cron_event' );
-		} elseif ( wp_next_scheduled( $this->prefix . '_nivoda_cron_event' ) ) {
-			wp_clear_scheduled_hook( $this->prefix . '_nivoda_cron_event' );
-
-			wp_schedule_event( wp_date( 'U' ) + 1, $recurrence, $this->prefix . '_nivoda_cron_event' );
-		}
-
-		$recurrence = 'every_ten_minute';
-
-		if ( $recurrence == 'oneoff' && wp_next_scheduled( $this->prefix . '_every_ten_minute' ) ) {
-			wp_clear_scheduled_hook( $this->prefix . '_every_ten_minute' );
-		} elseif ( ! wp_next_scheduled( $this->prefix . '_every_ten_minute' ) ) {
-			wp_schedule_event( wp_date( 'U' ) + 1, $recurrence, $this->prefix . '_every_ten_minute' );
-		} elseif ( wp_next_scheduled( $this->prefix . '_every_ten_minute' ) ) {
-			wp_clear_scheduled_hook( $this->prefix . '_every_ten_minute' );
-
-			wp_schedule_event( wp_date( 'U' ) + 1, $recurrence, $this->prefix . '_every_ten_minute' );
-		}
 	}
 
 	public function every_ten_minute_cron() {
@@ -186,6 +101,33 @@ trait LocalDBCron {
 		}
 	}
 
+	public function every_four_hour_cron() {
+		$this->update_option( 'current_import_file', array() );
+
+		$this->update_option( 'import_nivoda_csv_files', array() );
+
+		$this->get_diamonds_from_csv();
+	}
+
+	public function start_cron_event() {
+		$events = array(
+			$this->prefix . '_every_four_hour'  => 'every_four_hour',
+			$this->prefix . '_every_ten_minute' => 'every_ten_minute',
+		);
+
+		foreach ( $events as $hook => $recurrence ) {
+			if ( ! wp_next_scheduled( $hook ) ) {
+				wp_schedule_event( wp_date( 'U' ) + 1, $recurrence, $hook );
+			}
+		}
+	}
+
+	////////////////////////
+
+	public function nivoda_single_cron_event_csv() {
+		$this->run_csv_import();
+	}
+
 	public function nivoda_copy_import_files() {
 		$file_system = \OTW\GeneralWooRingBuilder\FileSystem::instance();
 
@@ -212,14 +154,6 @@ trait LocalDBCron {
 				}
 			}
 		}
-	}
-
-	public function nivoda_start_cron_event() {
-		$this->update_option( 'current_import_file', array() );
-
-		$this->update_option( 'import_nivoda_csv_files', array() );
-
-		$this->get_diamonds_from_csv();
 	}
 
 	public function get_diamonds_from_csv() {
@@ -440,6 +374,7 @@ trait LocalDBCron {
 		$diamond['diamond']['certificate']['length'] = $db_diamond['length'];
 		$diamond['diamond']['certificate']['width'] = $db_diamond['width'];
 		$diamond['diamond']['certificate']['lab'] = $db_diamond['lab'];
+
 		if ( isset( $db_diamond['pdf'] ) && $db_diamond['pdf'] ) {
 			$diamond['diamond']['certificate']['pdfUrl'] = $db_diamond['pdf'];
 		}
@@ -447,17 +382,16 @@ trait LocalDBCron {
 		if ( ! $this->nivoda_diamonds ) {
 			$this->nivoda_diamonds = \OTW\WooRingBuilder\Classes\NivodaGetDiamonds::instance();
 		}
+
 		if ( ! $this->diamonds ) {
 			$this->diamonds = \OTW\WooRingBuilder\Classes\Diamonds::instance();
 		}
 
 		$formated_diamond = $this->nivoda_diamonds->convert_nivoda_to_vdb( $diamond );
+
 		if ( isset( $db_diamond['lg'] ) && $db_diamond['lg'] ) {
 			$formated_diamond['lg'] = $db_diamond['lg'];
 		}
-
-		// if($this->diamonds->exclude_diamond($formated_diamond))
-		//   return false;
 
 		$this->insert_new_diamond( $formated_diamond, array( 'new_diamond_key' => $this->get_option( 'last_nivoda_update_key' ) ) );
 	}
@@ -497,34 +431,6 @@ trait LocalDBCron {
 		fclose( $fileHandle );
 
 		return $worksheetInfo;
-	}
-
-	public function get_diamonds_from_live_api() {
-		$page_size = 50;
-
-		$nivoda_cron_status = array(
-			'new_diamond_key' => $this->get_option( 'last_nivoda_update_key' ),
-			'page_size'       => $page_size,
-			'page_number'     => 1,
-		);
-
-		$query_response_all_data = $this->nivoda_diamonds->get_diamonds( array() );
-
-		if ( ! ( $query_response_all_data && is_array( $query_response_all_data ) && count( $query_response_all_data ) >= 1 && isset( $query_response_all_data['diamonds_by_query'] ) && isset( $query_response_all_data['diamonds_by_query']['items'] ) && is_array( $query_response_all_data['diamonds_by_query']['items'] ) && count( $query_response_all_data['diamonds_by_query']['items'] ) >= 1 ) ) {
-			$_GET['get_new_nivoda_auth_token'] = 'yes';
-
-			$this->nivoda_diamonds->get_auth_token();
-
-			$query_response_all_data = $this->nivoda_diamonds->get_diamonds( array() );
-		}
-
-		if ( $query_response_all_data && is_array( $query_response_all_data ) && count( $query_response_all_data ) >= 1 && isset( $query_response_all_data['diamonds_by_query'] ) && isset( $query_response_all_data['diamonds_by_query']['items'] ) && is_array( $query_response_all_data['diamonds_by_query']['items'] ) && count( $query_response_all_data['diamonds_by_query']['items'] ) >= 1 ) {
-			$nivoda_cron_status['diamonds_by_query_count'] = $query_response_all_data['diamonds_by_query_count'];
-
-			$nivoda_cron_status['total_pages'] = (int) ceil( $query_response_all_data['diamonds_by_query_count'] / $page_size );
-		}
-
-		update_option( 'otw_nivoda_cron_status', $nivoda_cron_status );
 	}
 
 	public function delete_old_nivoda_diamonds( $where = '' ) {
@@ -663,7 +569,7 @@ trait LocalDBCron {
 
 		$table_name = $wpdb->prefix . 'otw_diamonds';
 
-		$current_version = '1.1'; // Update this with your current version
+		$current_version = '1.1';
 
 		$table_version = $this->get_option( 'db_version' );
 
@@ -709,56 +615,31 @@ trait LocalDBCron {
 		}
 	}
 
-	public function check_nivoda_cron_status() {
-		$current_import_file = $this->get_option( 'current_import_file' );
+	public function get_diamonds_from_live_api() {
+		$page_size = 50;
 
-		$files_list = $this->get_option( 'import_nivoda_csv_files' );
+		$nivoda_cron_status = array(
+			'new_diamond_key' => $this->get_option( 'last_nivoda_update_key' ),
+			'page_size'       => $page_size,
+			'page_number'     => 1,
+		);
 
-		if ( ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
-			$output = array(
-				'status'    => 'unfinished',
-				'cron_data' => $current_import_file,
-			);
-		} else {
-			$output = array(
-				'status'    => 'finish',
-				'cron_data' => $nivoda_cron_status,
-			);
+		$query_response_all_data = $this->nivoda_diamonds->get_diamonds( array() );
+
+		if ( ! ( $query_response_all_data && is_array( $query_response_all_data ) && count( $query_response_all_data ) >= 1 && isset( $query_response_all_data['diamonds_by_query'] ) && isset( $query_response_all_data['diamonds_by_query']['items'] ) && is_array( $query_response_all_data['diamonds_by_query']['items'] ) && count( $query_response_all_data['diamonds_by_query']['items'] ) >= 1 ) ) {
+			$_GET['get_new_nivoda_auth_token'] = 'yes';
+
+			$this->nivoda_diamonds->get_auth_token();
+
+			$query_response_all_data = $this->nivoda_diamonds->get_diamonds( array() );
 		}
 
-		wp_send_json_success( $output );
-	}
+		if ( $query_response_all_data && is_array( $query_response_all_data ) && count( $query_response_all_data ) >= 1 && isset( $query_response_all_data['diamonds_by_query'] ) && isset( $query_response_all_data['diamonds_by_query']['items'] ) && is_array( $query_response_all_data['diamonds_by_query']['items'] ) && count( $query_response_all_data['diamonds_by_query']['items'] ) >= 1 ) {
+			$nivoda_cron_status['diamonds_by_query_count'] = $query_response_all_data['diamonds_by_query_count'];
 
-	public function nivoda_wp_footer() {
-		?>
-		<script>
-		jQuery(document).ready(function(){
-			function check_nivoda_cron_status(){
-			jQuery.ajax({
-				type: "POST",
-				url: '<?php echo admin_url( 'admin-ajax.php' ); ?>',
-				data: {action: "check_nivoda_cron_status"},
-				success: function (response) {
-				if (typeof response != 'undefined' && typeof response.success != "undefined" && response.success == true && typeof response.data != "undefined"){
-					if (typeof response.data.status != "undefined") {
-					if (response.data.status == 'finish'){
-					} else {
-						setTimeout(function(){
-						check_nivoda_cron_status();
-						}, 1000*5);
-					}
-					}
-				}
-				}
-			});
-			}
+			$nivoda_cron_status['total_pages'] = (int) ceil( $query_response_all_data['diamonds_by_query_count'] / $page_size );
+		}
 
-			setTimeout(function(){
-			check_nivoda_cron_status();
-			}, 1000*10);
-		  
-		});
-		</script>
-		<?php
+		update_option( 'otw_nivoda_cron_status', $nivoda_cron_status );
 	}
 }

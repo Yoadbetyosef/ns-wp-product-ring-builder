@@ -50,18 +50,6 @@ class PluginDefault extends Plugin{
 		add_filter( 'wp_all_export_available_data', array( $this, 'wp_all_export_available_data' ) );
 
 		$this->empty_cart();
-
-		add_action( 'wp_footer', array( $this, 'wp_footer' ) );
-	}
-
-	public function wp_footer() {
-		?>
-			<script>
-				jQuery(document).ready(function($){
-				$(".elementor-menu-cart__subtotal strong").html("Total: ");
-				});
-			</script>	
-		<?php
 	}
 
 	function redirect_settings() {
