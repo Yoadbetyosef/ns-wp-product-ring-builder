@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-trait LocalDBCron{
+trait LocalDBCron {
 	public function local_db_cron_init() {
 		if ( isset( $_GET['create_custom_table'] ) ) {
 			$this->create_custom_table();
@@ -14,6 +14,7 @@ trait LocalDBCron{
 		if ( ! $this->nivoda_diamonds ) {
 			$this->nivoda_diamonds = \OTW\WooRingBuilder\Classes\NivodaGetDiamonds::instance();
 		}
+
 		if ( ! $this->diamonds ) {
 			$this->diamonds = \OTW\WooRingBuilder\Classes\Diamonds::instance();
 		}
@@ -224,7 +225,7 @@ trait LocalDBCron{
 	public function get_diamonds_from_csv() {
 		$file_system = \OTW\GeneralWooRingBuilder\FileSystem::instance();
 
-		$abs_path = ABSPATH . 'nivoda/import/';
+		$abs_path = ABSPATH . 'nivoda';
 
 		$dir_files = $file_system->scandir( $abs_path );
 
@@ -233,19 +234,22 @@ trait LocalDBCron{
 
 			foreach ( $dir_files as $single_file ) {
 				if ( isset( $single_file['type'] ) &&
-				$single_file['type'] == 'f' &&
-				isset( $single_file['name'] ) &&
-				(
-				$single_file['name'] == 'labgrown.csv' ||
-				$single_file['name'] == 'natural_diamonds.csv'
-				)
+					$single_file['type'] == 'f' &&
+					isset( $single_file['name'] ) &&
+					(
+						$single_file['name'] == 'labgrown.csv' ||
+						$single_file['name'] == 'natural_diamonds.csv'
+					)
 				) {
 					$files_list[ $single_file['name'] ] = $single_file;
 				}
 			}
 		}
 
-		if ( isset( $files_list ) && is_array( $files_list ) && $files_list && count( $files_list ) >= 1 ) {
+		if ( isset( $files_list ) &&
+			is_array( $files_list ) &&
+			$files_list && count( $files_list ) >= 1
+		) {
 			$this->update_option( 'last_nivoda_update_key', wp_date( 'U' ) );
 
 			$this->update_option( 'import_nivoda_csv_files', $files_list );
@@ -422,7 +426,6 @@ trait LocalDBCron{
 			$db_diamond['image'] = 'https://wordpress-1167849-4081671.cloudwaysapps.com/wp-content/uploads/2023/10/cat_halo-300.webp';
 		}
 
-		// db('yes');
 		$diamond['id'] = $db_diamond['stock_id'];
 		$diamond['upload'] = 'csv';
 		$diamond['markup_price'] = $db_diamond['markup_price'];

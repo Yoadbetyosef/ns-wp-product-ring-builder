@@ -42,6 +42,28 @@ class PluginDefault extends Plugin{
 		add_action( 'init', array( $this, 'init' ) );
 	}
 
+	public function init() {
+		if ( $this->get_option( 'nivoda_api' ) ) {
+			$this->local_db_cron_init();
+		}
+
+		add_filter( 'wp_all_export_available_data', array( $this, 'wp_all_export_available_data' ) );
+
+		$this->empty_cart();
+
+		add_action( 'wp_footer', array( $this, 'wp_footer' ) );
+	}
+
+	public function wp_footer() {
+		?>
+			<script>
+				jQuery(document).ready(function($){
+				$(".elementor-menu-cart__subtotal strong").html("Total: ");
+				});
+			</script>	
+		<?php
+	}
+
 	function redirect_settings() {
 		global $post;
 
@@ -382,27 +404,7 @@ class PluginDefault extends Plugin{
 		}
 	}
 
-	public function init() {
-		if ( $this->get_option( 'nivoda_api' ) ) {
-			$this->local_db_cron_init();
-		}
 
-		add_filter( 'wp_all_export_available_data', array( $this, 'wp_all_export_available_data' ) );
-
-		$this->empty_cart();
-
-		add_action( 'wp_footer', array( $this, 'wp_footer' ) );
-	}
-
-	public function wp_footer() {
-		?>
-			<script>
-				jQuery(document).ready(function($){
-				$(".elementor-menu-cart__subtotal strong").html("Total: ");
-				});
-			</script>	
-		<?php
-	}
 
 	public function wp_all_export_available_data( $available_data ) {
 		if ( isset( $available_data['existing_meta_keys'] ) && isset( $available_data['woo_data'] ) ) {

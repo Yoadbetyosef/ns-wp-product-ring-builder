@@ -287,6 +287,8 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 						$args['clarity_from'] = 'VS1';
 					} elseif ( $clarity[0] === 'SI' ) {
 						$args['clarity_from'] = 'SI1';
+					} elseif ( $clarity[0] === 'FL' ) {
+						$args['clarity_from'] = 'FL';
 					}
 
 					if ( $clarity[1] === 'VVS' ) {
@@ -295,6 +297,8 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 						$args['clarity_to'] = 'VS2';
 					} elseif ( $clarity[1] === 'SI' ) {
 						$args['clarity_to'] = 'SI2';
+					} elseif ( $clarity[1] === 'FL' ) {
+						$args['clarity_to'] = 'IF';
 					}
 				}
 			}
@@ -339,7 +343,7 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 
 			$output = '';
 
-			include_once plugin_dir_path( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'views/loop/diamond-loop.php';
+			// include_once plugin_dir_path( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'views/loop/diamond-loop.php';
 
 			$i = 1;
 
@@ -372,11 +376,11 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 					}
 
 					if ( is_array( $api_data ) && isset( $api_data['data'] ) && $api_data['data'] ) {
-						if ( isset( $args['markup_mode'] ) && $args['markup_mode'] === 'false' ) {
+						// if ( isset( $args['markup_mode'] ) && $args['markup_mode'] === 'false' ) {
 							$data = array_merge( $data, $api_data['data'] );
-						} else {
-							$output .= $api_data['data'];
-						}
+						// } else {
+							// $output .= $api_data['data'];
+						// }
 					}
 
 					++$i;
@@ -393,26 +397,28 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 				}
 			}
 
-			if ( isset( $args['markup_mode'] ) && $args['markup_mode'] === 'false' ) {
-				wp_send_json_success(
-					array(
-						'message'     => 'success',
-						'data'        => wp_json_encode( $data ),
-						'page_number' => $args['page_number'],
-						'page_size'   => $args['page_size'],
-						'total'       => $total_diamonds,
-					)
-				);
-			} else {
-				wp_send_json_success(
-					array(
-						'message'         => 'success',
-						'data'            => $output,
-						'pagination_html' => $pagination_html,
-						'page_number'     => $args['page_number'],
-					)
-				);
-			}
+			// if ( isset( $args['markup_mode'] ) && $args['markup_mode'] === 'false' ) {
+
+			wp_send_json_success(
+				array(
+					'message'     => 'success',
+					'data'        => wp_json_encode( $data ),
+					'page_number' => $args['page_number'],
+					'page_size'   => $args['page_size'],
+					'total'       => $total_diamonds,
+				)
+			);
+
+			// } else {
+			//  wp_send_json_success(
+			//      array(
+			//          'message'         => 'success',
+			//          'data'            => $output,
+			//          'pagination_html' => $pagination_html,
+			//          'page_number'     => $args['page_number'],
+			//      )
+			//  );
+			// }
 
 			die();
 		}
