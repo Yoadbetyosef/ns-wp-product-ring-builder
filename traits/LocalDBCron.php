@@ -115,7 +115,7 @@ trait LocalDBCron {
 				return false;
 			}
 
-			set_transient( 'csv_import_lock', true, 60 * MINUTE_IN_SECONDS );
+			set_transient( 'csv_import_lock', true, 60 * 2 * MINUTE_IN_SECONDS );
 
 			error_log( '** Starting CSV Import **' );
 
