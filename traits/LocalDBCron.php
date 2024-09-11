@@ -9,10 +9,6 @@ trait LocalDBCron {
 	public function local_db_cron_init() {
 		error_log( '** local_db_cron_init **' );
 
-		if ( isset( $_GET['create_custom_table'] ) ) {
-			$this->create_custom_table();
-		}
-
 		if ( ! $this->nivoda_diamonds ) {
 			$this->nivoda_diamonds = \OTW\WooRingBuilder\Classes\NivodaGetDiamonds::instance();
 		}
@@ -116,6 +112,8 @@ trait LocalDBCron {
 	}
 
 	public function start_cron_event() {
+		error_log( '** start_cron_event **' );
+
 		$events = array(
 			$this->prefix . '_every_four_hour'  => 'every_four_hour',
 			$this->prefix . '_every_ten_minute' => 'every_ten_minute',
@@ -246,6 +244,7 @@ trait LocalDBCron {
 
 		if ( ! $current_file ) {
 			$this->add_file_to_import_que( $files_list );
+
 			return false;
 		}
 
