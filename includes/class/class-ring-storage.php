@@ -47,7 +47,7 @@ class Ring_Storage {
 
 		$sql = "CREATE TABLE $table_seller_auction_log (
 		id BIGINT(9) NOT NULL AUTO_INCREMENT,
-		user_id TEXT NOT NULL DEFAULT 0,
+		user_id TEXT NOT NULL,
 		product_id BIGINT(9) NOT NULL,
 		variation_id BIGINT(9) NOT NULL,
 		created_date datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
