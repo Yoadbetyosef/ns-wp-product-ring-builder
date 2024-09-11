@@ -19,11 +19,11 @@ trait LocalDBCron {
 
 		add_filter( 'cron_schedules', array( $this, 'add_custom_cron_schedules' ) );
 
+		add_action( $this->prefix . '_every_one_hour', array( $this, 'every_one_hour_cron' ) );
+
 		add_action( $this->prefix . '_every_four_hour', array( $this, 'every_four_hour_cron' ) );
 
 		add_action( $this->prefix . '_every_ten_minute', array( $this, 'every_ten_minute_cron' ) );
-
-		add_action( $this->prefix . '_every_thirty_minute', array( $this, 'every_thirty_minute_cron' ) );
 
 		add_action( $this->prefix . '_nivoda_copy_import_files', array( $this, 'nivoda_copy_import_files' ) );
 
@@ -35,13 +35,6 @@ trait LocalDBCron {
 	////////////////////////
 
 	public function add_custom_cron_schedules( $schedules ) {
-		if ( ! isset( $schedules['every_four_hour'] ) ) {
-			$schedules['every_four_hour'] = array(
-				'interval' => 60 * 60 * 4,
-				'display'  => __( 'Every 4 hour' ),
-			);
-		}
-
 		if ( ! isset( $schedules['every_ten_minute'] ) ) {
 			$schedules['every_ten_minute'] = array(
 				'interval' => 60 * 10,
@@ -49,7 +42,60 @@ trait LocalDBCron {
 			);
 		}
 
+		if ( ! isset( $schedules['every_one_hour'] ) ) {
+			$schedules['every_one_hour'] = array(
+				'interval' => 60 * 60,
+				'display'  => __( 'Every 1 hour' ),
+			);
+		}
+
+		if ( ! isset( $schedules['every_four_hour'] ) ) {
+			$schedules['every_four_hour'] = array(
+				'interval' => 60 * 60 * 4,
+				'display'  => __( 'Every 4 hour' ),
+			);
+		}
+
 		return $schedules;
+	}
+
+	public function every_one_hour_cron() {
+		error_log( '** every_hour_cron_cron **' );
+
+		$files_list = $this->get_option( 'import_nivoda_csv_files' );
+
+		if ( ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
+			// Check if the import is already running
+			if ( get_transient( 'csv_import_lock' ) ) {
+				error_log( 'CSV import already running. Retrying in one hour...' );
+
+				return false;
+			}
+
+			set_transient( 'csv_import_lock', true, 60 * MINUTE_IN_SECONDS );
+
+			error_log( '** Starting CSV Import **' );
+
+			// import
+			$this->run_csv_import();
+
+			// Done processing delete transient...
+			delete_transient( 'csv_import_lock' );
+
+			error_log( '** CSV Import Completed **' );
+
+			return true;
+		}
+	}
+
+	public function every_four_hour_cron() {
+		error_log( '** every_four_hour_cron **' );
+
+		$this->update_option( 'current_import_file', array() );
+
+		$this->update_option( 'import_nivoda_csv_files', array() );
+
+		$this->get_diamonds_from_csv();
 	}
 
 	public function every_ten_minute_cron() {
@@ -95,52 +141,13 @@ trait LocalDBCron {
 		}
 	}
 
-	public function every_thirty_minute_cron() {
-		error_log( '** every_thirty_minute_cron **' );
-
-		$files_list = $this->get_option( 'import_nivoda_csv_files' );
-
-		if ( ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
-			// Check if the import is already running
-			if ( get_transient( 'csv_import_lock' ) ) {
-				error_log( 'CSV import already running. Retrying in 5 minutes...' );
-
-				return false;
-			}
-
-			set_transient( 'csv_import_lock', true, 30 * MINUTE_IN_SECONDS );
-
-			error_log( '** Starting CSV Import **' );
-
-			// Your CSV import logic here...
-			$this->run_csv_import();
-
-			// Done processing delete transient...
-			delete_transient( 'csv_import_lock' );
-
-			error_log( '** CSV Import Completed **' );
-
-			return true;
-		}
-	}
-
-	public function every_four_hour_cron() {
-		error_log( '** every_four_hour_cron **' );
-
-		$this->update_option( 'current_import_file', array() );
-
-		$this->update_option( 'import_nivoda_csv_files', array() );
-
-		$this->get_diamonds_from_csv();
-	}
-
 	public function start_cron_event() {
 		error_log( '** start_cron_event **' );
 
 		$events = array(
-			$this->prefix . '_every_four_hour'     => 'every_four_hour',
-			$this->prefix . '_every_ten_minute'    => 'every_ten_minute',
-			$this->prefix . '_every_thirty_minute' => 'every_thirty_minute',
+			$this->prefix . '_every_four_hour'  => 'every_four_hour',
+			$this->prefix . '_every_ten_minute' => 'every_ten_minute',
+			$this->prefix . '_every_one_hour'   => 'every_one_hour',
 		);
 
 		foreach ( $events as $hook => $recurrence ) {
@@ -624,9 +631,9 @@ trait LocalDBCron {
 		isset( $_GET['create_custom_table'] )
 		) {
 			if ( isset( $_GET['create_custom_table'] ) ) {
-				$sql = "DROP TABLE IF EXISTS $table_name";
-
-				$wpdb->query( $sql );
+				$wpdb->query(
+					$wpdb->prepare( 'DROP TABLE IF EXISTS %s', $table_name )
+				);
 			}
 
 			$charset_collate = $wpdb->get_charset_collate();
@@ -660,33 +667,5 @@ trait LocalDBCron {
 
 			$this->update_option( 'db_version', $current_version );
 		}
-	}
-
-	public function get_diamonds_from_live_api() {
-		$page_size = 50;
-
-		$nivoda_cron_status = array(
-			'new_diamond_key' => $this->get_option( 'last_nivoda_update_key' ),
-			'page_size'       => $page_size,
-			'page_number'     => 1,
-		);
-
-		$query_response_all_data = $this->nivoda_diamonds->get_diamonds( array() );
-
-		if ( ! ( $query_response_all_data && is_array( $query_response_all_data ) && count( $query_response_all_data ) >= 1 && isset( $query_response_all_data['diamonds_by_query'] ) && isset( $query_response_all_data['diamonds_by_query']['items'] ) && is_array( $query_response_all_data['diamonds_by_query']['items'] ) && count( $query_response_all_data['diamonds_by_query']['items'] ) >= 1 ) ) {
-			$_GET['get_new_nivoda_auth_token'] = 'yes';
-
-			$this->nivoda_diamonds->get_auth_token();
-
-			$query_response_all_data = $this->nivoda_diamonds->get_diamonds( array() );
-		}
-
-		if ( $query_response_all_data && is_array( $query_response_all_data ) && count( $query_response_all_data ) >= 1 && isset( $query_response_all_data['diamonds_by_query'] ) && isset( $query_response_all_data['diamonds_by_query']['items'] ) && is_array( $query_response_all_data['diamonds_by_query']['items'] ) && count( $query_response_all_data['diamonds_by_query']['items'] ) >= 1 ) {
-			$nivoda_cron_status['diamonds_by_query_count'] = $query_response_all_data['diamonds_by_query_count'];
-
-			$nivoda_cron_status['total_pages'] = (int) ceil( $query_response_all_data['diamonds_by_query_count'] / $page_size );
-		}
-
-		update_option( 'otw_nivoda_cron_status', $nivoda_cron_status );
 	}
 }
