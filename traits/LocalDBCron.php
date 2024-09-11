@@ -19,25 +19,15 @@ trait LocalDBCron {
 
 		add_filter( 'cron_schedules', array( $this, 'add_custom_cron_schedules' ) );
 
+		add_action( $this->prefix . '_every_four_hour', array( $this, 'every_four_hour_cron' ) );
+
 		add_action( $this->prefix . '_every_ten_minute', array( $this, 'every_ten_minute_cron' ) );
 
 		add_action( $this->prefix . '_every_thirty_minute', array( $this, 'every_thirty_minute_cron' ) );
 
-		add_action( $this->prefix . '_every_four_hour', array( $this, 'every_four_hour_cron' ) );
-
 		add_action( $this->prefix . '_nivoda_copy_import_files', array( $this, 'nivoda_copy_import_files' ) );
 
-		add_action( $this->prefix . '_nivoda_single_cron_event', array( $this, 'nivoda_single_cron_event_csv' ) );
-
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
-
-		// if ( ! wp_next_scheduled( $this->prefix . '_nivoda_single_cron_event' ) ) {
-		//  $files_list = $this->get_option( 'import_nivoda_csv_files' );
-
-		//  if ( ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
-		//      wp_schedule_single_event( wp_date( 'U' ) + 1, $this->prefix . '_nivoda_single_cron_event' );
-		//  }
-		// }
 	}
 
 	////////////////////////
@@ -108,7 +98,30 @@ trait LocalDBCron {
 	public function every_thirty_minute_cron() {
 		error_log( '** every_thirty_minute_cron **' );
 
-		$this->nivoda_single_cron_event_csv();
+		$files_list = $this->get_option( 'import_nivoda_csv_files' );
+
+		if ( ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
+			// Check if the import is already running
+			if ( get_transient( 'csv_import_lock' ) ) {
+				error_log( 'CSV import already running. Retrying in 5 minutes...' );
+
+				return false;
+			}
+
+			set_transient( 'csv_import_lock', true, 30 * MINUTE_IN_SECONDS );
+
+			error_log( '** Starting CSV Import **' );
+
+			// Your CSV import logic here...
+			$this->run_csv_import();
+
+			// Done processing delete transient...
+			delete_transient( 'csv_import_lock' );
+
+			error_log( '** CSV Import Completed **' );
+
+			return true;
+		}
 	}
 
 	public function every_four_hour_cron() {
@@ -238,33 +251,6 @@ trait LocalDBCron {
 			wp_delete_file( $current_file['absolute_path'] );
 
 			$this->remove_file_from_import_que( $current_file );
-		}
-	}
-
-	public function nivoda_single_cron_event_csv() {
-		$files_list = $this->get_option( 'import_nivoda_csv_files' );
-
-		if ( ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
-			// Check if the import is already running
-			if ( get_transient( 'csv_import_lock' ) ) {
-				error_log( 'CSV import already running. Retrying in 5 minutes...' );
-
-				return false;
-			}
-
-			set_transient( 'csv_import_lock', true, 30 * MINUTE_IN_SECONDS );
-
-			error_log( '** Starting CSV Import **' );
-
-			// Your CSV import logic here...
-			$this->run_csv_import();
-
-			// Done processing delete transient...
-			delete_transient( 'csv_import_lock' );
-
-			error_log( '** CSV Import Completed **' );
-
-			return true;
 		}
 	}
 
