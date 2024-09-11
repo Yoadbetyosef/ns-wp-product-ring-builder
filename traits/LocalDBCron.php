@@ -202,6 +202,8 @@ trait LocalDBCron {
 		isset( $current_file['rows_imported'] ) &&
 		$current_file['rows_imported'] < $current_file['rows']
 		) {
+			error_log( '** < **' );
+
 			if ( ! file_exists( $current_file['absolute_path'] ) ) {
 				$this->remove_file_from_import_que( $current_file );
 
@@ -260,6 +262,8 @@ trait LocalDBCron {
 		isset( $current_file['rows_imported'] ) &&
 		$current_file['rows_imported'] >= $current_file['rows']
 		) {
+			error_log( '** > **' );
+
 			$diamond_type = 'lab';
 
 			if ( $current_file['name'] == 'natural_diamonds.csv' ) {
@@ -367,6 +371,8 @@ trait LocalDBCron {
 	}
 
 	public function remove_file_from_import_que( $current_file ) {
+		error_log( '** remove_file_from_import_que ** ' );
+
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
 		if ( ! ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
@@ -387,6 +393,8 @@ trait LocalDBCron {
 	}
 
 	public function update_insert_new_csv_diamond( $db_diamond ) {
+		error_log( '** update_insert_new_csv_diamond ** ' );
+
 		$diamond = array();
 
 		if (
@@ -464,6 +472,7 @@ trait LocalDBCron {
 	}
 
 	public function list_worksheet_info( $pFilename ) {
+
 		$fileHandle = fopen( $pFilename, 'r' );
 
 		if ( ! $fileHandle ) {
@@ -501,6 +510,8 @@ trait LocalDBCron {
 	}
 
 	public function delete_old_nivoda_diamonds( $where = '' ) {
+		error_log( '** delete_old_nivoda_diamonds ** ' );
+
 		$last_update_key = $this->get_option( 'last_nivoda_update_key' );
 
 		if ( $last_update_key ) {
@@ -514,62 +525,9 @@ trait LocalDBCron {
 		}
 	}
 
-	public function nivoda_single_cron_event() {
-		$nivoda_cron_status = get_option( 'otw_nivoda_cron_status' );
-
-		if ( $nivoda_cron_status &&
-		isset( $nivoda_cron_status['diamonds_by_query_count'] ) &&
-		$nivoda_cron_status['diamonds_by_query_count'] >= 1 &&
-		isset( $nivoda_cron_status['total_pages'] ) &&
-		$nivoda_cron_status['total_pages'] >= $nivoda_cron_status['page_number']
-		) {
-			$args = array(
-				'page_number'             => $nivoda_cron_status['page_number'],
-				'page_number_nivoda'      => $nivoda_cron_status['page_number'],
-				'page_size'               => $nivoda_cron_status['page_size'],
-				'diamonds_by_query_count' => 'no',
-			);
-			$query_response_all_data = $this->nivoda_diamonds->get_diamonds( $args );
-
-			if ( $query_response_all_data &&
-			is_array( $query_response_all_data ) &&
-			count( $query_response_all_data ) >= 1 &&
-			isset( $query_response_all_data['diamonds_by_query'] ) &&
-			isset( $query_response_all_data['diamonds_by_query']['items'] ) &&
-			is_array( $query_response_all_data['diamonds_by_query']['items'] ) &&
-			count( $query_response_all_data['diamonds_by_query']['items'] ) >= 1
-			) {
-				$query_response = $query_response_all_data['diamonds_by_query']['items'];
-
-				$counter = 1;
-
-				foreach ( $query_response as $diamond ) {
-					$formated_diamond = $this->nivoda_diamonds->convert_nivoda_to_vdb( $diamond );
-
-					if ( ! ( isset( $nivoda_cron_counter ) && $nivoda_cron_counter ) ) {
-						$nivoda_cron_counter = 0;
-					}
-
-					if ( $counter > $nivoda_cron_counter ) {
-						$this->insert_new_diamond( $formated_diamond, $nivoda_cron_status );
-					}
-
-					++$counter;
-				}
-
-				$nivoda_cron_status['page_counter'] = 0;
-
-				$nivoda_cron_status['page_number'] = (int) $nivoda_cron_status['page_number'] + 1;
-
-				update_option( 'otw_nivoda_cron_status', $nivoda_cron_status );
-
-			} elseif ( $nivoda_cron_status && isset( $nivoda_cron_status['diamonds_by_query_count'] ) && $nivoda_cron_status['diamonds_by_query_count'] >= 1 && isset( $nivoda_cron_status['total_pages'] ) && $nivoda_cron_status['page_number'] >= $nivoda_cron_status['total_pages'] ) {
-				update_option( 'otw_nivoda_cron_status', array() );
-			}
-		}
-	}
-
 	public function insert_new_diamond( $formated_diamond, $nivoda_cron_status ) {
+		error_log( '** insert_new_diamond ** ' );
+
 		global $wpdb;
 
 		$d_status = 1;
