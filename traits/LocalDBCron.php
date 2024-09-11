@@ -59,45 +59,6 @@ trait LocalDBCron {
 		return $schedules;
 	}
 
-	public function every_one_hour_cron() {
-		error_log( '** every_hour_cron_cron **' );
-
-		$files_list = $this->get_option( 'import_nivoda_csv_files' );
-
-		if ( ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
-			// Check if the import is already running
-			if ( get_transient( 'csv_import_lock' ) ) {
-				error_log( 'CSV import already running. Retrying in one hour...' );
-
-				return false;
-			}
-
-			set_transient( 'csv_import_lock', true, 60 * MINUTE_IN_SECONDS );
-
-			error_log( '** Starting CSV Import **' );
-
-			// import
-			$this->run_csv_import();
-
-			// Done processing delete transient...
-			delete_transient( 'csv_import_lock' );
-
-			error_log( '** CSV Import Completed **' );
-
-			return true;
-		}
-	}
-
-	public function every_four_hour_cron() {
-		error_log( '** every_four_hour_cron **' );
-
-		$this->update_option( 'current_import_file', array() );
-
-		$this->update_option( 'import_nivoda_csv_files', array() );
-
-		$this->get_diamonds_from_csv();
-	}
-
 	public function every_ten_minute_cron() {
 		error_log( '** every_ten_minute_cron **' );
 
@@ -139,6 +100,45 @@ trait LocalDBCron {
 				}
 			}
 		}
+	}
+
+	public function every_one_hour_cron() {
+		error_log( '** every_one_hour_cron **' );
+
+		$files_list = $this->get_option( 'import_nivoda_csv_files' );
+
+		if ( ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
+			// Check if the import is already running
+			if ( get_transient( 'csv_import_lock' ) ) {
+				error_log( 'CSV import already running. Retrying in one hour...' );
+
+				return false;
+			}
+
+			set_transient( 'csv_import_lock', true, 60 * MINUTE_IN_SECONDS );
+
+			error_log( '** Starting CSV Import **' );
+
+			// import
+			$this->run_csv_import();
+
+			// Done processing delete transient...
+			delete_transient( 'csv_import_lock' );
+
+			error_log( '** CSV Import Completed **' );
+
+			return true;
+		}
+	}
+
+	public function every_four_hour_cron() {
+		error_log( '** every_four_hour_cron **' );
+
+		$this->update_option( 'current_import_file', array() );
+
+		$this->update_option( 'import_nivoda_csv_files', array() );
+
+		$this->get_diamonds_from_csv();
 	}
 
 	public function start_cron_event() {
