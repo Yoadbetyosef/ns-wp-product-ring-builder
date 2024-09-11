@@ -208,6 +208,8 @@ trait LocalDBCron {
 	}
 
 	public function add_file_to_import_que( $files_list ) {
+		error_log( '** add_file_to_import_que ** ' );
+
 		$first_file = reset( $files_list );
 
 		$list_worksheet_info = $this->list_worksheet_info( $first_file['absolute_path'] );
@@ -251,11 +253,19 @@ trait LocalDBCron {
 
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
-		if ( ! ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
+		error_log( print_r( $files_list, true ) );
+
+		if ( ! (
+			$files_list &&
+			is_array( $files_list ) &&
+			count( $files_list ) >= 1
+		) ) {
 			return false;
 		}
 
 		$current_file = $this->get_option( 'current_import_file' );
+
+		error_log( '$current_file: ' . $current_file );
 
 		if ( ! $current_file ) {
 			$this->add_file_to_import_que( $files_list );
