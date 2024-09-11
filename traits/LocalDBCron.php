@@ -64,7 +64,7 @@ trait LocalDBCron {
 
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
-		error_log( print_r( $files_list, true ) );
+		// error_log( print_r( $files_list, true ) );
 
 		if ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) {
 			return false;
@@ -110,7 +110,7 @@ trait LocalDBCron {
 		if ( ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
 			// Check if the import is already running
 			if ( get_transient( 'csv_import_lock' ) ) {
-				error_log( 'CSV import already running. Retrying in one hour...' );
+				error_log( 'CSV import already running. Retrying in two hour...' );
 
 				return false;
 			}
@@ -153,6 +153,22 @@ trait LocalDBCron {
 		foreach ( $events as $hook => $recurrence ) {
 			if ( ! wp_next_scheduled( $hook ) ) {
 				wp_schedule_event( wp_date( 'U' ) + 1, $recurrence, $hook );
+			}
+		}
+	}
+
+	private function clear_scheduled_cron_jobs() {
+		$events = array(
+			$this->prefix . '_every_two_hour',
+			$this->prefix . '_every_four_hour',
+			$this->prefix . '_every_ten_minute',
+		);
+
+		foreach ( $events as $hook ) {
+			$timestamp = wp_next_scheduled( $hook );
+			while ( $timestamp ) {
+				wp_unschedule_event( $timestamp, $hook );
+				$timestamp = wp_next_scheduled( $hook );
 			}
 		}
 	}

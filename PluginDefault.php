@@ -18,6 +18,7 @@ class PluginDefault extends Plugin{
 			add_filter( 'plugin_action_links_' . plugin_basename( OTW_WOO_RING_BUILDER_PLUGIN_FILE ), array( $this, 'plugin_action_links' ) );
 
 			register_activation_hook( plugin_basename( OTW_WOO_RING_BUILDER_PLUGIN_FILE ), array( $this, 'PluginActivation' ) );
+			register_deactivation_hook( plugin_basename( OTW_WOO_RING_BUILDER_PLUGIN_FILE ), array( $this, 'PluginDeactivation' ) );
 
 			\OTW\WooRingBuilder\Admin\PageSettings::instance();
 			\OTW\WooRingBuilder\Admin\VariationsMetaData::instance();
@@ -271,6 +272,8 @@ class PluginDefault extends Plugin{
 	}
 
 	public function PluginDeactivation() {
+		$this->local_db_cron_init();
+		$this->clear_scheduled_cron_jobs();
 	}
 
 	public function plugins_loaded() {
