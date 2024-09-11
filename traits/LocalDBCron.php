@@ -7,6 +7,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 trait LocalDBCron {
 	public function local_db_cron_init() {
+		error_log( '** local_db_cron_init **' );
+
 		if ( isset( $_GET['create_custom_table'] ) ) {
 			$this->create_custom_table();
 		}
