@@ -103,29 +103,25 @@ trait LocalDBCron {
 	public function every_two_hour_cron() {
 		error_log( '** every_two_hour_cron **' );
 
-		$files_list = $this->get_option( 'import_nivoda_csv_files' );
+		// if ( get_transient( 'csv_import_lock' ) ) {
+		//  error_log( 'CSV import already running. Retrying in two hour...' );
 
-		if ( ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
-			if ( get_transient( 'csv_import_lock' ) ) {
-				error_log( 'CSV import already running. Retrying in two hour...' );
+		//  return false;
+		// }
 
-				return false;
-			}
+		// set_transient( 'csv_import_lock', true, 60 * 2 * MINUTE_IN_SECONDS );
 
-			set_transient( 'csv_import_lock', true, 60 * 2 * MINUTE_IN_SECONDS );
+		// error_log( '** Starting CSV Import **' );
 
-			error_log( '** Starting CSV Import **' );
+		// import
+		$this->run_csv_import();
 
-			// import
-			$this->run_csv_import();
+		// Done processing delete transient...
+		// delete_transient( 'csv_import_lock' );
 
-			// Done processing delete transient...
-			delete_transient( 'csv_import_lock' );
+		// error_log( '** CSV Import Completed **' );
 
-			error_log( '** CSV Import Completed **' );
-
-			return true;
-		}
+		// return true;
 	}
 
 	public function every_four_hour_cron() {
@@ -202,7 +198,7 @@ trait LocalDBCron {
 		isset( $current_file['rows_imported'] ) &&
 		$current_file['rows_imported'] < $current_file['rows']
 		) {
-			error_log( '** < **' );
+			error_log( '** processing rows... **' );
 
 			if ( ! file_exists( $current_file['absolute_path'] ) ) {
 				$this->remove_file_from_import_que( $current_file );
@@ -262,7 +258,7 @@ trait LocalDBCron {
 		isset( $current_file['rows_imported'] ) &&
 		$current_file['rows_imported'] >= $current_file['rows']
 		) {
-			error_log( '** > **' );
+			error_log( '** processing done... **' );
 
 			$diamond_type = 'lab';
 
