@@ -267,6 +267,7 @@ class PluginDefault extends Plugin{
 		$this->create_custom_table();
 
 		if ( $this->get_option( 'nivoda_api' ) ) {
+			$this->local_db_cron_init();
 			$this->start_cron_event();
 		}
 	}
