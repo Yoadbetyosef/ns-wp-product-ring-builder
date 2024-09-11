@@ -67,7 +67,7 @@ trait LocalDBCron {
 
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
-		error_log( $files_list );
+		error_log( print_r( $files_list, true ) );
 
 		if ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) {
 			return false;
@@ -147,7 +147,16 @@ trait LocalDBCron {
 			$files_list = array();
 
 			foreach ( $dir_files as $single_file ) {
-				if ( isset( $single_file['lastmodunix'] ) && $single_file['lastmodunix'] && isset( $single_file['type'] ) && $single_file['type'] == 'f' && isset( $single_file['name'] ) /*&& substr($single_file['name'], -4) == '.csv'*/ && ( $single_file['name'] == 'labgrown.csv' || $single_file['name'] == 'natural_diamonds.csv' ) ) {
+				if ( isset( $single_file['lastmodunix'] ) &&
+					$single_file['lastmodunix'] &&
+					isset( $single_file['type'] ) &&
+					$single_file['type'] == 'f' &&
+					isset( $single_file['name'] ) &&
+					(
+						$single_file['name'] == 'labgrown.csv' ||
+						$single_file['name'] == 'natural_diamonds.csv'
+					)
+				) {
 					$db_lastmodunix = (int) $this->get_option( $single_file['name'] . 'lastmodunix' );
 
 					if ( $db_lastmodunix == $single_file['lastmodunix'] ) {
@@ -238,6 +247,8 @@ trait LocalDBCron {
 	}
 
 	public function run_csv_import() {
+		error_log( '** run_csv_import ** ' );
+
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
 		if ( ! ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
