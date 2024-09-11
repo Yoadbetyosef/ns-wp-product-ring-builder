@@ -171,9 +171,9 @@ trait LocalDBCron {
 		error_log( '** start_cron_event **' );
 
 		$events = array(
-			$this->prefix . '_every_four_hour'  => 'every_four_hour',
-			$this->prefix . '_every_ten_minute' => 'every_ten_minute',
-			$this->prefix . '_every_two_hour'   => 'every_two_hour',
+			$this->prefix . '_every_four_hour'     => 'every_four_hour',
+			$this->prefix . '_every_ten_minute'    => 'every_ten_minute',
+			$this->prefix . '_every_twenty_minute' => 'every_twenty_minute',
 		);
 
 		foreach ( $events as $hook => $recurrence ) {
