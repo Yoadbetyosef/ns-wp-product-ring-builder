@@ -42,10 +42,10 @@ trait LocalDBCron {
 			);
 		}
 
-		if ( ! isset( $schedules['every_one_hour'] ) ) {
-			$schedules['every_one_hour'] = array(
-				'interval' => 60 * 60,
-				'display'  => __( 'Every 1 hour' ),
+		if ( ! isset( $schedules['every_two_hour'] ) ) {
+			$schedules['every_two_hour'] = array(
+				'interval' => 60 * 60 * 2,
+				'display'  => __( 'Every 2 hour' ),
 			);
 		}
 
@@ -147,7 +147,7 @@ trait LocalDBCron {
 		$events = array(
 			$this->prefix . '_every_four_hour'  => 'every_four_hour',
 			$this->prefix . '_every_ten_minute' => 'every_ten_minute',
-			$this->prefix . '_every_one_hour'   => 'every_one_hour',
+			$this->prefix . '_every_two_hour'   => 'every_two_hour',
 		);
 
 		foreach ( $events as $hook => $recurrence ) {
