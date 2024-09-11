@@ -103,25 +103,25 @@ trait LocalDBCron {
 	public function every_two_hour_cron() {
 		error_log( '** every_two_hour_cron **' );
 
-		// if ( get_transient( 'csv_import_lock' ) ) {
-		//  error_log( 'CSV import already running. Retrying in two hour...' );
+		if ( get_transient( 'csv_import_lock' ) ) {
+			error_log( 'CSV import already running. Retrying in two hour...' );
 
-		//  return false;
-		// }
+			return false;
+		}
 
-		// set_transient( 'csv_import_lock', true, 60 * 2 * MINUTE_IN_SECONDS );
+		set_transient( 'csv_import_lock', true, 60 * 4 * MINUTE_IN_SECONDS );
 
-		// error_log( '** Starting CSV Import **' );
+		error_log( '** Starting CSV Import **' );
 
 		// import
 		$this->run_csv_import();
 
 		// Done processing delete transient...
-		// delete_transient( 'csv_import_lock' );
+		delete_transient( 'csv_import_lock' );
 
-		// error_log( '** CSV Import Completed **' );
+		error_log( '** CSV Import Completed **' );
 
-		// return true;
+		return true;
 	}
 
 	public function every_four_hour_cron() {
