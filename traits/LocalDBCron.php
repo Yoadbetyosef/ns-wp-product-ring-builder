@@ -63,6 +63,8 @@ trait LocalDBCron {
 	}
 
 	public function every_ten_minute_cron() {
+		error_log( '** every_ten_minute_cron **' );
+
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
 		if ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) {
@@ -102,6 +104,8 @@ trait LocalDBCron {
 	}
 
 	public function every_four_hour_cron() {
+		error_log( '** every_four_hour_cron **' );
+
 		$this->update_option( 'current_import_file', array() );
 
 		$this->update_option( 'import_nivoda_csv_files', array() );
