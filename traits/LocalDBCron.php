@@ -19,7 +19,7 @@ trait LocalDBCron {
 
 		add_filter( 'cron_schedules', array( $this, 'add_custom_cron_schedules' ) );
 
-		add_action( $this->prefix . '_every_one_hour', array( $this, 'every_one_hour_cron' ) );
+		add_action( $this->prefix . '_every_two_hour', array( $this, 'every_two_hour_cron' ) );
 
 		add_action( $this->prefix . '_every_four_hour', array( $this, 'every_four_hour_cron' ) );
 
@@ -102,8 +102,8 @@ trait LocalDBCron {
 		}
 	}
 
-	public function every_one_hour_cron() {
-		error_log( '** every_one_hour_cron **' );
+	public function every_two_hour_cron() {
+		error_log( '** every_two_hour_cron **' );
 
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
