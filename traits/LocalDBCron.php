@@ -184,6 +184,8 @@ trait LocalDBCron {
 	}
 
 	private function clear_scheduled_cron_jobs() {
+		delete_transient( 'csv_import_lock' );
+
 		$events = array(
 			$this->prefix . '_every_four_hour',
 			$this->prefix . '_every_ten_minute',
