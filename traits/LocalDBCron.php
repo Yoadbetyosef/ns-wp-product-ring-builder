@@ -110,7 +110,7 @@ trait LocalDBCron {
 	}
 
 	public function every_twenty_minute_cron() {
-		error_log( '** every_two_hour_cron **' );
+		error_log( '** every_twenty_minute_cron **' );
 
 		if ( get_transient( 'csv_import_lock' ) ) {
 			error_log( 'CSV import already running. Retrying in 20 min...' );
@@ -118,7 +118,7 @@ trait LocalDBCron {
 			return false;
 		}
 
-		set_transient( 'csv_import_lock', true, 4 * 60 * MINUTE_IN_SECONDS );
+		set_transient( 'csv_import_lock', true, 2 * 60 * MINUTE_IN_SECONDS );
 
 		error_log( '** Starting CSV Import **' );
 
