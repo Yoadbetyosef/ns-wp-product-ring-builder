@@ -25,6 +25,8 @@ trait LocalDBCron {
 
 		add_action( $this->prefix . '_every_ten_minute', array( $this, 'every_ten_minute_cron' ) );
 
+		add_action( $this->prefix . '_every_twenty_minute', array( $this, 'every_twenty_minute_cron' ) );
+
 		add_action( $this->prefix . '_nivoda_copy_import_files', array( $this, 'nivoda_copy_import_files' ) );
 
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
@@ -39,6 +41,13 @@ trait LocalDBCron {
 			$schedules['every_ten_minute'] = array(
 				'interval' => 60 * 10,
 				'display'  => __( 'Every 10 minute' ),
+			);
+		}
+
+		if ( ! isset( $schedules['every_twenty_minute'] ) ) {
+			$schedules['every_twenty_minute'] = array(
+				'interval' => 60 * 20,
+				'display'  => __( 'Every 20 minute' ),
 			);
 		}
 
@@ -100,6 +109,30 @@ trait LocalDBCron {
 		}
 	}
 
+	public function every_twenty_minute_cron() {
+		error_log( '** every_two_hour_cron **' );
+
+		if ( get_transient( 'csv_import_lock' ) ) {
+			error_log( 'CSV import already running. Retrying in 20 min...' );
+
+			return false;
+		}
+
+		set_transient( 'csv_import_lock', true, 4 * 60 * MINUTE_IN_SECONDS );
+
+		error_log( '** Starting CSV Import **' );
+
+		// import
+		$this->run_csv_import();
+
+		// Done processing delete transient...
+		delete_transient( 'csv_import_lock' );
+
+		error_log( '** CSV Import Completed **' );
+
+		return true;
+	}
+
 	public function every_two_hour_cron() {
 		error_log( '** every_two_hour_cron **' );
 
@@ -152,9 +185,9 @@ trait LocalDBCron {
 
 	private function clear_scheduled_cron_jobs() {
 		$events = array(
-			$this->prefix . '_every_two_hour',
 			$this->prefix . '_every_four_hour',
 			$this->prefix . '_every_ten_minute',
+			$this->prefix . '_every_twenty_minute',
 		);
 
 		foreach ( $events as $hook ) {
