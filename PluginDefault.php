@@ -43,7 +43,7 @@ class PluginDefault extends Plugin{
 	}
 
 	public function init() {
-		$this->log_all_options();
+		// $this->log_all_options();
 
 		if ( $this->get_option( 'nivoda_api' ) ) {
 			$this->local_db_cron_init();
