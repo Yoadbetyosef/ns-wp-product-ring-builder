@@ -64,8 +64,6 @@ trait LocalDBCron {
 
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
-		// error_log( print_r( $files_list, true ) );
-
 		if ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) {
 			return false;
 		}
@@ -108,7 +106,6 @@ trait LocalDBCron {
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
 		if ( ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
-			// Check if the import is already running
 			if ( get_transient( 'csv_import_lock' ) ) {
 				error_log( 'CSV import already running. Retrying in two hour...' );
 
@@ -192,7 +189,7 @@ trait LocalDBCron {
 
 		$current_file = $this->get_option( 'current_import_file' );
 
-		error_log( '$current_file: ' . $current_file );
+		error_log( '$current_file: ' . print_r( $current_file, true ) );
 
 		if ( ! $current_file ) {
 			$this->add_file_to_import_que( $files_list );

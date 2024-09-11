@@ -24,6 +24,7 @@ define( 'OTW_WOO_RING_BUILDER_PLUGIN_FILE', __FILE__ );
 
 require_once plugin_dir_path( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'inc/autoload.php';
 
+// run Plugin.php
 otw_woo_ring_builder();
 
 require PRB_DIR . 'includes/helper.php';

@@ -9,16 +9,6 @@ trait Plugin {
 
 	use Singleton;
 
-	public function log_all_options() {
-		if ( isset( self::$options ) && is_array( self::$options ) ) {
-			foreach ( self::$options as $key => $value ) {
-				error_log( "option Key: $key - Option Value: " . print_r( $value, true ) );
-			}
-		} else {
-			error_log( 'No options found in self::$options.' );
-		}
-	}
-
 	public function get_option( $key ) {
 
 		if ( isset( self::$options[ $key ] ) ) {
@@ -42,6 +32,16 @@ trait Plugin {
 		self::$options = $values;
 
 		update_option( $this->prefix( 'options' ), ArrayToSerializeString( self::$options ) );
+	}
+
+	public function log_all_options() {
+		if ( isset( self::$options ) && is_array( self::$options ) ) {
+			foreach ( self::$options as $key => $value ) {
+				error_log( "option Key: $key - Option Value: " . print_r( $value, true ) );
+			}
+		} else {
+			error_log( 'No options found in self::$options.' );
+		}
 	}
 
 	public function update_all_options( $values ) {

@@ -2,6 +2,12 @@
 
 require_once plugin_dir_path( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'inc' . DIRECTORY_SEPARATOR . 'functions.php';
 
+// When the plugin is loaded,
+// the spl_autoload_register() function registers the autoloader function.
+// The autoloader function itself only runs when PHP encounters a reference
+// to a class that hasn't yet been loaded.
+// At that point, it will try to find and load the class file.
+
 spl_autoload_register(
 	function ( $class ) {
 		$allowed_prefixes = array(
