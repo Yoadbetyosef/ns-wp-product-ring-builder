@@ -415,7 +415,7 @@ trait LocalDBCron {
 
 		$first_file = reset( $files_list );
 
-		error_log( '$current_file: ' . print_r( $first_file, true ) );
+		error_log( 'add_file_to_import_que -- current_file: ' . print_r( $first_file, true ) );
 
 		$list_worksheet_info = $this->list_worksheet_info(
 			$first_file['absolute_path']
@@ -433,7 +433,7 @@ trait LocalDBCron {
 
 			$this->update_option( 'current_import_file', $first_file );
 
-			error_log( '** add_file_to_import_que ** ' . $this->get_option( 'current_import_file' ) );
+			error_log( '** add_file_to_import_que -- one file added: ' . $this->get_option( 'current_import_file' ) );
 
 		} else {
 			error_log( '** remove_file_to_import_que ** ' );
@@ -543,10 +543,13 @@ trait LocalDBCron {
 	}
 
 	public function list_worksheet_info( $pFilename ) {
+		error_log( '** list_worksheet_info **' );
 
 		$fileHandle = fopen( $pFilename, 'r' );
 
 		if ( ! $fileHandle ) {
+			error_log( 'list_worksheet_info: no file handle' );
+
 			return true;
 		}
 
@@ -576,6 +579,8 @@ trait LocalDBCron {
 		$worksheetInfo['totalColumns'] = $worksheetInfo['lastColumnIndex'] + 1;
 
 		fclose( $fileHandle );
+
+		error_log( 'list_worksheet_info -- worksheetInfo: ' . $worksheetInfo );
 
 		return $worksheetInfo;
 	}
