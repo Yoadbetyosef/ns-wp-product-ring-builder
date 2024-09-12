@@ -203,7 +203,7 @@ trait LocalDBCron {
 	public function run_csv_import() {
 		error_log( '** run_csv_import ** ' );
 
-		log_all_options();
+		$this->log_all_options();
 
 		try {
 			$files_list = $this->get_option( 'import_nivoda_csv_files' );
