@@ -74,7 +74,7 @@ trait LocalDBCron {
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
 		if ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) {
-			return false;
+			return true;
 		}
 
 		$file_system = \OTW\GeneralWooRingBuilder\FileSystem::instance();
@@ -115,7 +115,7 @@ trait LocalDBCron {
 		if ( get_transient( 'csv_import_lock' ) ) {
 			error_log( 'CSV import already running. Retrying in 20 min...' );
 
-			return false;
+			return true;
 		}
 
 		set_transient( 'csv_import_lock', true, 2 * 60 * MINUTE_IN_SECONDS );
@@ -215,7 +215,7 @@ trait LocalDBCron {
 				is_array( $files_list ) &&
 				count( $files_list ) >= 1
 			) ) {
-				return false;
+				return true;
 			}
 
 			$current_file = $this->get_option( 'current_import_file' );
@@ -225,7 +225,7 @@ trait LocalDBCron {
 			if ( ! $current_file ) {
 				$this->add_file_to_import_que( $files_list );
 
-				return false;
+				return true;
 			}
 
 			if ( $current_file &&
@@ -238,7 +238,7 @@ trait LocalDBCron {
 				if ( ! file_exists( $current_file['absolute_path'] ) ) {
 					$this->remove_file_from_import_que( $current_file );
 
-					return false;
+					return true;
 				}
 
 				$fileHandle = fopen( $current_file['absolute_path'], 'r' );
@@ -246,7 +246,7 @@ trait LocalDBCron {
 				if ( ! $fileHandle || ! flock( $fileHandle, LOCK_EX ) ) {
 					fclose( $fileHandle );
 
-					return false;
+					return true;
 				}
 
 				if ( isset( $current_file['last_position'] ) ) {
@@ -308,6 +308,7 @@ trait LocalDBCron {
 				$this->remove_file_from_import_que( $current_file );
 			}
 		} finally {
+			error_log( '** transcient deleted ** ' );
 			delete_transient( 'csv_import_lock' );
 		}
 
@@ -414,7 +415,7 @@ trait LocalDBCron {
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
 		if ( ! ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
-			return false;
+			return true;
 		}
 
 		if ( isset( $files_list[ $current_file['name'] ] ) ) {
@@ -445,7 +446,7 @@ trait LocalDBCron {
 		! isset( $db_diamond['image'] ) || empty( $db_diamond['image'] ) ||
 		! isset( $db_diamond['col'] ) || empty( $db_diamond['col'] )
 		) {
-			return false;
+			return true;
 		}
 
 		if ( ! isset( $db_diamond['col'] ) || empty( $db_diamond['col'] ) ) {
@@ -514,7 +515,7 @@ trait LocalDBCron {
 		$fileHandle = fopen( $pFilename, 'r' );
 
 		if ( ! $fileHandle ) {
-			return false;
+			return true;
 		}
 
 		$worksheetInfo = array();
