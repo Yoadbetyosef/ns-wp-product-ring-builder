@@ -548,51 +548,84 @@ trait LocalDBCron {
 
 		if ( ! file_exists( $pFilename ) ) {
 			error_log( 'File does not exist' );
+			return false;
 		}
 
 		$fileHandle = fopen( $pFilename, 'r' );
 
-		error_Log( 'list_worksheet_info: fileHandle: ' . $fileHandle );
-
 		if ( ! $fileHandle ) {
 			error_log( 'list_worksheet_info: no file handle' );
-
-			return true;
+			return false;
 		}
 
-		$worksheetInfo = array();
+		$worksheetInfo = array(
+			'worksheetName'    => 'Worksheet',
+			'lastColumnLetter' => 'A',
+			'lastColumnIndex'  => 0,
+			'totalRows'        => 0,
+			'totalColumns'     => 0,
+		);
 
-		$worksheetInfo['worksheetName'] = 'Worksheet';
+		error_log( 'list_worksheet_info: worksheetInfo: ' . print_r( $worksheetInfo, true ) );
 
-		$worksheetInfo['lastColumnLetter'] = 'A';
+		$chunkSize = 8192; // Size of each chunk in bytes
+		$buffer = '';
 
-		$worksheetInfo['lastColumnIndex'] = 0;
+		while ( ! feof( $fileHandle ) ) {
+			$buffer .= fread( $fileHandle, $chunkSize );
 
-		$worksheetInfo['totalRows'] = 0;
+			// Split buffer into lines
+			$lines = explode( "\n", $buffer );
 
-		$worksheetInfo['totalColumns'] = 0;
+			// Keep the last incomplete line in the buffer
+			$buffer = array_pop( $lines );
 
-		error_Log( 'list_worksheet_info: worksheetInfo: ' . print_r( $worksheetInfo, true ) );
+			foreach ( $lines as $line ) {
+				$line = trim( $line ); // Trim any extra whitespace
 
-		$rowData = fgetcsv( $fileHandle, 0 );
+				if ( $line === '' ) {
+					continue; // Skip empty lines
+				}
 
-		while ( $rowData !== false ) {
-			++$worksheetInfo['totalRows'];
+				$rowData = str_getcsv( $line );
 
-			$worksheetInfo['lastColumnIndex'] = max(
-				$worksheetInfo['lastColumnIndex'],
-				count( $rowData ) - 1
-			);
+				error_log( 'list_worksheet_info: worksheetInfo: ' . print_r( $rowData, true ) );
+
+				if ( $rowData !== false ) {
+					++$worksheetInfo['totalRows'];
+
+					$worksheetInfo['lastColumnIndex'] = max(
+						$worksheetInfo['lastColumnIndex'],
+						count( $rowData ) - 1
+					);
+				}
+			}
+		}
+
+		// Process any remaining data in the buffer
+		if ( ! empty( $buffer ) ) {
+			$rowData = str_getcsv( $buffer );
+			error_log( 'list_worksheet_info: worksheetInfo: ' . print_r( $rowData, true ) );
+
+			if ( $rowData !== false ) {
+				++$worksheetInfo['totalRows'];
+
+				$worksheetInfo['lastColumnIndex'] = max(
+					$worksheetInfo['lastColumnIndex'],
+					count( $rowData ) - 1
+				);
+			}
 		}
 
 		$worksheetInfo['totalColumns'] = $worksheetInfo['lastColumnIndex'] + 1;
 
 		fclose( $fileHandle );
 
-		error_log( 'list_worksheet_info -- worksheetInfo: ' . $worksheetInfo );
+		error_log( 'list_worksheet_info -- worksheetInfo: ' . print_r( $worksheetInfo, true ) );
 
 		return $worksheetInfo;
 	}
+
 
 	public function delete_old_nivoda_diamonds( $where = '' ) {
 		error_log( '** delete_old_nivoda_diamonds ** ' );
