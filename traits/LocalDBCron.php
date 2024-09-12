@@ -188,7 +188,7 @@ trait LocalDBCron {
 	public function run_csv_import() {
 		error_log( '** run_csv_import ** ' );
 
-		$this->log_all_options();
+		// $this->log_all_options();
 
 		$delete_transient = true;
 
@@ -207,7 +207,7 @@ trait LocalDBCron {
 
 			$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
-			error_log( print_r( $files_list, true ) );
+			// error_log( print_r( $files_list, true ) );
 
 			if ( ! (
 				$files_list &&
@@ -415,7 +415,11 @@ trait LocalDBCron {
 			$first_file['rows_imported'] = 0;
 
 			$this->update_option( 'current_import_file', $first_file );
+
+			error_log( '** add_file_to_import_que ** ' . $this->get_option( 'current_import_file' ) );
+
 		} else {
+			error_log( '** remove_file_to_import_que ** ' );
 			$this->remove_file_from_import_que( $first_file );
 		}
 	}
