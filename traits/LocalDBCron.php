@@ -198,7 +198,7 @@ trait LocalDBCron {
 
 				$delete_transient = false;
 
-				return;
+				return true;
 			}
 
 			set_transient( 'csv_import_lock', true, 2 * 60 * MINUTE_IN_SECONDS );
@@ -214,7 +214,7 @@ trait LocalDBCron {
 				is_array( $files_list ) &&
 				count( $files_list ) >= 1
 			) ) {
-				return;
+				return true;
 			}
 
 			$current_file = $this->get_option( 'current_import_file' );
@@ -224,7 +224,7 @@ trait LocalDBCron {
 			if ( ! $current_file ) {
 				$this->add_file_to_import_que( $files_list );
 
-				return;
+				return true;
 			}
 
 			if ( $current_file &&
@@ -237,7 +237,7 @@ trait LocalDBCron {
 				if ( ! file_exists( $current_file['absolute_path'] ) ) {
 					$this->remove_file_from_import_que( $current_file );
 
-					return;
+					return true;
 				}
 
 				$fileHandle = fopen( $current_file['absolute_path'], 'r' );
@@ -245,7 +245,7 @@ trait LocalDBCron {
 				if ( ! $fileHandle || ! flock( $fileHandle, LOCK_EX ) ) {
 					fclose( $fileHandle );
 
-					return;
+					return true;
 				}
 
 				if ( isset( $current_file['last_position'] ) ) {
@@ -310,7 +310,7 @@ trait LocalDBCron {
 
 				error_log( $diamond_type . ' diamonds import success' );
 
-				return;
+				return true;
 			}
 		} finally {
 			if ( $delete_transient ) {
@@ -318,8 +318,6 @@ trait LocalDBCron {
 				delete_transient( 'csv_import_lock' );
 			}
 		}
-
-		return;
 	}
 
 	public function nivoda_copy_import_files() {
