@@ -19,17 +19,14 @@ trait LocalDBCron {
 
 		add_filter( 'cron_schedules', array( $this, 'add_custom_cron_schedules' ) );
 
+		add_action( $this->prefix . '_every_thirty_second', array( $this, 'every_thirty_second_cron' ) );
 		add_action( $this->prefix . '_every_one_minute', array( $this, 'every_one_minute_cron' ) );
-
 		add_action( $this->prefix . '_every_five_minute', array( $this, 'every_five_minute_cron' ) );
-
 		add_action( $this->prefix . '_every_ten_minute', array( $this, 'every_ten_minute_cron' ) );
-
 		add_action( $this->prefix . '_every_twenty_minute', array( $this, 'every_twenty_minute_cron' ) );
-
 		add_action( $this->prefix . '_every_two_hour', array( $this, 'every_two_hour_cron' ) );
-
 		add_action( $this->prefix . '_every_four_hour', array( $this, 'every_four_hour_cron' ) );
+		add_action( $this->prefix . '_every_two_day', array( $this, 'every_two_day_cron' ) );
 
 		add_action( $this->prefix . '_nivoda_copy_import_files', array( $this, 'nivoda_copy_import_files' ) );
 
@@ -41,6 +38,13 @@ trait LocalDBCron {
 	////////////////////////
 
 	public function add_custom_cron_schedules( $schedules ) {
+		if ( ! isset( $schedules['every_thirty_second'] ) ) {
+			$schedules['every_thirty_second'] = array(
+				'interval' => 30,
+				'display'  => __( 'Every 30 second' ),
+			);
+		}
+
 		if ( ! isset( $schedules['every_one_minute'] ) ) {
 			$schedules['every_one_minute'] = array(
 				'interval' => 60,
@@ -83,7 +87,19 @@ trait LocalDBCron {
 			);
 		}
 
+		if ( ! isset( $schedules['every_two_day'] ) ) {
+			$schedules['every_two_day'] = array(
+				'interval' => 60 * 60 * 24 * 2,
+				'display'  => __( 'Every 2 day' ),
+			);
+		}
+
 		return $schedules;
+	}
+
+	public function every_thirty_second_cron() {
+		error_log( '** every_one_minute_cron **' );
+		$this->run_csv_import();
 	}
 
 	public function every_one_minute_cron() {
@@ -103,7 +119,7 @@ trait LocalDBCron {
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
 		if ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) {
-			return true;
+			return false;
 		}
 
 		$file_system = \OTW\GeneralWooRingBuilder\FileSystem::instance();
@@ -158,16 +174,26 @@ trait LocalDBCron {
 		$this->get_diamonds_from_csv();
 	}
 
+	public function every_two_day_cron() {
+		error_log( '** every_two_day_cron **' );
+
+		$this->update_option( 'current_import_file', array() );
+
+		$this->update_option( 'import_nivoda_csv_files', array() );
+
+		$this->get_diamonds_from_csv();
+	}
+
 	public function start_cron_event() {
 		error_log( '** start_cron_event **' );
 
 		$events = array(
-			$this->prefix . '_every_one_minute' => 'every_one_minute',
 			// $this->prefix . '_every_five_minute' => 'every_five_minute',
-			$this->prefix . '_every_ten_minute' => 'every_ten_minute',
 			// $this->prefix . '_every_twenty_minute' => 'every_twenty_minute',
 			// $this->prefix . '_every_two_hour'     => 'every_two_hour',
-			$this->prefix . '_every_four_hour'  => 'every_four_hour',
+			$this->prefix . '_every_two_day'       => 'every_two_day',
+			$this->prefix . '_every_ten_minute'    => 'every_ten_minute',
+			$this->prefix . '_every_thirty_second' => 'every_thirty_second',
 		);
 
 		foreach ( $events as $hook => $recurrence ) {
@@ -210,7 +236,7 @@ trait LocalDBCron {
 				is_array( $files_list ) &&
 				count( $files_list ) >= 1
 			) ) {
-			return true;
+			return false;
 		}
 
 		// CHECK CURRENT FILE
@@ -222,7 +248,7 @@ trait LocalDBCron {
 		if ( ! $current_file ) {
 			$this->add_file_to_import_que( $files_list );
 
-			return true;
+			return false;
 		}
 
 		// IMPORT PROCESS
@@ -237,7 +263,7 @@ trait LocalDBCron {
 			if ( ! file_exists( $current_file['absolute_path'] ) ) {
 				$this->remove_file_from_import_que( $current_file );
 
-				return true;
+				return false;
 			}
 
 			$fileHandle = fopen( $current_file['absolute_path'], 'r' );
@@ -247,7 +273,7 @@ trait LocalDBCron {
 
 				fclose( $fileHandle );
 
-				return true;
+				return false;
 			}
 
 			if ( isset( $current_file['last_position'] ) ) {
@@ -290,7 +316,7 @@ trait LocalDBCron {
 
 			fclose( $fileHandle );
 
-			return true;
+			return false;
 		}
 
 		if ( $current_file &&
@@ -314,7 +340,7 @@ trait LocalDBCron {
 
 			error_log( $diamond_type . ' diamonds import success' );
 
-			return true;
+			return false;
 		}
 	}
 
@@ -427,7 +453,7 @@ trait LocalDBCron {
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
 		if ( ! ( $files_list && is_array( $files_list ) && count( $files_list ) >= 1 ) ) {
-			return true;
+			return false;
 		}
 
 		if ( isset( $files_list[ $current_file['name'] ] ) ) {
@@ -456,7 +482,7 @@ trait LocalDBCron {
 		! isset( $db_diamond['image'] ) || empty( $db_diamond['image'] ) ||
 		! isset( $db_diamond['col'] ) || empty( $db_diamond['col'] )
 		) {
-			return true;
+			return false;
 		}
 
 		if ( ! isset( $db_diamond['col'] ) || empty( $db_diamond['col'] ) ) {
@@ -603,10 +629,7 @@ trait LocalDBCron {
 		return $worksheetInfo;
 	}
 
-
 	public function delete_old_nivoda_diamonds( $where = '' ) {
-		error_log( '** delete_old_nivoda_diamonds ** ' );
-
 		$last_update_key = $this->get_option( 'last_nivoda_update_key' );
 
 		if ( $last_update_key ) {
