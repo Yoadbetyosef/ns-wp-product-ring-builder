@@ -544,7 +544,11 @@ trait LocalDBCron {
 
 	public function list_worksheet_info( $pFilename ) {
 		error_log( '** list_worksheet_info **' );
-		error_log( '** list_worksheet_info: filename **' . $pFilename );
+		error_log( 'list_worksheet_info: filename: ' . $pFilename );
+
+		if ( ! file_exists( $pFilename ) ) {
+			error_log( 'File does not exist' );
+		}
 
 		$fileHandle = fopen( $pFilename, 'r' );
 
