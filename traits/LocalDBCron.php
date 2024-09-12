@@ -98,7 +98,7 @@ trait LocalDBCron {
 	}
 
 	public function every_thirty_second_cron() {
-		error_log( '** every_one_minute_cron **' );
+		error_log( '** every_thirty_second_cron **' );
 		$this->run_csv_import();
 	}
 
