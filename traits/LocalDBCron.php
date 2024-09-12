@@ -19,15 +19,17 @@ trait LocalDBCron {
 
 		add_filter( 'cron_schedules', array( $this, 'add_custom_cron_schedules' ) );
 
-		add_action( $this->prefix . '_every_two_hour', array( $this, 'every_two_hour_cron' ) );
-
-		add_action( $this->prefix . '_every_four_hour', array( $this, 'every_four_hour_cron' ) );
+		add_action( $this->prefix . '_every_one_minute', array( $this, 'every_one_minute_cron' ) );
 
 		add_action( $this->prefix . '_every_five_minute', array( $this, 'every_five_minute_cron' ) );
 
 		add_action( $this->prefix . '_every_ten_minute', array( $this, 'every_ten_minute_cron' ) );
 
 		add_action( $this->prefix . '_every_twenty_minute', array( $this, 'every_twenty_minute_cron' ) );
+
+		add_action( $this->prefix . '_every_two_hour', array( $this, 'every_two_hour_cron' ) );
+
+		add_action( $this->prefix . '_every_four_hour', array( $this, 'every_four_hour_cron' ) );
 
 		add_action( $this->prefix . '_nivoda_copy_import_files', array( $this, 'nivoda_copy_import_files' ) );
 
@@ -39,6 +41,13 @@ trait LocalDBCron {
 	////////////////////////
 
 	public function add_custom_cron_schedules( $schedules ) {
+		if ( ! isset( $schedules['every_one_minute'] ) ) {
+			$schedules['every_one_minute'] = array(
+				'interval' => 60,
+				'display'  => __( 'Every 1 minute' ),
+			);
+		}
+
 		if ( ! isset( $schedules['every_five_minute'] ) ) {
 			$schedules['every_five_minute'] = array(
 				'interval' => 60 * 5,
@@ -77,6 +86,10 @@ trait LocalDBCron {
 		return $schedules;
 	}
 
+	public function every_one_minute_cron() {
+		error_log( '** every_one_minute_cron **' );
+		$this->run_csv_import();
+	}
 
 	public function every_five_minute_cron() {
 		error_log( '** every_five_minute_cron **' );
@@ -149,11 +162,12 @@ trait LocalDBCron {
 		error_log( '** start_cron_event **' );
 
 		$events = array(
-			$this->prefix . '_every_five_minute' => 'every_five_minute',
-			$this->prefix . '_every_ten_minute'  => 'every_ten_minute',
+			$this->prefix . '_every_one_minute' => 'every_one_minute',
+			// $this->prefix . '_every_five_minute' => 'every_five_minute',
+			$this->prefix . '_every_ten_minute' => 'every_ten_minute',
 			// $this->prefix . '_every_twenty_minute' => 'every_twenty_minute',
 			// $this->prefix . '_every_two_hour'     => 'every_two_hour',
-			$this->prefix . '_every_four_hour'   => 'every_four_hour',
+			$this->prefix . '_every_four_hour'  => 'every_four_hour',
 		);
 
 		foreach ( $events as $hook => $recurrence ) {
@@ -167,11 +181,12 @@ trait LocalDBCron {
 		delete_transient( 'csv_import_lock' );
 
 		$events = array(
-			$this->prefix . '_every_two_hour',
-			$this->prefix . '_every_four_hour',
+			$this->prefix . '_every_one_minute',
 			$this->prefix . '_every_five_minute',
 			$this->prefix . '_every_ten_minute',
 			$this->prefix . '_every_twenty_minute',
+			$this->prefix . '_every_two_hour',
+			$this->prefix . '_every_four_hour',
 		);
 
 		foreach ( $events as $hook ) {
