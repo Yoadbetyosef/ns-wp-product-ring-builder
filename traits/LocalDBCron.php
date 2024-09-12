@@ -566,9 +566,8 @@ trait LocalDBCron {
 			'totalColumns'     => 0,
 		);
 
-		error_log( 'list_worksheet_info: worksheetInfo: ' . print_r( $worksheetInfo, true ) );
-
 		$chunkSize = 8192; // Size of each chunk in bytes
+
 		$buffer = '';
 
 		while ( ! feof( $fileHandle ) ) {
@@ -589,8 +588,6 @@ trait LocalDBCron {
 
 				$rowData = str_getcsv( $line );
 
-				error_log( 'list_worksheet_info: worksheetInfo: ' . print_r( $rowData, true ) );
-
 				if ( $rowData !== false ) {
 					++$worksheetInfo['totalRows'];
 
@@ -605,7 +602,6 @@ trait LocalDBCron {
 		// Process any remaining data in the buffer
 		if ( ! empty( $buffer ) ) {
 			$rowData = str_getcsv( $buffer );
-			error_log( 'list_worksheet_info: worksheetInfo: ' . print_r( $rowData, true ) );
 
 			if ( $rowData !== false ) {
 				++$worksheetInfo['totalRows'];
