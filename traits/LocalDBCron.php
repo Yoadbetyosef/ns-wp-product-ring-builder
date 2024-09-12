@@ -440,8 +440,6 @@ trait LocalDBCron {
 	}
 
 	public function update_insert_new_csv_diamond( $db_diamond ) {
-		error_log( '** update_insert_new_csv_diamond ** ' );
-
 		$diamond = array();
 
 		if (
@@ -515,7 +513,10 @@ trait LocalDBCron {
 			$formated_diamond['lg'] = $db_diamond['lg'];
 		}
 
-		$this->insert_new_diamond( $formated_diamond, array( 'new_diamond_key' => $this->get_option( 'last_nivoda_update_key' ) ) );
+		$this->insert_new_diamond(
+			$formated_diamond,
+			array( 'new_diamond_key' => $this->get_option( 'last_nivoda_update_key' ) )
+		);
 	}
 
 	public function list_worksheet_info( $pFilename ) {
