@@ -208,111 +208,113 @@ trait LocalDBCron {
 
 		log_all_options();
 
-		$files_list = $this->get_option( 'import_nivoda_csv_files' );
+		try {
+			$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
-		error_log( print_r( $files_list, true ) );
+			error_log( print_r( $files_list, true ) );
 
-		if ( ! (
-			$files_list &&
-			is_array( $files_list ) &&
-			count( $files_list ) >= 1
-		) ) {
-			delete_transient( 'csv_import_lock' );
+			if ( ! (
+				$files_list &&
+				is_array( $files_list ) &&
+				count( $files_list ) >= 1
+			) ) {
+				return false;
+			}
 
-			return false;
-		}
+			$current_file = $this->get_option( 'current_import_file' );
 
-		$current_file = $this->get_option( 'current_import_file' );
+			error_log( '$current_file: ' . print_r( $current_file, true ) );
 
-		error_log( '$current_file: ' . print_r( $current_file, true ) );
-
-		if ( ! $current_file ) {
-			delete_transient( 'csv_import_lock' );
-
-			$this->add_file_to_import_que( $files_list );
-
-			return false;
-		}
-
-		if ( $current_file &&
-		isset( $current_file['rows'] ) &&
-		isset( $current_file['rows_imported'] ) &&
-		$current_file['rows_imported'] < $current_file['rows']
-		) {
-			error_log( '** processing rows... **' );
-
-			if ( ! file_exists( $current_file['absolute_path'] ) ) {
-				$this->remove_file_from_import_que( $current_file );
+			if ( ! $current_file ) {
+				$this->add_file_to_import_que( $files_list );
 
 				return false;
 			}
 
-			$fileHandle = fopen( $current_file['absolute_path'], 'r' );
+			if ( $current_file &&
+			isset( $current_file['rows'] ) &&
+			isset( $current_file['rows_imported'] ) &&
+			$current_file['rows_imported'] < $current_file['rows']
+			) {
+				error_log( '** $current_file[rows_imported] < $current_file[rows] **' );
 
-			if ( ! $fileHandle || ! flock( $fileHandle, LOCK_EX ) ) {
-				fclose( $fileHandle );
+				if ( ! file_exists( $current_file['absolute_path'] ) ) {
+					$this->remove_file_from_import_que( $current_file );
 
-				return false;
-			}
+					return false;
+				}
 
-			if ( isset( $current_file['last_position'] ) ) {
-				fseek( $fileHandle, $current_file['last_position'] );
-			}
+				$fileHandle = fopen( $current_file['absolute_path'], 'r' );
 
-			$maxLines = 2000;
+				if ( ! $fileHandle || ! flock( $fileHandle, LOCK_EX ) ) {
+					fclose( $fileHandle );
 
-			$columns = fgetcsv( $fileHandle );
+					return false;
+				}
 
-			while ( $maxLines > 0 && $columns ) {
-				--$maxLines;
+				if ( isset( $current_file['last_position'] ) ) {
+					fseek( $fileHandle, $current_file['last_position'] );
+				}
 
-				if ( ! isset( $current_file['headers'] ) ) {
-					$current_file['headers'] = $columns;
+				$maxLines = 2000;
+
+				$columns = fgetcsv( $fileHandle );
+
+				while ( $maxLines > 0 && $columns ) {
+					--$maxLines;
+
+					if ( ! isset( $current_file['headers'] ) ) {
+						$current_file['headers'] = $columns;
+
+						$current_file['last_position'] = ftell( $fileHandle );
+
+						++$current_file['rows_imported'];
+
+						$this->update_option( 'current_import_file', $current_file );
+
+						continue;
+					}
+
+					if ( count( $current_file['headers'] ) == count( $columns ) ) {
+						$db_diamond = array_combine( $current_file['headers'], $columns );
+
+						$this->update_insert_new_csv_diamond( $db_diamond );
+					}
 
 					$current_file['last_position'] = ftell( $fileHandle );
 
 					++$current_file['rows_imported'];
 
 					$this->update_option( 'current_import_file', $current_file );
-
-					continue;
 				}
 
-				if ( count( $current_file['headers'] ) == count( $columns ) ) {
-					$db_diamond = array_combine( $current_file['headers'], $columns );
+				fclose( $fileHandle );
+			}
 
-					$this->update_insert_new_csv_diamond( $db_diamond );
+			if ( $current_file &&
+			isset( $current_file['rows'] ) &&
+			isset( $current_file['rows_imported'] ) &&
+			$current_file['rows_imported'] >= $current_file['rows']
+			) {
+				error_log( '** $current_file[rows_imported] >= $current_file[rows] **' );
+
+				$diamond_type = 'lab';
+
+				if ( $current_file['name'] == 'natural_diamonds.csv' ) {
+					$diamond_type = 'natural';
 				}
 
-				$current_file['last_position'] = ftell( $fileHandle );
+				$this->delete_old_nivoda_diamonds( ' AND d_type = "' . $diamond_type . '"' );
 
-				++$current_file['rows_imported'];
+				wp_delete_file( $current_file['absolute_path'] );
 
-				$this->update_option( 'current_import_file', $current_file );
+				$this->remove_file_from_import_que( $current_file );
 			}
-
-			fclose( $fileHandle );
+		} finally {
+			delete_transient( 'csv_import_lock' );
 		}
 
-		if ( $current_file &&
-		isset( $current_file['rows'] ) &&
-		isset( $current_file['rows_imported'] ) &&
-		$current_file['rows_imported'] >= $current_file['rows']
-		) {
-			error_log( '** processing done... **' );
-
-			$diamond_type = 'lab';
-
-			if ( $current_file['name'] == 'natural_diamonds.csv' ) {
-				$diamond_type = 'natural';
-			}
-
-			$this->delete_old_nivoda_diamonds( ' AND d_type = "' . $diamond_type . '"' );
-
-			wp_delete_file( $current_file['absolute_path'] );
-
-			$this->remove_file_from_import_que( $current_file );
-		}
+		return true;
 	}
 
 	public function nivoda_copy_import_files() {
