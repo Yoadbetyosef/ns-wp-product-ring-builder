@@ -264,9 +264,11 @@ trait LocalDBCron {
 		$current_file['rows_imported'] < $current_file['rows']
 		) {
 			error_log( '** CSV import processing **' );
+			error_log( 'rows: ' . $current_file['rows'] );
+			error_log( 'rows imported: ' . $current_file['rows_imported'] );
 
 			if ( ! file_exists( $current_file['absolute_path'] ) ) {
-				error_log( '** File does not exist **: ' . $current_file['absolute_path'] );
+				// error_log( '** File does not exist **: ' . $current_file['absolute_path'] );
 
 				$this->remove_file_from_import_que( $current_file );
 
@@ -291,16 +293,14 @@ trait LocalDBCron {
 				fseek( $fileHandle, $current_file['last_position'] );
 			}
 
-			$maxLines = 2000;
+			$maxLines = 5000;
 
-			error_log( '** Max lines **: ' . $maxLines );
+			// error_log( '** Max lines **: ' . $maxLines );
 
 			$columns = fgetcsv( $fileHandle );
 
 			if ( $columns === false ) {
 				error_log( '** Failed to read columns from CSV **' );
-			} else {
-				// error_log( '** Initial columns **: ' . print_r( $columns, true ) );
 			}
 
 			while ( $maxLines > 0 && $columns ) {
@@ -328,14 +328,9 @@ trait LocalDBCron {
 					$db_diamond = array_combine( $current_file['headers'], $columns );
 
 					if ( $db_diamond === false ) {
-						// error_log( '** array_combine failed **: ' . print_r( $current_file['headers'], true ) . ' vs ' . print_r( $columns, true ) );
 					} else {
-						// error_log( '** Combined data **: ' . print_r( $db_diamond, true ) );
-
 						$this->update_insert_new_csv_diamond( $db_diamond );
 					}
-				} else {
-					error_log( '** Header count mismatch **: ' . count( $current_file['headers'] ) . ' vs ' . count( $columns ) );
 				}
 
 				$current_file['last_position'] = ftell( $fileHandle );
@@ -350,8 +345,6 @@ trait LocalDBCron {
 
 				if ( $columns === false ) {
 					error_log( '** Failed to read columns from CSV **' );
-				} else {
-					// error_log( '** Next columns **: ' . print_r( $columns, true ) );
 				}
 			}
 
@@ -383,6 +376,147 @@ trait LocalDBCron {
 
 			return false;
 		}
+	}
+
+	public function update_insert_new_csv_diamond( $db_diamond ) {
+		$required_fields = array(
+			'markup_price',
+			'price',
+			'carats',
+			'stock_id',
+			'shape',
+			'video',
+			'image',
+			'col',
+			'clar',
+		);
+
+		foreach ( $required_fields as $field ) {
+			if ( empty( $db_diamond[ $field ] ) ) {
+				// error_log( '** invalid diamond: missing ' . $field . ' **' );
+				return false;
+			}
+		}
+
+		$defaults = array(
+			'col'    => '',
+			'clar'   => '',
+			'symm'   => '',
+			'length' => '',
+			'width'  => '',
+			'lab'    => '',
+			'video'  => '',
+			'image'  => 'https://example.com/default_image.webp',
+		);
+
+		$db_diamond = array_merge( $defaults, $db_diamond );
+
+		$diamond = array(
+			'id'           => $db_diamond['stock_id'],
+			'upload'       => 'csv',
+			'markup_price' => $db_diamond['markup_price'],
+			'price'        => $db_diamond['price'],
+			'diamond'      => array(
+				'certificate' => array(
+					'video'    => $db_diamond['video'],
+					'image'    => $db_diamond['image'],
+					'carats'   => $db_diamond['carats'],
+					'shape'    => $db_diamond['shape'],
+					'color'    => $db_diamond['col'],
+					'clarity'  => $db_diamond['clar'],
+					'symmetry' => $db_diamond['symm'],
+					'length'   => $db_diamond['length'],
+					'width'    => $db_diamond['width'],
+					'lab'      => $db_diamond['lab'],
+				),
+			),
+		);
+
+		if ( isset( $db_diamond['pdf'] ) ) {
+			$diamond['diamond']['certificate']['pdfUrl'] = $db_diamond['pdf'];
+		}
+
+		if ( ! $this->nivoda_diamonds ) {
+			$this->nivoda_diamonds = \OTW\WooRingBuilder\Classes\NivodaGetDiamonds::instance();
+		}
+
+		if ( ! $this->diamonds ) {
+			$this->diamonds = \OTW\WooRingBuilder\Classes\Diamonds::instance();
+		}
+
+		$formated_diamond = $this->nivoda_diamonds->convert_nivoda_to_vdb( $diamond );
+
+		if ( isset( $db_diamond['lg'] ) && $db_diamond['lg'] ) {
+			$formated_diamond['lg'] = $db_diamond['lg'];
+		}
+
+		$this->insert_new_diamond(
+			$formated_diamond,
+			array( 'new_diamond_key' => $this->get_option( 'last_nivoda_update_key' ) )
+		);
+	}
+
+	public function insert_new_diamond( $formated_diamond, $nivoda_cron_status ) {
+		global $wpdb;
+
+		$d_status = 1;
+
+		if ( $this->diamonds->exclude_diamond( $formated_diamond ) ) {
+			$d_status = 0;
+		}
+
+		$data = array(
+			'api'             => '1',
+			'stock_num'       => $formated_diamond['stock_num'],
+			'd_type'          => 'lab',
+			'price'           => $formated_diamond['total_sales_price'],
+			'base_price'      => $formated_diamond['base_sales_price'],
+			'carat_size'      => $formated_diamond['size'],
+			'shape'           => $formated_diamond['shape'],
+			'shape_api'       => $formated_diamond['shape_api'],
+			'color'           => $formated_diamond['color'],
+			'clarity'         => $formated_diamond['clarity'],
+			'symmetry'        => $formated_diamond['symmetry'],
+			'meas_length'     => $formated_diamond['meas_length'],
+			'meas_width'      => $formated_diamond['meas_width'],
+			'meas_ratio'      => $formated_diamond['meas_ratio'],
+			'lab'             => $formated_diamond['lab'],
+			'cert_url'        => $formated_diamond['cert_url'],
+			'video_url'       => $formated_diamond['video_url'],
+			'image_url'       => $formated_diamond['image_url'],
+			'd_status'        => $d_status,
+			'last_update_key' => $nivoda_cron_status['new_diamond_key'],
+		);
+
+		if ( isset( $formated_diamond['lg'] ) && $formated_diamond['lg'] ) {
+			$data['d_type'] = $formated_diamond['lg'];
+		}
+
+		$format = array(
+			'%s',
+			'%s',
+			'%s',
+			'%d',
+			'%d',
+			'%s',
+			'%s',
+			'%s',
+			'%s',
+			'%s',
+			'%s',
+			'%s',
+			'%s',
+			'%s',
+			'%s',
+			'%s',
+			'%s',
+			'%s',
+			'%d',
+			'%s',
+		);
+
+		// insert or update a row
+		$inserted = $wpdb->replace( $wpdb->prefix . 'otw_diamonds', $data, $format );
 	}
 
 	public function nivoda_copy_import_files() {
@@ -510,87 +644,7 @@ trait LocalDBCron {
 		}
 	}
 
-	public function update_insert_new_csv_diamond( $db_diamond ) {
-		$diamond = array();
 
-		if (
-		! isset( $db_diamond['markup_price'] ) || empty( $db_diamond['markup_price'] ) ||
-		! isset( $db_diamond['price'] ) || empty( $db_diamond['price'] ) ||
-		! isset( $db_diamond['carats'] ) || empty( $db_diamond['carats'] ) ||
-		! isset( $db_diamond['stock_id'] ) || empty( $db_diamond['stock_id'] ) ||
-		! isset( $db_diamond['shape'] ) || empty( $db_diamond['shape'] ) ||
-		! isset( $db_diamond['video'] ) || empty( $db_diamond['video'] ) ||
-		! isset( $db_diamond['image'] ) || empty( $db_diamond['image'] ) ||
-		! isset( $db_diamond['col'] ) || empty( $db_diamond['col'] )
-		) {
-			error_log( '** invalid diamond **' );
-
-			return false;
-		}
-
-		if ( ! isset( $db_diamond['col'] ) || empty( $db_diamond['col'] ) ) {
-			$db_diamond['col'] = '';
-		}
-		if ( ! isset( $db_diamond['clar'] ) || empty( $db_diamond['clar'] ) ) {
-			$db_diamond['clar'] = '';
-		}
-		if ( ! isset( $db_diamond['symm'] ) || empty( $db_diamond['symm'] ) ) {
-			$db_diamond['symm'] = '';
-		}
-		if ( ! isset( $db_diamond['length'] ) || empty( $db_diamond['length'] ) ) {
-			$db_diamond['length'] = '';
-		}
-		if ( ! isset( $db_diamond['width'] ) || empty( $db_diamond['width'] ) ) {
-			$db_diamond['width'] = '';
-		}
-		if ( ! isset( $db_diamond['lab'] ) || empty( $db_diamond['lab'] ) ) {
-			$db_diamond['lab'] = '';
-		}
-		if ( ! isset( $db_diamond['video'] ) || empty( $db_diamond['video'] ) ) {
-			$db_diamond['video'] = '';
-		}
-		if ( ! isset( $db_diamond['image'] ) || empty( $db_diamond['image'] ) ) {
-			$db_diamond['image'] = 'https://wordpress-1167849-4081671.cloudwaysapps.com/wp-content/uploads/2023/10/cat_halo-300.webp';
-		}
-
-		$diamond['id'] = $db_diamond['stock_id'];
-		$diamond['upload'] = 'csv';
-		$diamond['markup_price'] = $db_diamond['markup_price'];
-		$diamond['price'] = $db_diamond['price'];
-		$diamond['diamond']['certificate']['video'] = $db_diamond['video'];
-		$diamond['diamond']['certificate']['image'] = $db_diamond['image'];
-		$diamond['diamond']['certificate']['carats'] = $db_diamond['carats'];
-		$diamond['diamond']['certificate']['shape'] = $db_diamond['shape'];
-		$diamond['diamond']['certificate']['color'] = $db_diamond['col'];
-		$diamond['diamond']['certificate']['clarity'] = $db_diamond['clar'];
-		$diamond['diamond']['certificate']['symmetry'] = $db_diamond['symm'];
-		$diamond['diamond']['certificate']['length'] = $db_diamond['length'];
-		$diamond['diamond']['certificate']['width'] = $db_diamond['width'];
-		$diamond['diamond']['certificate']['lab'] = $db_diamond['lab'];
-
-		if ( isset( $db_diamond['pdf'] ) && $db_diamond['pdf'] ) {
-			$diamond['diamond']['certificate']['pdfUrl'] = $db_diamond['pdf'];
-		}
-
-		if ( ! $this->nivoda_diamonds ) {
-			$this->nivoda_diamonds = \OTW\WooRingBuilder\Classes\NivodaGetDiamonds::instance();
-		}
-
-		if ( ! $this->diamonds ) {
-			$this->diamonds = \OTW\WooRingBuilder\Classes\Diamonds::instance();
-		}
-
-		$formated_diamond = $this->nivoda_diamonds->convert_nivoda_to_vdb( $diamond );
-
-		if ( isset( $db_diamond['lg'] ) && $db_diamond['lg'] ) {
-			$formated_diamond['lg'] = $db_diamond['lg'];
-		}
-
-		$this->insert_new_diamond(
-			$formated_diamond,
-			array( 'new_diamond_key' => $this->get_option( 'last_nivoda_update_key' ) )
-		);
-	}
 
 	public function list_worksheet_info( $pFilename ) {
 		error_log( '** list_worksheet_info **' );
@@ -686,70 +740,7 @@ trait LocalDBCron {
 		}
 	}
 
-	public function insert_new_diamond( $formated_diamond, $nivoda_cron_status ) {
-		global $wpdb;
 
-		$d_status = 1;
-
-		if ( $this->diamonds->exclude_diamond( $formated_diamond ) ) {
-			$d_status = 0;
-		}
-
-		$data = array(
-			'api'             => '1',
-			'stock_num'       => $formated_diamond['stock_num'],
-			'd_type'          => 'lab',
-			'price'           => $formated_diamond['total_sales_price'],
-			'base_price'      => $formated_diamond['base_sales_price'],
-			'carat_size'      => $formated_diamond['size'],
-			'shape'           => $formated_diamond['shape'],
-			'shape_api'       => $formated_diamond['shape_api'],
-			'color'           => $formated_diamond['color'],
-			'clarity'         => $formated_diamond['clarity'],
-			'symmetry'        => $formated_diamond['symmetry'],
-			'meas_length'     => $formated_diamond['meas_length'],
-			'meas_width'      => $formated_diamond['meas_width'],
-			'meas_ratio'      => $formated_diamond['meas_ratio'],
-			'lab'             => $formated_diamond['lab'],
-			'cert_url'        => $formated_diamond['cert_url'],
-			'video_url'       => $formated_diamond['video_url'],
-			'image_url'       => $formated_diamond['image_url'],
-			'd_status'        => $d_status,
-			'last_update_key' => $nivoda_cron_status['new_diamond_key'],
-		);
-
-		// error_log( '$data:' . print_r( $data, true ) );
-
-		if ( isset( $formated_diamond['lg'] ) && $formated_diamond['lg'] ) {
-			$data['d_type'] = $formated_diamond['lg'];
-		}
-
-		$format = array(
-			'%s',
-			'%s',
-			'%s',
-			'%d',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-		);
-
-		// insert or update a row
-		$inserted = $wpdb->replace( $wpdb->prefix . 'otw_diamonds', $data, $format );
-	}
 
 	public function create_custom_table() {
 		global $wpdb;
