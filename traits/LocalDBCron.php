@@ -79,6 +79,8 @@ trait LocalDBCron {
 
 
 	public function every_five_minute_cron() {
+		error_log( '** every_five_minute_cron **' );
+
 		$this->run_csv_import();
 	}
 
@@ -124,10 +126,12 @@ trait LocalDBCron {
 	}
 
 	public function every_twenty_minute_cron() {
+		error_log( '** every_twenty_minute_cron **' );
 		$this->run_csv_import();
 	}
 
 	public function every_two_hour_cron() {
+		error_log( '** every_two_hour_cron **' );
 		$this->run_csv_import();
 	}
 
@@ -186,11 +190,15 @@ trait LocalDBCron {
 
 		$this->log_all_options();
 
+		$delete_transient = true;
+
 		try {
 			if ( get_transient( 'csv_import_lock' ) ) {
 				error_log( 'CSV import already running...' );
 
-				return true;
+				$delete_transient = false;
+
+				return;
 			}
 
 			set_transient( 'csv_import_lock', true, 2 * 60 * MINUTE_IN_SECONDS );
@@ -206,7 +214,7 @@ trait LocalDBCron {
 				is_array( $files_list ) &&
 				count( $files_list ) >= 1
 			) ) {
-				return true;
+				return;
 			}
 
 			$current_file = $this->get_option( 'current_import_file' );
@@ -216,7 +224,7 @@ trait LocalDBCron {
 			if ( ! $current_file ) {
 				$this->add_file_to_import_que( $files_list );
 
-				return true;
+				return;
 			}
 
 			if ( $current_file &&
@@ -229,7 +237,7 @@ trait LocalDBCron {
 				if ( ! file_exists( $current_file['absolute_path'] ) ) {
 					$this->remove_file_from_import_que( $current_file );
 
-					return true;
+					return;
 				}
 
 				$fileHandle = fopen( $current_file['absolute_path'], 'r' );
@@ -237,7 +245,7 @@ trait LocalDBCron {
 				if ( ! $fileHandle || ! flock( $fileHandle, LOCK_EX ) ) {
 					fclose( $fileHandle );
 
-					return true;
+					return;
 				}
 
 				if ( isset( $current_file['last_position'] ) ) {
@@ -302,14 +310,16 @@ trait LocalDBCron {
 
 				error_log( $diamond_type . ' diamonds import success' );
 
-				return true;
+				return;
 			}
 		} finally {
-			error_log( '** transcient deleted ** ' );
-			delete_transient( 'csv_import_lock' );
+			if ( $delete_transient ) {
+				error_log( '** transcient deleted ** ' );
+				delete_transient( 'csv_import_lock' );
+			}
 		}
 
-		return true;
+		return;
 	}
 
 	public function nivoda_copy_import_files() {
