@@ -613,7 +613,7 @@ trait LocalDBCron {
 
 			$this->update_option( 'current_import_file', $first_file );
 
-			error_log( '** add_file_to_import_que -- one file added: ' . $this->get_option( 'current_import_file' ) );
+			error_log( '** add_file_to_import_que -- one file added: ' . print_r( $this->get_option( 'current_import_file' ), true ) );
 
 		} else {
 			error_log( '** remove_file_to_import_que ** ' );
