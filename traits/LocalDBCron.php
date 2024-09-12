@@ -572,6 +572,8 @@ trait LocalDBCron {
 
 		$worksheetInfo['totalColumns'] = 0;
 
+		error_Log( 'list_worksheet_info: worksheetInfo: ' . print_r( $worksheetInfo, true ) );
+
 		$rowData = fgetcsv( $fileHandle, 0 );
 
 		while ( $rowData !== false ) {
