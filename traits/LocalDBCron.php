@@ -195,9 +195,9 @@ trait LocalDBCron {
 				error_log( 'CSV import already running...' );
 
 				return true;
+			} else {
+				set_transient( 'csv_import_lock', true, 2 * 60 * MINUTE_IN_SECONDS );
 			}
-
-			set_transient( 'csv_import_lock', true, 2 * 60 * MINUTE_IN_SECONDS );
 
 			error_log( '** Starting CSV Import **' );
 
@@ -219,7 +219,7 @@ trait LocalDBCron {
 
 			$current_file = $this->get_option( 'current_import_file' );
 
-			error_log( '$current_file: ' . print_r( $current_file, true ) );
+			error_log( 'run_csv_import - current_file: ' . print_r( $current_file, true ) );
 
 			if ( ! $current_file ) {
 				$this->add_file_to_import_que( $files_list );
@@ -229,12 +229,14 @@ trait LocalDBCron {
 				return true;
 			}
 
+			// IMPORT PROCESS
+
 			if ( $current_file &&
 			isset( $current_file['rows'] ) &&
 			isset( $current_file['rows_imported'] ) &&
 			$current_file['rows_imported'] < $current_file['rows']
 			) {
-				error_log( '** $current_file[rows_imported] < $current_file[rows] **' );
+				error_log( '** csv import processing **' );
 
 				if ( ! file_exists( $current_file['absolute_path'] ) ) {
 					$this->remove_file_from_import_que( $current_file );
@@ -296,7 +298,7 @@ trait LocalDBCron {
 			isset( $current_file['rows_imported'] ) &&
 			$current_file['rows_imported'] >= $current_file['rows']
 			) {
-				error_log( '** $current_file[rows_imported] >= $current_file[rows] **' );
+				error_log( '** csv import finishing **' );
 
 				$diamond_type = 'lab';
 
