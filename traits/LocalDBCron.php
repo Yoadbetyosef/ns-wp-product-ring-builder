@@ -104,6 +104,7 @@ trait LocalDBCron {
 
 	public function every_one_minute_cron() {
 		error_log( '** every_one_minute_cron **' );
+
 		$this->run_csv_import();
 	}
 
@@ -191,9 +192,9 @@ trait LocalDBCron {
 			// $this->prefix . '_every_five_minute' => 'every_five_minute',
 			// $this->prefix . '_every_twenty_minute' => 'every_twenty_minute',
 			// $this->prefix . '_every_two_hour'     => 'every_two_hour',
-			$this->prefix . '_every_two_day'       => 'every_two_day',
-			$this->prefix . '_every_ten_minute'    => 'every_ten_minute',
-			$this->prefix . '_every_thirty_second' => 'every_thirty_second',
+			$this->prefix . '_every_two_day'    => 'every_two_day',
+			$this->prefix . '_every_ten_minute' => 'every_ten_minute',
+			$this->prefix . '_every_one_minute' => 'every_one_minute',
 		);
 
 		foreach ( $events as $hook => $recurrence ) {
