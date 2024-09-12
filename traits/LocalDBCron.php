@@ -398,9 +398,13 @@ trait LocalDBCron {
 
 		$first_file = reset( $files_list );
 
+		error_log( '$current_file: ' . print_r( $first_file, true ) );
+
 		$list_worksheet_info = $this->list_worksheet_info(
 			$first_file['absolute_path']
 		);
+
+		error_log( '$list_worksheet_info: ' . print_r( $list_worksheet_info, true ) );
 
 		if ( $list_worksheet_info &&
 		isset( $list_worksheet_info['totalRows'] ) &&
