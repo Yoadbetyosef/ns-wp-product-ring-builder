@@ -487,6 +487,8 @@ trait LocalDBCron {
 		! isset( $db_diamond['image'] ) || empty( $db_diamond['image'] ) ||
 		! isset( $db_diamond['col'] ) || empty( $db_diamond['col'] )
 		) {
+			error_log( '** invalid diamond **' );
+
 			return false;
 		}
 
@@ -680,6 +682,8 @@ trait LocalDBCron {
 			'last_update_key' => $nivoda_cron_status['new_diamond_key'],
 		);
 
+		error_log( '$data:' . print_r( $data, true ) );
+
 		if ( isset( $formated_diamond['lg'] ) && $formated_diamond['lg'] ) {
 			$data['d_type'] = $formated_diamond['lg'];
 		}
@@ -707,6 +711,7 @@ trait LocalDBCron {
 			'%s',
 		);
 
+		// insert or update a row
 		$inserted = $wpdb->replace( $wpdb->prefix . 'otw_diamonds', $data, $format );
 	}
 
