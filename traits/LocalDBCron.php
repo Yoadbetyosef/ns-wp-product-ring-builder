@@ -259,15 +259,15 @@ trait LocalDBCron {
 		// IMPORT PROCESS
 
 		if ( $current_file &&
-			isset( $current_file['rows'] ) &&
-			isset( $current_file['rows_imported'] ) &&
-			$current_file['rows_imported'] < $current_file['rows']
-			) {
-			error_log( '** csv import processing **' );
+		isset( $current_file['rows'] ) &&
+		isset( $current_file['rows_imported'] ) &&
+		$current_file['rows_imported'] < $current_file['rows']
+		) {
+			error_log( '** CSV import processing **' );
 
 			if ( ! file_exists( $current_file['absolute_path'] ) ) {
+				error_log( '** File does not exist **: ' . $current_file['absolute_path'] );
 				$this->remove_file_from_import_que( $current_file );
-
 				return false;
 			}
 
@@ -275,48 +275,69 @@ trait LocalDBCron {
 
 			if ( ! $fileHandle || ! flock( $fileHandle, LOCK_EX ) ) {
 				error_log( '** File locked **' );
-
-				fclose( $fileHandle );
-
+				if ( $fileHandle ) {
+					fclose( $fileHandle );
+				}
 				return false;
 			}
 
 			if ( isset( $current_file['last_position'] ) ) {
-				error_log( '** Last position **' . $current_file['last_position'] );
-
+				error_log( '** Last position **: ' . $current_file['last_position'] );
 				fseek( $fileHandle, $current_file['last_position'] );
 			}
 
 			$maxLines = 2000;
+			error_log( '** Max lines **: ' . $maxLines );
 
 			$columns = fgetcsv( $fileHandle );
+
+			if ( $columns === false ) {
+				error_log( '** Failed to read columns from CSV **' );
+			} else {
+				error_log( '** Initial columns **: ' . print_r( $columns, true ) );
+			}
 
 			while ( $maxLines > 0 && $columns ) {
 				--$maxLines;
 
 				if ( ! isset( $current_file['headers'] ) ) {
 					$current_file['headers'] = $columns;
+					error_log( '** Headers set **: ' . print_r( $columns, true ) );
 
 					$current_file['last_position'] = ftell( $fileHandle );
+					error_log( '** New last position **: ' . $current_file['last_position'] );
 
 					++$current_file['rows_imported'];
-
 					$this->update_option( 'current_import_file', $current_file );
 
+					$columns = fgetcsv( $fileHandle );  // Read next line
 					continue;
 				}
 
 				if ( count( $current_file['headers'] ) == count( $columns ) ) {
 					$db_diamond = array_combine( $current_file['headers'], $columns );
-
-					$this->update_insert_new_csv_diamond( $db_diamond );
+					if ( $db_diamond === false ) {
+						error_log( '** array_combine failed **: ' . print_r( $current_file['headers'], true ) . ' vs ' . print_r( $columns, true ) );
+					} else {
+						error_log( '** Combined data **: ' . print_r( $db_diamond, true ) );
+						$this->update_insert_new_csv_diamond( $db_diamond );
+					}
+				} else {
+					error_log( '** Header count mismatch **: ' . count( $current_file['headers'] ) . ' vs ' . count( $columns ) );
 				}
 
 				$current_file['last_position'] = ftell( $fileHandle );
+				error_log( '** Updated last position **: ' . $current_file['last_position'] );
 
 				++$current_file['rows_imported'];
-
 				$this->update_option( 'current_import_file', $current_file );
+
+				$columns = fgetcsv( $fileHandle );  // Read next line
+				if ( $columns === false ) {
+					error_log( '** Failed to read columns from CSV **' );
+				} else {
+					error_log( '** Next columns **: ' . print_r( $columns, true ) );
+				}
 			}
 
 			fclose( $fileHandle );
