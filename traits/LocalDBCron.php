@@ -188,15 +188,11 @@ trait LocalDBCron {
 	public function run_csv_import() {
 		error_log( '** run_csv_import ** ' );
 
-		// $this->log_all_options();
-
-		$delete_transient = true;
+		$delete_transient = false;
 
 		try {
 			if ( get_transient( 'csv_import_lock' ) ) {
 				error_log( 'CSV import already running...' );
-
-				$delete_transient = false;
 
 				return true;
 			}
@@ -205,17 +201,21 @@ trait LocalDBCron {
 
 			error_log( '** Starting CSV Import **' );
 
-			$files_list = $this->get_option( 'import_nivoda_csv_files' );
+			// CHECK FILE LIST
 
-			// error_log( print_r( $files_list, true ) );
+			$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
 			if ( ! (
 				$files_list &&
 				is_array( $files_list ) &&
 				count( $files_list ) >= 1
 			) ) {
+				$delete_transient = true;
+
 				return true;
 			}
+
+			// CHECK CURRENT FILE
 
 			$current_file = $this->get_option( 'current_import_file' );
 
@@ -223,6 +223,8 @@ trait LocalDBCron {
 
 			if ( ! $current_file ) {
 				$this->add_file_to_import_que( $files_list );
+
+				$delete_transient = true;
 
 				return true;
 			}
