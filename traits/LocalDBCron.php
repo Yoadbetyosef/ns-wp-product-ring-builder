@@ -552,6 +552,8 @@ trait LocalDBCron {
 
 		$fileHandle = fopen( $pFilename, 'r' );
 
+		error_Log( 'list_worksheet_info: fileHandle: ' . $FileHandle );
+
 		if ( ! $fileHandle ) {
 			error_log( 'list_worksheet_info: no file handle' );
 
