@@ -205,18 +205,22 @@ trait LocalDBCron {
 
 	private function clear_scheduled_cron_jobs() {
 		$events = array(
+			$this->prefix . '_every_thirty_second',
 			$this->prefix . '_every_one_minute',
 			$this->prefix . '_every_five_minute',
 			$this->prefix . '_every_ten_minute',
 			$this->prefix . '_every_twenty_minute',
 			$this->prefix . '_every_two_hour',
 			$this->prefix . '_every_four_hour',
+			$this->prefix . '_every_two_day',
 		);
 
 		foreach ( $events as $hook ) {
 			$timestamp = wp_next_scheduled( $hook );
+
 			while ( $timestamp ) {
 				wp_unschedule_event( $timestamp, $hook );
+
 				$timestamp = wp_next_scheduled( $hook );
 			}
 		}
