@@ -23,6 +23,8 @@ trait LocalDBCron {
 
 		add_action( $this->prefix . '_every_four_hour', array( $this, 'every_four_hour_cron' ) );
 
+		add_action( $this->prefix . '_every_five_minute', array( $this, 'every_five_minute_cron' ) );
+
 		add_action( $this->prefix . '_every_ten_minute', array( $this, 'every_ten_minute_cron' ) );
 
 		add_action( $this->prefix . '_every_twenty_minute', array( $this, 'every_twenty_minute_cron' ) );
@@ -37,6 +39,13 @@ trait LocalDBCron {
 	////////////////////////
 
 	public function add_custom_cron_schedules( $schedules ) {
+		if ( ! isset( $schedules['every_five_minute'] ) ) {
+			$schedules['every_five_minute'] = array(
+				'interval' => 60 * 5,
+				'display'  => __( 'Every 5 minute' ),
+			);
+		}
+
 		if ( ! isset( $schedules['every_ten_minute'] ) ) {
 			$schedules['every_ten_minute'] = array(
 				'interval' => 60 * 10,
@@ -68,6 +77,11 @@ trait LocalDBCron {
 		return $schedules;
 	}
 
+
+	public function every_five_minute_cron() {
+		$this->run_csv_import();
+	}
+
 	public function every_ten_minute_cron() {
 		error_log( '** every_ten_minute_cron **' );
 
@@ -93,13 +107,13 @@ trait LocalDBCron {
 				$single_file['type'] == 'f' &&
 				isset( $single_file['name'] ) &&
 				(
-				$single_file['name'] == 'labgrown.csv' ||
-				$single_file['name'] == 'natural_diamonds.csv'
+				$single_file['name'] === 'labgrown.csv' ||
+				$single_file['name'] === 'natural_diamonds.csv'
 				)
 				) {
 					$db_lastmodunix = (int) $this->get_option( $single_file['name'] . 'lastmodunix' );
 
-					if ( $db_lastmodunix != $single_file['lastmodunix'] ) {
+					if ( $db_lastmodunix !== $single_file['lastmodunix'] ) {
 						$this->update_option( $single_file['name'] . 'lastmodunix', $single_file['lastmodunix'] );
 
 						wp_schedule_single_event( wp_date( 'U' ) + 60, $this->prefix . '_nivoda_copy_import_files' );
@@ -110,48 +124,11 @@ trait LocalDBCron {
 	}
 
 	public function every_twenty_minute_cron() {
-		error_log( '** every_twenty_minute_cron **' );
-
-		if ( get_transient( 'csv_import_lock' ) ) {
-			error_log( 'CSV import already running. Retrying in 20 min...' );
-
-			return true;
-		}
-
-		set_transient( 'csv_import_lock', true, 2 * 60 * MINUTE_IN_SECONDS );
-
-		error_log( '** Starting CSV Import **' );
-
-		// import
 		$this->run_csv_import();
-
-		error_log( '** CSV Import Completed **' );
-
-		return true;
 	}
 
 	public function every_two_hour_cron() {
-		error_log( '** every_two_hour_cron **' );
-
-		if ( get_transient( 'csv_import_lock' ) ) {
-			error_log( 'CSV import already running. Retrying in two hour...' );
-
-			return false;
-		}
-
-		set_transient( 'csv_import_lock', true, 60 * 4 * MINUTE_IN_SECONDS );
-
-		error_log( '** Starting CSV Import **' );
-
-		// import
 		$this->run_csv_import();
-
-		// Done processing delete transient...
-		delete_transient( 'csv_import_lock' );
-
-		error_log( '** CSV Import Completed **' );
-
-		return true;
 	}
 
 	public function every_four_hour_cron() {
@@ -168,9 +145,11 @@ trait LocalDBCron {
 		error_log( '** start_cron_event **' );
 
 		$events = array(
-			$this->prefix . '_every_four_hour'     => 'every_four_hour',
-			$this->prefix . '_every_ten_minute'    => 'every_ten_minute',
-			$this->prefix . '_every_twenty_minute' => 'every_twenty_minute',
+			$this->prefix . '_every_five_minute' => 'every_five_minute',
+			$this->prefix . '_every_ten_minute'  => 'every_ten_minute',
+			// $this->prefix . '_every_twenty_minute' => 'every_twenty_minute',
+			// $this->prefix . '_every_two_hour'     => 'every_two_hour',
+			$this->prefix . '_every_four_hour'   => 'every_four_hour',
 		);
 
 		foreach ( $events as $hook => $recurrence ) {
@@ -184,7 +163,9 @@ trait LocalDBCron {
 		delete_transient( 'csv_import_lock' );
 
 		$events = array(
+			$this->prefix . '_every_two_hour',
 			$this->prefix . '_every_four_hour',
+			$this->prefix . '_every_five_minute',
 			$this->prefix . '_every_ten_minute',
 			$this->prefix . '_every_twenty_minute',
 		);
@@ -206,6 +187,16 @@ trait LocalDBCron {
 		$this->log_all_options();
 
 		try {
+			if ( get_transient( 'csv_import_lock' ) ) {
+				error_log( 'CSV import already running...' );
+
+				return true;
+			}
+
+			set_transient( 'csv_import_lock', true, 2 * 60 * MINUTE_IN_SECONDS );
+
+			error_log( '** Starting CSV Import **' );
+
 			$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
 			error_log( print_r( $files_list, true ) );
@@ -286,6 +277,8 @@ trait LocalDBCron {
 				}
 
 				fclose( $fileHandle );
+
+				return true;
 			}
 
 			if ( $current_file &&
@@ -297,7 +290,7 @@ trait LocalDBCron {
 
 				$diamond_type = 'lab';
 
-				if ( $current_file['name'] == 'natural_diamonds.csv' ) {
+				if ( $current_file['name'] === 'natural_diamonds.csv' ) {
 					$diamond_type = 'natural';
 				}
 
@@ -306,6 +299,10 @@ trait LocalDBCron {
 				wp_delete_file( $current_file['absolute_path'] );
 
 				$this->remove_file_from_import_que( $current_file );
+
+				error_log( $diamond_type . ' diamonds import success' );
+
+				return true;
 			}
 		} finally {
 			error_log( '** transcient deleted ** ' );
