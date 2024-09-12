@@ -313,7 +313,7 @@ trait LocalDBCron {
 
 					$current_file['last_position'] = ftell( $fileHandle );
 
-					error_log( '** New last position **: ' . $current_file['last_position'] );
+					// error_log( '** New last position **: ' . $current_file['last_position'] );
 
 					++$current_file['rows_imported'];
 
@@ -335,7 +335,7 @@ trait LocalDBCron {
 
 				$current_file['last_position'] = ftell( $fileHandle );
 
-				error_log( '** Updated last position **: ' . $current_file['last_position'] );
+				// error_log( '** Updated last position **: ' . $current_file['last_position'] );
 
 				++$current_file['rows_imported'];
 
