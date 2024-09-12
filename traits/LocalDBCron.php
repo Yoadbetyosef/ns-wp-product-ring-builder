@@ -125,9 +125,6 @@ trait LocalDBCron {
 		// import
 		$this->run_csv_import();
 
-		// Done processing delete transient...
-		delete_transient( 'csv_import_lock' );
-
 		error_log( '** CSV Import Completed **' );
 
 		return true;
