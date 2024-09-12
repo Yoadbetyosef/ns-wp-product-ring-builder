@@ -248,7 +248,7 @@ trait LocalDBCron {
 
 		$current_file = $this->get_option( 'current_import_file' );
 
-		error_log( 'run_csv_import - current_file: ' . print_r( $current_file, true ) );
+		// error_log( 'run_csv_import - current_file: ' . print_r( $current_file, true ) );
 
 		if ( ! $current_file ) {
 			$this->add_file_to_import_que( $files_list );
@@ -267,7 +267,9 @@ trait LocalDBCron {
 
 			if ( ! file_exists( $current_file['absolute_path'] ) ) {
 				error_log( '** File does not exist **: ' . $current_file['absolute_path'] );
+
 				$this->remove_file_from_import_que( $current_file );
+
 				return false;
 			}
 
@@ -275,18 +277,22 @@ trait LocalDBCron {
 
 			if ( ! $fileHandle || ! flock( $fileHandle, LOCK_EX ) ) {
 				error_log( '** File locked **' );
+
 				if ( $fileHandle ) {
 					fclose( $fileHandle );
 				}
+
 				return false;
 			}
 
 			if ( isset( $current_file['last_position'] ) ) {
 				error_log( '** Last position **: ' . $current_file['last_position'] );
+
 				fseek( $fileHandle, $current_file['last_position'] );
 			}
 
 			$maxLines = 2000;
+
 			error_log( '** Max lines **: ' . $maxLines );
 
 			$columns = fgetcsv( $fileHandle );
@@ -294,7 +300,7 @@ trait LocalDBCron {
 			if ( $columns === false ) {
 				error_log( '** Failed to read columns from CSV **' );
 			} else {
-				error_log( '** Initial columns **: ' . print_r( $columns, true ) );
+				// error_log( '** Initial columns **: ' . print_r( $columns, true ) );
 			}
 
 			while ( $maxLines > 0 && $columns ) {
@@ -302,24 +308,30 @@ trait LocalDBCron {
 
 				if ( ! isset( $current_file['headers'] ) ) {
 					$current_file['headers'] = $columns;
-					error_log( '** Headers set **: ' . print_r( $columns, true ) );
+
+					// error_log( '** Headers set **: ' . print_r( $columns, true ) );
 
 					$current_file['last_position'] = ftell( $fileHandle );
+
 					error_log( '** New last position **: ' . $current_file['last_position'] );
 
 					++$current_file['rows_imported'];
+
 					$this->update_option( 'current_import_file', $current_file );
 
 					$columns = fgetcsv( $fileHandle );  // Read next line
+
 					continue;
 				}
 
 				if ( count( $current_file['headers'] ) == count( $columns ) ) {
 					$db_diamond = array_combine( $current_file['headers'], $columns );
+
 					if ( $db_diamond === false ) {
-						error_log( '** array_combine failed **: ' . print_r( $current_file['headers'], true ) . ' vs ' . print_r( $columns, true ) );
+						// error_log( '** array_combine failed **: ' . print_r( $current_file['headers'], true ) . ' vs ' . print_r( $columns, true ) );
 					} else {
-						error_log( '** Combined data **: ' . print_r( $db_diamond, true ) );
+						// error_log( '** Combined data **: ' . print_r( $db_diamond, true ) );
+
 						$this->update_insert_new_csv_diamond( $db_diamond );
 					}
 				} else {
@@ -327,16 +339,19 @@ trait LocalDBCron {
 				}
 
 				$current_file['last_position'] = ftell( $fileHandle );
+
 				error_log( '** Updated last position **: ' . $current_file['last_position'] );
 
 				++$current_file['rows_imported'];
+
 				$this->update_option( 'current_import_file', $current_file );
 
 				$columns = fgetcsv( $fileHandle );  // Read next line
+
 				if ( $columns === false ) {
 					error_log( '** Failed to read columns from CSV **' );
 				} else {
-					error_log( '** Next columns **: ' . print_r( $columns, true ) );
+					// error_log( '** Next columns **: ' . print_r( $columns, true ) );
 				}
 			}
 
@@ -446,13 +461,13 @@ trait LocalDBCron {
 
 		$first_file = reset( $files_list );
 
-		error_log( 'add_file_to_import_que -- current_file: ' . print_r( $first_file, true ) );
+		// error_log( 'add_file_to_import_que -- current_file: ' . print_r( $first_file, true ) );
 
 		$list_worksheet_info = $this->list_worksheet_info(
 			$first_file['absolute_path']
 		);
 
-		error_log( '$list_worksheet_info: ' . print_r( $list_worksheet_info, true ) );
+		// error_log( '$list_worksheet_info: ' . print_r( $list_worksheet_info, true ) );
 
 		if ( $list_worksheet_info &&
 		isset( $list_worksheet_info['totalRows'] ) &&
@@ -652,7 +667,7 @@ trait LocalDBCron {
 
 		fclose( $fileHandle );
 
-		error_log( 'list_worksheet_info -- worksheetInfo: ' . print_r( $worksheetInfo, true ) );
+		// error_log( 'list_worksheet_info -- worksheetInfo: ' . print_r( $worksheetInfo, true ) );
 
 		return $worksheetInfo;
 	}
@@ -703,7 +718,7 @@ trait LocalDBCron {
 			'last_update_key' => $nivoda_cron_status['new_diamond_key'],
 		);
 
-		error_log( '$data:' . print_r( $data, true ) );
+		// error_log( '$data:' . print_r( $data, true ) );
 
 		if ( isset( $formated_diamond['lg'] ) && $formated_diamond['lg'] ) {
 			$data['d_type'] = $formated_diamond['lg'];
