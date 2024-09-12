@@ -243,12 +243,16 @@ trait LocalDBCron {
 			$fileHandle = fopen( $current_file['absolute_path'], 'r' );
 
 			if ( ! $fileHandle || ! flock( $fileHandle, LOCK_EX ) ) {
+				error_log( '** File locked **' );
+
 				fclose( $fileHandle );
 
 				return true;
 			}
 
 			if ( isset( $current_file['last_position'] ) ) {
+				error_log( '** Last position **' . $current_file['last_position'] );
+
 				fseek( $fileHandle, $current_file['last_position'] );
 			}
 
@@ -617,8 +621,6 @@ trait LocalDBCron {
 	}
 
 	public function insert_new_diamond( $formated_diamond, $nivoda_cron_status ) {
-		error_log( '** insert_new_diamond ** ' );
-
 		global $wpdb;
 
 		$d_status = 1;
