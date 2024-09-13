@@ -294,6 +294,10 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 		return $body['data'];
 	}
 
+	public function get_diamonds_min_max() {
+		return $this->get_local_diamonds_min_max();
+	}
+
 	public function get_diamond_by_stock_num( $stock_num ) {
 		if ( $this->nivoda_api_type == 'local' ) {
 			return $this->get_local_diamond_by_stock_num( $stock_num );

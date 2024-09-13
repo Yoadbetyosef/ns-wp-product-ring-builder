@@ -35,6 +35,10 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		add_action( 'wp_ajax_nopriv_fetch_stone_by_id', array( $this, 'fetch_stone_by_id' ) );
 
 		add_action( 'wp_ajax_fetch_stone_by_id', array( $this, 'fetch_stone_by_id' ) );
+
+		add_action( 'wp_ajax_nopriv_fetch_stone_min_max', array( $this, 'fetch_stone_min_max' ) );
+
+		add_action( 'wp_ajax_fetch_stone_min_max', array( $this, 'fetch_stone_min_max' ) );
 	}
 
 	public function render_diamnod_similar_items( $diamond ) {
@@ -164,6 +168,14 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		}
 
 		return $output;
+	}
+
+	public function fetch_stones_min_max() {
+		$result = otw_woo_ring_builder()->nivoda_diamonds->get_diamonds_min_max();
+
+		wp_send_json_success( $result );
+
+		die();
 	}
 
 	public function fetch_stones() {

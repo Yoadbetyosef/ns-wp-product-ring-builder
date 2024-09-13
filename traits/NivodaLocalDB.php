@@ -76,6 +76,33 @@ trait NivodaLocalDB{
 		return $error_message;
 	}
 
+	public function get_local_diamonds_min_max() {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'otw_diamonds';
+
+		$result = $wpdb->get_row(
+			'
+				SELECT 
+						MAX(price) AS highest_price, 
+						MIN(price) AS lowest_price, 
+						MAX(carat_size) AS highest_carat, 
+						MIN(carat_size) AS lowest_carat 
+				FROM ' . $wpdb->prefix . 'otw_diamonds
+				WHERE d_status = 1
+		'
+		);
+
+		if ( $result ) {
+			return array(
+				'price_max' => $result->highest_price,
+				'price_min' => $result->lowest_price,
+				'carat_max' => $result->highest_carat,
+				'carat_min' => $result->lowest_carat,
+			);
+		}
+	}
+
 	public function get_search_query( $query, $args ) {
 		if ( ! $this->nivoda_diamonds ) {
 			$this->nivoda_diamonds = \OTW\WooRingBuilder\Classes\NivodaGetDiamonds::instance();
