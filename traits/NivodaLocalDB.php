@@ -46,6 +46,8 @@ trait NivodaLocalDB{
 			$query .= ' ORDER BY price ASC';
 		}
 
+		error_log( '** get_local_diamonds :: $query:' . $query );
+
 		$args_pagination = array(
 			'items_per_page' => 20,
 			'sql'            => $query,
@@ -125,7 +127,9 @@ trait NivodaLocalDB{
 			$args['price_total_to']
 		) {
 			$price_total_from = (int) $args['price_total_from'];
+
 			$price_total_to = (int) $args['price_total_to'];
+
 			$query .= " AND (price >= {$price_total_from} AND price <= {$price_total_to})";
 		}
 
@@ -134,13 +138,11 @@ trait NivodaLocalDB{
 			isset( $args['size_to'] ) &&
 			$args['size_to']
 		) {
-			if ( ! ( $args['size_from'] == '0.3' && $args['size_from'] == '14.5' ) ) {
-				$size_from = (float) $args['size_from'];
+			$size_from = (float) $args['size_from'];
 
-				$size_to = (float) $args['size_to'];
+			$size_to = (float) $args['size_to'];
 
-				$query .= " AND (carat_size >= {$size_from} AND carat_size <= {$size_to})";
-			}
+			$query .= " AND (carat_size >= {$size_from} AND carat_size <= {$size_to})";
 		}
 
 		if ( isset( $args['color_from'] ) &&
@@ -167,6 +169,7 @@ trait NivodaLocalDB{
 					if ( $single_color === 'FANCY' ) {
 						$fancy_query = ' OR color LIKE "%Fancy%"';
 					}
+
 					$sanitize_colors[ $key ] = sanitize_user( $single_color );
 				}
 

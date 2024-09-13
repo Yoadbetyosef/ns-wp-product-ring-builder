@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 trait LocalDBCron {
 	public function local_db_cron_init() {
-		error_log( '** local_db_cron_init **' );
+		// error_log( '** local_db_cron_init **' );
 
 		if ( ! $this->nivoda_diamonds ) {
 			$this->nivoda_diamonds = \OTW\WooRingBuilder\Classes\NivodaGetDiamonds::instance();
@@ -98,24 +98,24 @@ trait LocalDBCron {
 	}
 
 	public function every_thirty_second_cron() {
-		error_log( '** every_thirty_second_cron **' );
+		// error_log( '** every_thirty_second_cron **' );
 		$this->run_csv_import();
 	}
 
 	public function every_one_minute_cron() {
-		error_log( '** every_one_minute_cron **' );
+		// error_log( '** every_one_minute_cron **' );
 
 		$this->run_csv_import();
 	}
 
 	public function every_five_minute_cron() {
-		error_log( '** every_five_minute_cron **' );
+		// error_log( '** every_five_minute_cron **' );
 
 		$this->run_csv_import();
 	}
 
 	public function every_ten_minute_cron() {
-		error_log( '** every_ten_minute_cron **' );
+		// error_log( '** every_ten_minute_cron **' );
 
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
@@ -156,17 +156,17 @@ trait LocalDBCron {
 	}
 
 	public function every_twenty_minute_cron() {
-		error_log( '** every_twenty_minute_cron **' );
+		// error_log( '** every_twenty_minute_cron **' );
 		$this->run_csv_import();
 	}
 
 	public function every_two_hour_cron() {
-		error_log( '** every_two_hour_cron **' );
+		// error_log( '** every_two_hour_cron **' );
 		$this->run_csv_import();
 	}
 
 	public function every_four_hour_cron() {
-		error_log( '** every_four_hour_cron **' );
+		// error_log( '** every_four_hour_cron **' );
 
 		$this->update_option( 'current_import_file', array() );
 
@@ -176,7 +176,7 @@ trait LocalDBCron {
 	}
 
 	public function every_two_day_cron() {
-		error_log( '** every_two_day_cron **' );
+		// error_log( '** every_two_day_cron **' );
 
 		$this->update_option( 'current_import_file', array() );
 
@@ -186,7 +186,7 @@ trait LocalDBCron {
 	}
 
 	public function start_cron_event() {
-		error_log( '** start_cron_event **' );
+		// error_log( '** start_cron_event **' );
 
 		$events = array(
 			// $this->prefix . '_every_five_minute' => 'every_five_minute',
@@ -230,7 +230,7 @@ trait LocalDBCron {
 	////////////////////////
 
 	public function run_csv_import() {
-		error_log( '** run_csv_import ** ' );
+		// error_log( '** run_csv_import ** ' );
 
 		// CHECK FILE LIST
 
@@ -263,9 +263,9 @@ trait LocalDBCron {
 		isset( $current_file['rows_imported'] ) &&
 		$current_file['rows_imported'] < $current_file['rows']
 		) {
-			error_log( '** CSV import processing **' );
-			error_log( 'rows: ' . $current_file['rows'] );
-			error_log( 'rows imported: ' . $current_file['rows_imported'] );
+			// error_log( '** CSV import processing **' );
+			// error_log( 'rows: ' . $current_file['rows'] );
+			// error_log( 'rows imported: ' . $current_file['rows_imported'] );
 
 			if ( ! file_exists( $current_file['absolute_path'] ) ) {
 				// error_log( '** File does not exist **: ' . $current_file['absolute_path'] );
@@ -278,7 +278,7 @@ trait LocalDBCron {
 			$fileHandle = fopen( $current_file['absolute_path'], 'r' );
 
 			if ( ! $fileHandle || ! flock( $fileHandle, LOCK_EX ) ) {
-				error_log( '** File locked **' );
+				// error_log( '** File locked **' );
 
 				if ( $fileHandle ) {
 					fclose( $fileHandle );
@@ -288,7 +288,7 @@ trait LocalDBCron {
 			}
 
 			if ( isset( $current_file['last_position'] ) ) {
-				error_log( '** Last position **: ' . $current_file['last_position'] );
+				// error_log( '** Last position **: ' . $current_file['last_position'] );
 
 				fseek( $fileHandle, $current_file['last_position'] );
 			}
@@ -300,7 +300,7 @@ trait LocalDBCron {
 			$columns = fgetcsv( $fileHandle );
 
 			if ( $columns === false ) {
-				error_log( '** Failed to read columns from CSV **' );
+				// error_log( '** Failed to read columns from CSV **' );
 			}
 
 			while ( $maxLines > 0 && $columns ) {
@@ -344,7 +344,7 @@ trait LocalDBCron {
 				$columns = fgetcsv( $fileHandle );  // Read next line
 
 				if ( $columns === false ) {
-					error_log( '** Failed to read columns from CSV **' );
+					// error_log( '** Failed to read columns from CSV **' );
 				}
 			}
 
@@ -358,7 +358,7 @@ trait LocalDBCron {
 			isset( $current_file['rows_imported'] ) &&
 			$current_file['rows_imported'] >= $current_file['rows']
 			) {
-			error_log( '** csv import finishing **' );
+			// error_log( '** csv import finishing **' );
 
 			$diamond_type = 'lab';
 
@@ -372,7 +372,7 @@ trait LocalDBCron {
 
 			$this->remove_file_from_import_que( $current_file );
 
-			error_log( $diamond_type . ' diamonds import success' );
+			// error_log( $diamond_type . ' diamonds import success' );
 
 			return false;
 		}
@@ -591,7 +591,7 @@ trait LocalDBCron {
 	}
 
 	public function add_file_to_import_que( $files_list ) {
-		error_log( '** add_file_to_import_que ** ' );
+		// error_log( '** add_file_to_import_que ** ' );
 
 		$first_file = reset( $files_list );
 
@@ -613,17 +613,17 @@ trait LocalDBCron {
 
 			$this->update_option( 'current_import_file', $first_file );
 
-			error_log( '** add_file_to_import_que -- one file added: ' . print_r( $this->get_option( 'current_import_file' ), true ) );
+			// error_log( '** add_file_to_import_que -- one file added: ' . print_r( $this->get_option( 'current_import_file' ), true ) );
 
 		} else {
-			error_log( '** remove_file_to_import_que ** ' );
+			// error_log( '** remove_file_to_import_que ** ' );
 
 			$this->remove_file_from_import_que( $first_file );
 		}
 	}
 
 	public function remove_file_from_import_que( $current_file ) {
-		error_log( '** remove_file_from_import_que ** ' );
+		// error_log( '** remove_file_from_import_que ** ' );
 
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
@@ -647,18 +647,18 @@ trait LocalDBCron {
 
 
 	public function list_worksheet_info( $pFilename ) {
-		error_log( '** list_worksheet_info **' );
-		error_log( 'list_worksheet_info: filename: ' . $pFilename );
+		// error_log( '** list_worksheet_info **' );
+		// error_log( 'list_worksheet_info: filename: ' . $pFilename );
 
 		if ( ! file_exists( $pFilename ) ) {
-			error_log( 'File does not exist' );
+			// error_log( 'File does not exist' );
 			return false;
 		}
 
 		$fileHandle = fopen( $pFilename, 'r' );
 
 		if ( ! $fileHandle ) {
-			error_log( 'list_worksheet_info: no file handle' );
+			// error_log( 'list_worksheet_info: no file handle' );
 			return false;
 		}
 
