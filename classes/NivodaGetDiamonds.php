@@ -11,15 +11,7 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 
 	use \OTW\WooRingBuilder\Traits\NivodaLocalDB;
 
-	// public $diamond_api_endpoint = 'http://wdc-intg-customer-staging.herokuapp.com/api/diamonds';
-
 	public $diamond_api_endpoint = 'https://integrations.nivoda.net/api/diamonds';
-
-	public function __construct() {
-		if ( $this->get_option( 'nivoda_api_environment' ) == 'staging' ) {
-			$this->diamond_api_endpoint = 'http://wdc-intg-customer-staging.herokuapp.com/api/diamonds';
-		}
-	}
 
 	function convert_nivoda_to_vdb( $diamond ) {
 		$output = array();
