@@ -272,14 +272,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		}
 	}
 
-	public function fetch_stones_min_max() {
-		$result = otw_woo_ring_builder()->nivoda_diamonds->get_diamonds_min_max();
-
-		wp_send_json_success( $result );
-
-		die();
-	}
-
 	public function fetch_stone_by_id() {
 		if ( isset( $_POST['query_string'] ) && ! empty( $_POST['query_string'] ) ) {
 			parse_str( $_POST['query_string'], $params );
@@ -312,6 +304,14 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 				die();
 			}
 		}
+	}
+
+	public function fetch_stones_min_max() {
+		$result = otw_woo_ring_builder()->nivoda_diamonds->get_diamonds_min_max();
+
+		wp_send_json_success( $result );
+
+		die();
 	}
 
 	public function get_diamond_by_stock_num( $stock_num ) {
@@ -382,44 +382,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		}
 
 		return $diamond;
-	}
-
-	public function exclude_diamond( $diamond ) {
-		$diamond_shape = strtolower( $diamond['shape'] );
-
-		if ( ! in_array( $diamond['clarity'], $this->diamonds_api_clarity ) ) {
-			return true;
-		}
-
-		$diamonds_api_shapes = gcpb_diamond_shapes_array();
-
-		if ( ! isset( $diamonds_api_shapes[ $diamond_shape ] ) ) {
-			return true;
-		}
-
-		if ( ! isset( $diamond['image_url'] ) || empty( $diamond['image_url'] ) ) {
-			return true;
-		}
-
-		$selected_setting_shapes = $this->get_current_selected_variation_shapes();
-
-		if ( $selected_setting_shapes &&
-			is_array( $selected_setting_shapes ) &&
-			count( $selected_setting_shapes ) >= 1 &&
-			! in_array( $diamond_shape, $selected_setting_shapes )
-		) {
-			return true;
-		}
-
-		return false;
-	}
-
-	public function is_nivoda_diamond( $stock_num ) {
-		$result = substr( $stock_num, 0, 7 );
-		if ( $result == 'nivoda-' ) {
-			return true;
-		}
-		return false;
 	}
 
 	public function get_api_order() {
@@ -554,5 +516,43 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 			'total_diamonds_found' => $total_diamonds_found,
 			'data'                 => $data,
 		);
+	}
+
+	public function exclude_diamond( $diamond ) {
+		$diamond_shape = strtolower( $diamond['shape'] );
+
+		if ( ! in_array( $diamond['clarity'], $this->diamonds_api_clarity ) ) {
+			return true;
+		}
+
+		$diamonds_api_shapes = gcpb_diamond_shapes_array();
+
+		if ( ! isset( $diamonds_api_shapes[ $diamond_shape ] ) ) {
+			return true;
+		}
+
+		if ( ! isset( $diamond['image_url'] ) || empty( $diamond['image_url'] ) ) {
+			return true;
+		}
+
+		$selected_setting_shapes = $this->get_current_selected_variation_shapes();
+
+		if ( $selected_setting_shapes &&
+			is_array( $selected_setting_shapes ) &&
+			count( $selected_setting_shapes ) >= 1 &&
+			! in_array( $diamond_shape, $selected_setting_shapes )
+		) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public function is_nivoda_diamond( $stock_num ) {
+		$result = substr( $stock_num, 0, 7 );
+		if ( $result == 'nivoda-' ) {
+			return true;
+		}
+		return false;
 	}
 }
