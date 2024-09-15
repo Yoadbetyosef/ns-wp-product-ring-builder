@@ -125,6 +125,8 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 			}
 
 			if ( isset( $params['shape'] ) && $params['shape'] && isset( $diamonds_api_shapes[ $params['shape'] ] ) ) {
+				error_log( 'shape' . $diamonds_api_shapes[ $params['shape'] ] );
+
 				$args['shapes[]'] = $diamonds_api_shapes[ $params['shape'] ];
 			}
 
@@ -236,10 +238,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 						$total_diamonds_found += $api_data['total_diamonds_found'];
 					}
 
-					if ( $output ) {
-						break;
-					}
-
 					if ( isset( $args[ 'page_number_' . $key ] ) && (int) $args[ 'page_number_' . $key ] >= 2 ) {
 						$args[ 'page_number_' . $key ] = (int) $args[ 'page_number_' . $key ] + 1;
 					} else {
@@ -247,11 +245,7 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 					}
 
 					if ( is_array( $api_data ) && isset( $api_data['data'] ) && $api_data['data'] ) {
-						// if ( isset( $args['markup_mode'] ) && $args['markup_mode'] === 'false' ) {
-							$data = array_merge( $data, $api_data['data'] );
-						// } else {
-							// $output .= $api_data['data'];
-						// }
+						$data = array_merge( $data, $api_data['data'] );
 					}
 
 					++$i;

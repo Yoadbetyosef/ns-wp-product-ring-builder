@@ -121,10 +121,13 @@ trait NivodaLocalDB{
 		// Handle shapes
 		if ( isset( $args['shapes'] ) && ! empty( $args['shapes'] ) && is_array( $args['shapes'] ) ) {
 			$shapes = array_map( 'sanitize_text_field', $args['shapes'] );
+
 			$shape_conditions = array();
+
 			foreach ( $shapes as $shape ) {
 				$shape_conditions[] = $wpdb->prepare( 'shape LIKE %s', '%' . $wpdb->esc_like( $shape ) . '%' );
 			}
+
 			$query .= ' AND (' . implode( ' OR ', $shape_conditions ) . ')';
 		}
 
