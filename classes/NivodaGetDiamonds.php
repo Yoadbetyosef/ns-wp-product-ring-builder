@@ -11,7 +11,123 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 
 	use \OTW\WooRingBuilder\Traits\NivodaLocalDB;
 
+	// public $diamond_api_endpoint = 'http://wdc-intg-customer-staging.herokuapp.com/api/diamonds';
+
 	public $diamond_api_endpoint = 'https://integrations.nivoda.net/api/diamonds';
+
+	public function __construct() {
+		if ( $this->get_option( 'nivoda_api_environment' ) == 'staging' ) {
+			$this->diamond_api_endpoint = 'http://wdc-intg-customer-staging.herokuapp.com/api/diamonds';
+		}
+	}
+
+	function convert_nivoda_to_vdb( $diamond ) {
+		$output = array();
+
+		$output['video_url'] = '';
+
+		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['video'] ) && $diamond['diamond']['certificate']['video'] ) {
+			$full_url = explode( '/video/', $diamond['diamond']['certificate']['video'] );
+
+			$output['video_url'] = $full_url[0] . '/video/rsp/autoplay/autoplay';
+		}
+
+		$output['stock_num'] = '';
+
+		$output['id'] = '';
+
+		if ( isset( $diamond['id'] ) && $diamond['id'] ) {
+			$stock_num = str_replace( array( 'DIAMOND/', 'nivoda-' ), array( '', '' ), $diamond['id'] );
+
+			$output['stock_num'] = 'nivoda-' . $stock_num;
+
+			$output['id'] = 'nivoda-' . $stock_num;
+		}
+
+		$output['image_url'] = '';
+
+		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['image'] ) && $diamond['diamond']['certificate']['image'] ) {
+			$output['image_url'] = $diamond['diamond']['certificate']['image'];
+		}
+
+		$output['size'] = '';
+		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['carats'] ) && $diamond['diamond']['certificate']['carats'] ) {
+			$output['size'] = $diamond['diamond']['certificate']['carats'];
+		}
+
+		$output['shape'] = '';
+		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['shape'] ) && $diamond['diamond']['certificate']['shape'] ) {
+			$output['shape'] = $this->get_shapes_list()[ $diamond['diamond']['certificate']['shape'] ];
+
+			$output['shape_api'] = $diamond['diamond']['certificate']['shape'];
+		}
+
+		$output['total_sales_price'] = '';
+
+		if ( isset( $diamond['price'] ) && isset( $diamond['price'] ) && $diamond['price'] ) {
+			if ( isset( $diamond['upload'] ) && $diamond['upload'] && $diamond['upload'] == 'csv' ) {
+				if ( isset( $diamond['markup_price'] ) && isset( $diamond['markup_price'] ) && $diamond['markup_price'] ) {
+					$output['total_sales_price'] = (float) number_format( ( (int) $diamond['markup_price'] ), 0, '.', '' );
+				} else {
+					$output['total_sales_price'] = (float) number_format( ( (int) $diamond['price'] ), 0, '.', '' );
+				}
+
+				$output['base_sales_price'] = (float) number_format( ( (int) $diamond['price'] ), 0, '.', '' );
+			} else {
+				if ( isset( $diamond['markup_price'] ) && isset( $diamond['markup_price'] ) && $diamond['markup_price'] ) {
+					$output['total_sales_price'] = (float) number_format( ( (int) $diamond['markup_price'] / 100 ), 0, '.', '' );
+				} else {
+					$output['total_sales_price'] = (float) number_format( ( (int) $diamond['price'] / 100 ), 0, '.', '' );
+				}
+
+				$output['base_sales_price'] = (float) number_format( ( (int) $diamond['price'] / 100 ), 0, '.', '' );
+			}
+		}
+		$output['color'] = '';
+		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['color'] ) && $diamond['diamond']['certificate']['color'] ) {
+			$output['color'] = $diamond['diamond']['certificate']['color'];
+		}
+
+		$output['clarity'] = '';
+		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['clarity'] ) && $diamond['diamond']['certificate']['clarity'] ) {
+			$output['clarity'] = $diamond['diamond']['certificate']['clarity'];
+		}
+
+		$output['symmetry'] = '';
+		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['symmetry'] ) && $diamond['diamond']['certificate']['symmetry'] ) {
+			$output['symmetry'] = $diamond['diamond']['certificate']['symmetry'];
+		}
+
+		$output['meas_length'] = '';
+		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['length'] ) && $diamond['diamond']['certificate']['length'] ) {
+			$output['meas_length'] = $diamond['diamond']['certificate']['length'];
+		}
+
+		$output['meas_width'] = '';
+		$output['meas_ratio'] = '';
+		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['width'] ) && $diamond['diamond']['certificate']['width'] ) {
+			$output['meas_width'] = $diamond['diamond']['certificate']['width'];
+		}
+
+		$output['lab'] = '';
+		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['lab'] ) && $diamond['diamond']['certificate']['lab'] ) {
+			$output['lab'] = $diamond['diamond']['certificate']['lab'];
+		}
+
+		$output['cert_url'] = '';
+		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['pdfUrl'] ) && $diamond['diamond']['certificate']['pdfUrl'] ) {
+			$output['cert_url'] = $diamond['diamond']['certificate']['pdfUrl'];
+		}
+
+		if ( $output['meas_length'] && $output['meas_width'] ) {
+			$meas_width = (float) $output['meas_width'];
+			if ( $meas_width >= 0.1 ) {
+				$output['meas_ratio'] = (float) number_format( ( (float) $output['meas_length'] / (float) $output['meas_width'] ), 2, '.', '' );
+			}
+		}
+
+		return $output;
+	}
 
 	public function get_auth_token() {
 		$auth_token = get_option( 'nivoda_api_auth_token' );
@@ -347,113 +463,5 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 			'EUROPEAN CUT'             => 'EUROPEAN CUT',
 			'TRIANGULAR'               => 'TRIANGULAR',
 		);
-	}
-
-	function convert_nivoda_to_vdb( $diamond ) {
-		$output = array();
-
-		$output['video_url'] = '';
-
-		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['video'] ) && $diamond['diamond']['certificate']['video'] ) {
-			$full_url = explode( '/video/', $diamond['diamond']['certificate']['video'] );
-
-			$output['video_url'] = $full_url[0] . '/video/rsp/autoplay/autoplay';
-		}
-
-		$output['stock_num'] = '';
-
-		$output['id'] = '';
-
-		if ( isset( $diamond['id'] ) && $diamond['id'] ) {
-			$stock_num = str_replace( array( 'DIAMOND/', 'nivoda-' ), array( '', '' ), $diamond['id'] );
-
-			$output['stock_num'] = 'nivoda-' . $stock_num;
-
-			$output['id'] = 'nivoda-' . $stock_num;
-		}
-
-		$output['image_url'] = '';
-
-		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['image'] ) && $diamond['diamond']['certificate']['image'] ) {
-			$output['image_url'] = $diamond['diamond']['certificate']['image'];
-		}
-
-		$output['size'] = '';
-		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['carats'] ) && $diamond['diamond']['certificate']['carats'] ) {
-			$output['size'] = $diamond['diamond']['certificate']['carats'];
-		}
-
-		$output['shape'] = '';
-		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['shape'] ) && $diamond['diamond']['certificate']['shape'] ) {
-			$output['shape'] = $this->get_shapes_list()[ $diamond['diamond']['certificate']['shape'] ];
-
-			$output['shape_api'] = $diamond['diamond']['certificate']['shape'];
-		}
-
-		$output['total_sales_price'] = '';
-
-		if ( isset( $diamond['price'] ) && isset( $diamond['price'] ) && $diamond['price'] ) {
-			if ( isset( $diamond['upload'] ) && $diamond['upload'] && $diamond['upload'] == 'csv' ) {
-				if ( isset( $diamond['markup_price'] ) && isset( $diamond['markup_price'] ) && $diamond['markup_price'] ) {
-					$output['total_sales_price'] = (float) number_format( ( (int) $diamond['markup_price'] ), 0, '.', '' );
-				} else {
-					$output['total_sales_price'] = (float) number_format( ( (int) $diamond['price'] ), 0, '.', '' );
-				}
-
-				$output['base_sales_price'] = (float) number_format( ( (int) $diamond['price'] ), 0, '.', '' );
-			} else {
-				if ( isset( $diamond['markup_price'] ) && isset( $diamond['markup_price'] ) && $diamond['markup_price'] ) {
-					$output['total_sales_price'] = (float) number_format( ( (int) $diamond['markup_price'] / 100 ), 0, '.', '' );
-				} else {
-					$output['total_sales_price'] = (float) number_format( ( (int) $diamond['price'] / 100 ), 0, '.', '' );
-				}
-
-				$output['base_sales_price'] = (float) number_format( ( (int) $diamond['price'] / 100 ), 0, '.', '' );
-			}
-		}
-		$output['color'] = '';
-		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['color'] ) && $diamond['diamond']['certificate']['color'] ) {
-			$output['color'] = $diamond['diamond']['certificate']['color'];
-		}
-
-		$output['clarity'] = '';
-		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['clarity'] ) && $diamond['diamond']['certificate']['clarity'] ) {
-			$output['clarity'] = $diamond['diamond']['certificate']['clarity'];
-		}
-
-		$output['symmetry'] = '';
-		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['symmetry'] ) && $diamond['diamond']['certificate']['symmetry'] ) {
-			$output['symmetry'] = $diamond['diamond']['certificate']['symmetry'];
-		}
-
-		$output['meas_length'] = '';
-		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['length'] ) && $diamond['diamond']['certificate']['length'] ) {
-			$output['meas_length'] = $diamond['diamond']['certificate']['length'];
-		}
-
-		$output['meas_width'] = '';
-		$output['meas_ratio'] = '';
-		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['width'] ) && $diamond['diamond']['certificate']['width'] ) {
-			$output['meas_width'] = $diamond['diamond']['certificate']['width'];
-		}
-
-		$output['lab'] = '';
-		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['lab'] ) && $diamond['diamond']['certificate']['lab'] ) {
-			$output['lab'] = $diamond['diamond']['certificate']['lab'];
-		}
-
-		$output['cert_url'] = '';
-		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['pdfUrl'] ) && $diamond['diamond']['certificate']['pdfUrl'] ) {
-			$output['cert_url'] = $diamond['diamond']['certificate']['pdfUrl'];
-		}
-
-		if ( $output['meas_length'] && $output['meas_width'] ) {
-			$meas_width = (float) $output['meas_width'];
-			if ( $meas_width >= 0.1 ) {
-				$output['meas_ratio'] = (float) number_format( ( (float) $output['meas_length'] / (float) $output['meas_width'] ), 2, '.', '' );
-			}
-		}
-
-		return $output;
 	}
 }
