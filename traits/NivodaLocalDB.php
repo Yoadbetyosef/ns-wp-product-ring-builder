@@ -118,17 +118,12 @@ trait NivodaLocalDB{
 			$query .= $wpdb->prepare( ' AND d_type = %s', $diamond_type );
 		}
 
-		// Handle shapes
-		if ( isset( $args['shapes'] ) && ! empty( $args['shapes'] ) && is_array( $args['shapes'] ) ) {
-			$shapes = array_map( 'sanitize_text_field', $args['shapes'] );
+		// Handle shape
+		if ( isset( $args['shape'] ) && ! empty( $args['shape'] ) ) {
+			$shape = sanitize_text_field( $args['shape'] );
 
-			$shape_conditions = array();
-
-			foreach ( $shapes as $shape ) {
-				$shape_conditions[] = $wpdb->prepare( 'shape LIKE %s', '%' . $wpdb->esc_like( $shape ) . '%' );
-			}
-
-			$query .= ' AND (' . implode( ' OR ', $shape_conditions ) . ')';
+			// Add the shape condition to the query
+			$query .= $wpdb->prepare( ' AND shape = %s', $shape );
 		}
 
 		// Handle price range

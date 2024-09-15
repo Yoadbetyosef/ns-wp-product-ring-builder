@@ -127,7 +127,7 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 			if ( isset( $params['shape'] ) && $params['shape'] && isset( $diamonds_api_shapes[ $params['shape'] ] ) ) {
 				error_log( 'shape' . $diamonds_api_shapes[ $params['shape'] ] );
 
-				$args['shapes[]'] = $diamonds_api_shapes[ $params['shape'] ];
+				$args['shape'] = $diamonds_api_shapes[ $params['shape'] ];
 			}
 
 			if ( isset( $params['color'] ) && $params['color'] ) {
