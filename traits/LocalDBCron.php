@@ -17,16 +17,17 @@ trait LocalDBCron {
 			$this->diamonds = \OTW\WooRingBuilder\Classes\Diamonds::instance();
 		}
 
-		// add_action( $this->prefix . '_every_thirty_second', array( $this, 'every_thirty_second_cron' ) );
-		// add_action( $this->prefix . '_every_five_minute', array( $this, 'every_five_minute_cron' ) );
-		// add_action( $this->prefix . '_every_twenty_minute', array( $this, 'every_twenty_minute_cron' ) );
-		// add_action( $this->prefix . '_every_two_hour', array( $this, 'every_two_hour_cron' ) );
-		// add_action( $this->prefix . '_every_four_hour', array( $this, 'every_four_hour_cron' ) );
-
 		add_filter( 'cron_schedules', array( $this, 'add_custom_cron_schedules' ) );
+
+		add_action( $this->prefix . '_every_thirty_second', array( $this, 'every_thirty_second_cron' ) );
 		add_action( $this->prefix . '_every_one_minute', array( $this, 'every_one_minute_cron' ) );
+		add_action( $this->prefix . '_every_five_minute', array( $this, 'every_five_minute_cron' ) );
 		add_action( $this->prefix . '_every_ten_minute', array( $this, 'every_ten_minute_cron' ) );
+		add_action( $this->prefix . '_every_twenty_minute', array( $this, 'every_twenty_minute_cron' ) );
+		add_action( $this->prefix . '_every_two_hour', array( $this, 'every_two_hour_cron' ) );
+		add_action( $this->prefix . '_every_four_hour', array( $this, 'every_four_hour_cron' ) );
 		add_action( $this->prefix . '_every_two_day', array( $this, 'every_two_day_cron' ) );
+
 		add_action( $this->prefix . '_nivoda_copy_import_files', array( $this, 'nivoda_copy_import_files' ) );
 
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
@@ -35,48 +36,6 @@ trait LocalDBCron {
 	////////////////////////
 	//// CRON SCHEDULES ////
 	////////////////////////
-
-	public function start_cron_event() {
-		// error_log( '** start_cron_event **' );
-
-		$events = array(
-			// $this->prefix . '_every_five_minute' => 'every_five_minute',
-			// $this->prefix . '_every_twenty_minute' => 'every_twenty_minute',
-			// $this->prefix . '_every_two_hour'     => 'every_two_hour',
-			$this->prefix . '_every_two_day'    => 'every_two_day',
-			$this->prefix . '_every_ten_minute' => 'every_ten_minute',
-			$this->prefix . '_every_one_minute' => 'every_one_minute',
-		);
-
-		foreach ( $events as $hook => $recurrence ) {
-			if ( ! wp_next_scheduled( $hook ) ) {
-				wp_schedule_event( wp_date( 'U' ) + 1, $recurrence, $hook );
-			}
-		}
-	}
-
-	private function clear_scheduled_cron_jobs() {
-		$events = array(
-			// $this->prefix . '_every_thirty_second',
-			// $this->prefix . '_every_five_minute',
-			// $this->prefix . '_every_twenty_minute',
-			// $this->prefix . '_every_two_hour',
-			// $this->prefix . '_every_four_hour',
-			$this->prefix . '_every_one_minute',
-			$this->prefix . '_every_ten_minute',
-			$this->prefix . '_every_two_day',
-		);
-
-		foreach ( $events as $hook ) {
-			$timestamp = wp_next_scheduled( $hook );
-
-			while ( $timestamp ) {
-				wp_unschedule_event( $timestamp, $hook );
-
-				$timestamp = wp_next_scheduled( $hook );
-			}
-		}
-	}
 
 	public function add_custom_cron_schedules( $schedules ) {
 		if ( ! isset( $schedules['every_thirty_second'] ) ) {
@@ -224,6 +183,48 @@ trait LocalDBCron {
 		$this->update_option( 'import_nivoda_csv_files', array() );
 
 		$this->get_diamonds_from_csv();
+	}
+
+	public function start_cron_event() {
+		// error_log( '** start_cron_event **' );
+
+		$events = array(
+			// $this->prefix . '_every_five_minute' => 'every_five_minute',
+			// $this->prefix . '_every_twenty_minute' => 'every_twenty_minute',
+			// $this->prefix . '_every_two_hour'     => 'every_two_hour',
+			$this->prefix . '_every_two_day'    => 'every_two_day',
+			$this->prefix . '_every_ten_minute' => 'every_ten_minute',
+			$this->prefix . '_every_one_minute' => 'every_one_minute',
+		);
+
+		foreach ( $events as $hook => $recurrence ) {
+			if ( ! wp_next_scheduled( $hook ) ) {
+				wp_schedule_event( wp_date( 'U' ) + 1, $recurrence, $hook );
+			}
+		}
+	}
+
+	private function clear_scheduled_cron_jobs() {
+		$events = array(
+			$this->prefix . '_every_thirty_second',
+			$this->prefix . '_every_one_minute',
+			$this->prefix . '_every_five_minute',
+			$this->prefix . '_every_ten_minute',
+			$this->prefix . '_every_twenty_minute',
+			$this->prefix . '_every_two_hour',
+			$this->prefix . '_every_four_hour',
+			$this->prefix . '_every_two_day',
+		);
+
+		foreach ( $events as $hook ) {
+			$timestamp = wp_next_scheduled( $hook );
+
+			while ( $timestamp ) {
+				wp_unschedule_event( $timestamp, $hook );
+
+				$timestamp = wp_next_scheduled( $hook );
+			}
+		}
 	}
 
 	////////////////////////
@@ -443,7 +444,7 @@ trait LocalDBCron {
 			$this->diamonds = \OTW\WooRingBuilder\Classes\Diamonds::instance();
 		}
 
-		$formated_diamond = $this->nivoda_diamonds->format_diamond( $diamond );
+		$formated_diamond = $this->nivoda_diamonds->convert_nivoda_to_vdb( $diamond );
 
 		if ( isset( $db_diamond['lg'] ) && $db_diamond['lg'] ) {
 			$formated_diamond['lg'] = $db_diamond['lg'];
@@ -643,6 +644,8 @@ trait LocalDBCron {
 		}
 	}
 
+
+
 	public function list_worksheet_info( $pFilename ) {
 		// error_log( '** list_worksheet_info **' );
 		// error_log( 'list_worksheet_info: filename: ' . $pFilename );
@@ -718,6 +721,8 @@ trait LocalDBCron {
 
 		fclose( $fileHandle );
 
+		// error_log( 'list_worksheet_info -- worksheetInfo: ' . print_r( $worksheetInfo, true ) );
+
 		return $worksheetInfo;
 	}
 
@@ -734,6 +739,8 @@ trait LocalDBCron {
 			$wpdb->query( $query );
 		}
 	}
+
+
 
 	public function create_custom_table() {
 		global $wpdb;

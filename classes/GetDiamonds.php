@@ -10,6 +10,10 @@ class GetDiamonds extends \OTW\WooRingBuilder\Plugin{
 
 	public $diamond_api_endpoint = 'http://apiservices.vdbapp.com/v2/diamonds';
 
+	public function __construct() {}
+
+	public function init() {}
+
 	public function get_diamonds( $args ) {
 		if ( isset( $args['type'] ) && $args['type'] !== 'Lab_grown_Diamond' ) {
 			return '';
@@ -101,10 +105,10 @@ class GetDiamonds extends \OTW\WooRingBuilder\Plugin{
 			return false;
 		}
 
-		return $this->format_diamond_with_price( $body['response']['body']['diamonds'][0] );
+		return $this->format_diamond_data( $body['response']['body']['diamonds'][0] );
 	}
 
-	private function format_diamond_with_price( $diamond ) {
+	function format_diamond_data( $diamond ) {
 		if ( isset( $diamond['total_sales_price'] ) && $diamond['total_sales_price'] ) {
 			$diamond['total_sales_price'] = get_diamond_price_with_markup( $diamond['total_sales_price'] );
 		}
