@@ -323,6 +323,7 @@ if ( ! function_exists( 'get_diamond_price_with_markup' ) ) {
 			$db_rate = ( $price * $db_rate ) / 100;
 			$price += $db_rate;
 		}
+
 		return $price;
 	}
 }

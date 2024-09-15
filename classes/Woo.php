@@ -15,37 +15,27 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 	}
 
 	public function init() {
-		// add_action( 'init', array( $this, 'catch_url_params' ) );
-
-		// 1
 		add_action( 'wp_ajax_nopriv_gcpb_add_to_cart', array( $this, 'gcpb_add_to_cart' ) );
+
 		add_action( 'wp_ajax_gcpb_add_to_cart', array( $this, 'gcpb_add_to_cart' ) );
 
-		// 2
 		add_filter( 'woocommerce_add_cart_item_data', array( $this, 'add_cart_item_data' ), 25, 2 );
 
-		// 3
 		add_action( 'woocommerce_add_to_cart', array( $this, 'woocommerce_add_to_cart' ), 99, 6 );
 
-		// 4
 		add_filter( 'woocommerce_cart_item_price', array( $this, 'cart_item_price' ), 10, 3 );
 
-		// 5
 		add_filter( 'woocommerce_get_item_data', array( $this, 'get_item_data' ), 10, 2 );
 
-		// *
 		add_action( 'woocommerce_before_calculate_totals', array( $this, 'before_calculate_totals' ), 11 );
 
-		// *
 		add_action( 'woocommerce_add_order_item_meta', array( $this, 'add_order_item_meta' ), 10, 3 );
 
-		// *
 		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'checkout_create_order_line_item' ), 10, 4 );
 
 		add_filter( 'gettext', array( $this, 'gettext' ), 10, 3 );
 	}
 
-	// *
 	public function gcpb_add_to_cart() {
 		$data = array( 'error' => true );
 
@@ -95,7 +85,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		die();
 	}
 
-	// *
 	public function add_cart_item_data( $cart_item_data, $product_id ) {
 		$parent_product = wc_get_product( $product_id );
 
@@ -155,7 +144,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		return $cart_item_data;
 	}
 
-	// *
 	public function woocommerce_add_to_cart(
 		$cart_id,
 		$product_id,
@@ -187,7 +175,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		}
 	}
 
-	// *
 	public function cart_item_price( $price_html, $cart_item, $cart_item_key ) {
 		if ( $this->is_setting_product( $cart_item['data'] ) ) {
 			if ( ! (
@@ -233,7 +220,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		return $price_html;
 	}
 
-	// *
 	public function get_item_data( $item_data, $cart_item ) {
 		if ( ! is_array( $item_data ) ) {
 			$item_data = array();
@@ -304,7 +290,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		return $item_data;
 	}
 
-	// *
 	public function checkout_create_order_line_item( $item, $cart_item_key, $values, $order ) {
 		if ( ! isset( $values['diamond'] ) ) {
 			return false;
@@ -323,7 +308,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		$item->add_meta_data( 'Diamond SKU: ', $values['diamond']['stock_num'] );
 	}
 
-	// *
 	public function before_calculate_totals( $cart ) {
 		if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
 			return;
@@ -360,7 +344,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		}
 	}
 
-	// *
 	public function add_order_item_meta( $item_id, $cart_item, $cart_item_key ) {
 		if ( isset( $cart_item['diamond'] ) ) {
 			wc_add_order_item_meta( $item_id, 'diamond_data', $cart_item['diamond'] );
@@ -379,18 +362,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		return $translated_text;
 	}
 
-	function admin_order_data_after_order_details( $order ) {
-		$delivery_order_id = wc_get_order_item_meta( $order->get_id(), 'diamond_data' );
-
-		db( $delivery_order_id );
-
-		exit();
-
-		$delivery_id = ! empty( $delivery_order_id ) ? $delivery_order_id : '<span style="color:red">' . __( 'Not yet.' ) . '</span>';
-
-		echo '<br clear="all"><p><strong>' . __( 'Delivery Order Id' ) . ':</strong> ' . $delivery_id . '</p>';
-	}
-
 	public function is_setting_product( $_product ) {
 		if ( ! $_product->is_type( 'variation' ) ) {
 			return false;
@@ -407,13 +378,5 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		}
 
 		return false;
-	}
-
-	public function add_to_cart_redirect( $url ) {
-		if ( isset( $_GET['add-to-cart'] ) && $_GET['add-to-cart'] && isset( $_GET['product_id'] ) ) {
-			return wc_get_cart_url();
-		}
-
-		return $url;
 	}
 }

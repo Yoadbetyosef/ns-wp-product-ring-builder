@@ -8,74 +8,48 @@ if ( ! defined( 'ABSPATH' ) ) {
 trait NivodaLocalDB{
 	public $nivoda_api_type = 'local';
 
-	public function get_local_diamond_by_stock_num( $stock_num ) {
-		global $wpdb;
-
-		$table_name = $wpdb->prefix . 'otw_diamonds';
-
-		$stock_num = sanitize_text_field( $stock_num );
-
-		$query = "SELECT * FROM $table_name WHERE stock_num=%s";
-
-		$query = $wpdb->prepare( $query, $stock_num );
-
-		$results = $wpdb->get_results(
-			$query,
-			ARRAY_A
-		);
-
-		if ( $results ) {
-			return $this->convert_local_to_vdb( $results[0] );
-		}
-
-		return 'This diamond is not available.';
-	}
-
 	public function get_local_diamonds( $args ) {
 		global $wpdb;
 
 		$table_name = $wpdb->prefix . 'otw_diamonds';
 
-		$query = "SELECT * FROM $table_name WHERE d_status=1";
+		// Start query with basic condition
+		$query = "SELECT * FROM $table_name WHERE d_status = 1";
 
+		// Apply search filters from arguments
 		$query = $this->get_search_query( $query, $args );
 
-		if ( isset( $args['sortBy'] ) && isset( $args['sortOrder'] ) ) {
-			$query .= ' ORDER BY ' . $args['sortBy'] . ' ' . $args['sortOrder'];
-		} else {
-			$query .= ' ORDER BY price ASC';
-		}
+		// Handle sorting, default to price ASC
+		$sortBy    = isset( $args['sortBy'] ) ? $args['sortBy'] : 'price';
+		$sortOrder = isset( $args['sortOrder'] ) ? $args['sortOrder'] : 'ASC';
+		$query    .= " ORDER BY $sortBy $sortOrder";
 
-		error_log( '** get_local_diamonds :: $query:' . $query );
+		// Setup pagination arguments
+		$items_per_page = 20;
+		$current_page = isset( $args['page_number'] ) && $args['page_number'] >= 2 ? $args['page_number'] : 1;
 
 		$args_pagination = array(
-			'items_per_page' => 20,
+			'items_per_page' => $items_per_page,
 			'sql'            => $query,
+			'current_page'   => $current_page,
 		);
 
-		if ( isset( $args['page_number_nivoda'] ) && $args['page_number_nivoda'] >= 2 ) {
-			$args_pagination['current_page'] = $args['page_number_nivoda'];
-		}
+		// Perform pagination and fetch results
+		$pagination = $this->get_pagination( $args_pagination );
 
-		$pagination = $this->wpbb_paginate_links( $args_pagination );
-
-		if ( $pagination['total_rows_found'] && $pagination['total_rows_found'] >= 1 ) {
-			$results = $wpdb->get_results(
-				$pagination['sql'],
-				ARRAY_A
-			);
+		if ( $pagination['total_rows_found'] >= 1 ) {
+			$results = $wpdb->get_results( $pagination['sql'], ARRAY_A );
 
 			if ( $results ) {
-				$body = array();
-				$body['diamonds_by_query']['items'] = $results;
-				$body['diamonds_by_query_count'] = $pagination['total_rows_found'];
-				return $body;
+				return array(
+					'diamonds_by_query'       => array( 'items' => $results ),
+					'diamonds_by_query_count' => $pagination['total_rows_found'],
+				);
 			}
 		}
 
-		$error_message = 'Sorry, we don\'t have any diamonds for your search.';
-
-		return $error_message;
+		// No results found
+		return 'Sorry, we don\'t have any diamonds for your search.';
 	}
 
 	public function get_local_diamonds_min_max() {
@@ -105,116 +79,118 @@ trait NivodaLocalDB{
 		}
 	}
 
+	public function get_local_diamond_by_stock_num( $stock_num ) {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'otw_diamonds';
+
+		$stock_num = sanitize_text_field( $stock_num );
+
+		$query = "SELECT * FROM $table_name WHERE stock_num=%s";
+
+		$query = $wpdb->prepare( $query, $stock_num );
+
+		$results = $wpdb->get_results(
+			$query,
+			ARRAY_A
+		);
+
+		if ( $results ) {
+			return $this->format_diamond( $results[0] );
+		}
+
+		return 'This diamond is not available.';
+	}
+
 	public function get_search_query( $query, $args ) {
+		global $wpdb;
+
 		if ( ! $this->nivoda_diamonds ) {
 			$this->nivoda_diamonds = \OTW\WooRingBuilder\Classes\NivodaGetDiamonds::instance();
 		}
 
-		if ( isset( $args['type'] ) && $args['type'] == 'Natural_Diamond' ) {
-			$query .= " AND d_type = 'natural'";
-		} else {
-			$query .= " AND d_type = 'lab'";
+		// Handle diamond type: Natural_Diamond or Lab
+		if ( isset( $args['type'] ) && in_array( $args['type'], array( 'Natural_Diamond', 'Lab' ), true ) ) {
+			$diamond_type = $args['type'] === 'Natural_Diamond' ? 'natural' : 'lab';
+			$query .= $wpdb->prepare( ' AND d_type = %s', $diamond_type );
 		}
 
-		if ( isset( $args['shapes[]'] ) && $args['shapes[]'] ) {
-			$shape = sanitize_user( $args['shapes[]'] );
-			$query .= " AND shape LIKE '%" . $shape . "%'";
+		// Handle shapes
+		if ( isset( $args['shapes'] ) && ! empty( $args['shapes'] ) && is_array( $args['shapes'] ) ) {
+			$shapes = array_map( 'sanitize_text_field', $args['shapes'] );
+			$shape_conditions = array();
+			foreach ( $shapes as $shape ) {
+				$shape_conditions[] = $wpdb->prepare( 'shape LIKE %s', '%' . $wpdb->esc_like( $shape ) . '%' );
+			}
+			$query .= ' AND (' . implode( ' OR ', $shape_conditions ) . ')';
 		}
 
-		if ( isset( $args['price_total_from'] ) &&
-			$args['price_total_from'] &&
-			isset( $args['price_total_to'] ) &&
-			$args['price_total_to']
-		) {
+		// Handle price range
+		if ( ! empty( $args['price_total_from'] ) && ! empty( $args['price_total_to'] ) ) {
 			$price_total_from = (int) $args['price_total_from'];
-
 			$price_total_to = (int) $args['price_total_to'];
-
-			$query .= " AND (price >= {$price_total_from} AND price <= {$price_total_to})";
+			$query .= $wpdb->prepare( ' AND (price >= %d AND price <= %d)', $price_total_from, $price_total_to );
 		}
 
-		if ( isset( $args['size_from'] ) &&
-			$args['size_from'] &&
-			isset( $args['size_to'] ) &&
-			$args['size_to']
-		) {
+		// Handle only price from
+		if ( ! empty( $args['price_total_from'] ) && empty( $args['price_total_to'] ) ) {
+			$price_total_from = (int) $args['price_total_from'];
+			$query .= $wpdb->prepare( ' AND price >= %d', $price_total_from );
+		}
+
+		// Handle only price to
+		if ( empty( $args['price_total_from'] ) && ! empty( $args['price_total_to'] ) ) {
+			$price_total_to = (int) $args['price_total_to'];
+			$query .= $wpdb->prepare( ' AND price <= %d', $price_total_to );
+		}
+
+		// Handle carat size range
+		if ( ! empty( $args['size_from'] ) && ! empty( $args['size_to'] ) ) {
 			$size_from = (float) $args['size_from'];
-
 			$size_to = (float) $args['size_to'];
-
-			$query .= " AND (carat_size >= {$size_from} AND carat_size <= {$size_to})";
+			$query .= $wpdb->prepare( ' AND (carat_size >= %f AND carat_size <= %f)', $size_from, $size_to );
 		}
 
-		if ( isset( $args['color_from'] ) &&
-			$args['color_from'] &&
-			isset( $args['color_to'] ) &&
-			$args['color_to']
-		) {
-			$args['color_from'] = strtoupper( $args['color_from'] );
+		// Handle only carat size from
+		if ( ! empty( $args['size_from'] ) && empty( $args['size_to'] ) ) {
+			$size_from = (float) $args['size_from'];
+			$query .= $wpdb->prepare( ' AND carat_size >= %f', $size_from );
+		}
 
-			$args['color_to'] = strtoupper( $args['color_to'] );
+		// Handle only carat size to
+		if ( empty( $args['size_from'] ) && ! empty( $args['size_to'] ) ) {
+			$size_to = (float) $args['size_to'];
+			$query .= $wpdb->prepare( ' AND carat_size <= %f', $size_to );
+		}
 
-			$found_colors = get_all_values_between_range(
-				$args['color_from'],
-				$args['color_to'],
-				$this->nivoda_diamonds->get_colors_list()
-			);
+		// Handle color range
+		if ( ! empty( $args['color_from'] ) && ! empty( $args['color_to'] ) ) {
+			$color_from = strtoupper( sanitize_text_field( $args['color_from'] ) );
+			$color_to = strtoupper( sanitize_text_field( $args['color_to'] ) );
+
+			$found_colors = get_all_values_between_range( $color_from, $color_to, $this->nivoda_diamonds->get_colors_list() );
 
 			if ( $found_colors ) {
-				$fancy_query = '';
-
-				$sanitize_colors = array();
-
-				foreach ( $found_colors as $key => $single_color ) {
-					if ( $single_color === 'FANCY' ) {
-						$fancy_query = ' OR color LIKE "%Fancy%"';
-					}
-
-					$sanitize_colors[ $key ] = sanitize_user( $single_color );
-				}
-
-				$query .= ' AND (color IN ("' . ( implode( '", "', $sanitize_colors ) ) . '")' . $fancy_query . ')';
+				$sanitize_colors = array_map( 'sanitize_text_field', $found_colors );
+				$fancy_query = in_array( 'FANCY', $sanitize_colors, true ) ? ' OR color LIKE "%Fancy%"' : '';
+				$query .= ' AND (color IN ("' . implode( '", "', $sanitize_colors ) . '")' . $fancy_query . ')';
 			}
 		}
 
-		if ( isset( $args['clarity_from'] ) &&
-			$args['clarity_from'] &&
-			isset( $args['clarity_to'] ) &&
-			$args['clarity_to']
-		) {
+		// Handle clarity range
+		if ( ! empty( $args['clarity_from'] ) && ! empty( $args['clarity_to'] ) ) {
 			$found_clarity = get_all_values_between_range( $args['clarity_from'], $args['clarity_to'], $this->nivoda_diamonds->get_clarity_list() );
 
 			if ( $found_clarity ) {
-				$sanitize_clarity = array();
-
-				foreach ( $found_clarity as $key => $single_clarity ) {
-					$sanitize_clarity[ $key ] = sanitize_user( $single_clarity );
-				}
-
-				$query .= ' AND (clarity IN ("' . ( implode( '", "', $sanitize_clarity ) ) . '"))';
+				$sanitize_clarity = array_map( 'sanitize_text_field', $found_clarity );
+				$query .= ' AND (clarity IN ("' . implode( '", "', $sanitize_clarity ) . '"))';
 			}
 		}
 
 		return $query;
 	}
 
-	public function convert_local_to_vdb( $diamond ) {
-		if ( isset( $diamond['carat_size'] ) ) {
-			$diamond['size'] = $diamond['carat_size'];
-		}
-
-		if ( isset( $diamond['price'] ) ) {
-			$diamond['total_sales_price'] = $diamond['price'];
-		} elseif ( isset( $diamond['base_price'] ) ) {
-			$diamond['total_sales_price'] = $diamond['base_price'];
-		}
-
-		$diamond['short_title'] = $diamond['size'] . ' carats ' . $diamond['color'] . ' ' . $diamond['clarity'] . ' ';
-
-		return $diamond;
-	}
-
-	public function wpbb_paginate_links( $args ) {
+	public function get_pagination( $args ) {
 		global $wpdb;
 
 		$defaults = array(
@@ -255,29 +231,19 @@ trait NivodaLocalDB{
 		return $args;
 	}
 
-	public function current_get_client_ip( $default = '' ) {
-		$ipaddress = '';
-		//HTTP_CF_IPCOUNTRY
-		if ( getenv( 'HTTP_CF_CONNECTING_IP' ) ) {
-			$ipaddress = getenv( 'HTTP_CF_CONNECTING_IP' );
-		} elseif ( getenv( 'HTTP_CLIENT_IP' ) ) {
-			$ipaddress = getenv( 'HTTP_CLIENT_IP' );
-		} elseif ( getenv( 'HTTP_X_FORWARDED_FOR' ) ) {
-			$ipaddress = getenv( 'HTTP_X_FORWARDED_FOR' );
-		} elseif ( getenv( 'HTTP_X_FORWARDED' ) ) {
-			$ipaddress = getenv( 'HTTP_X_FORWARDED' );
-		} elseif ( getenv( 'HTTP_FORWARDED_FOR' ) ) {
-			$ipaddress = getenv( 'HTTP_FORWARDED_FOR' );
-		} elseif ( getenv( 'HTTP_FORWARDED' ) ) {
-			$ipaddress = getenv( 'HTTP_FORWARDED' );
-		} elseif ( getenv( 'REMOTE_ADDR' ) ) {
-			$ipaddress = getenv( 'REMOTE_ADDR' );
-		} else {
-			$ipaddress = 'UNKNOWN';
+	public function format_diamond( $diamond ) {
+		if ( isset( $diamond['carat_size'] ) ) {
+			$diamond['size'] = $diamond['carat_size'];
 		}
-		if ( ! empty( $default ) && $default == $ipaddress ) {
-			return true;
+
+		if ( isset( $diamond['price'] ) ) {
+			$diamond['total_sales_price'] = $diamond['price'];
+		} elseif ( isset( $diamond['base_price'] ) ) {
+			$diamond['total_sales_price'] = $diamond['base_price'];
 		}
-		return $ipaddress;
+
+		$diamond['short_title'] = $diamond['size'] . ' carats ' . $diamond['color'] . ' ' . $diamond['clarity'] . ' ';
+
+		return $diamond;
 	}
 }

@@ -12,33 +12,21 @@ class Plugin{
 	public $prefix = 'otw_woo_ring_builder';
 	static $options = array();
 	public $diamonds = null;
-	public $vdb_diamonds = null;
+	// public $vdb_diamonds = null;
 	public $nivoda_diamonds = null;
-	public $pld_diamonds = null;
+	// public $pld_diamonds = null;
 	public $woo = null;
 
 	public function __construct() {
 		self::$options = SerializeStringToArray( get_option( $this->prefix( 'options' ) ) );
 
 		PluginDefault::instance();
-		$this->diamonds = \OTW\WooRingBuilder\Classes\Diamonds::instance();
-		$this->vdb_diamonds = \OTW\WooRingBuilder\Classes\GetDiamonds::instance();
-		$this->nivoda_diamonds = \OTW\WooRingBuilder\Classes\NivodaGetDiamonds::instance();
-		$this->pld_diamonds = \OTW\WooRingBuilder\Classes\PldGetDiamonds::instance();
-		$this->woo = \OTW\WooRingBuilder\Classes\Woo::instance();
 
-		add_action(
-			'init',
-			function () {
-				if ( isset( $_GET['test'] ) && $_GET['test'] == 'pld' ) {
-					$args = array();
-					$args['ShapeList'] = 'EMERALD';
-					$diamonds = $this->pld_diamonds->get_diamonds( $args );
-					db( $diamonds[0] );
-					exit();
-				}
-			}
-		);
+		$this->diamonds = \OTW\WooRingBuilder\Classes\Diamonds::instance();
+		// $this->vdb_diamonds = \OTW\WooRingBuilder\Classes\GetDiamonds::instance();
+		$this->nivoda_diamonds = \OTW\WooRingBuilder\Classes\NivodaGetDiamonds::instance();
+		// $this->pld_diamonds = \OTW\WooRingBuilder\Classes\PldGetDiamonds::instance();
+		$this->woo = \OTW\WooRingBuilder\Classes\Woo::instance();
 	}
 
 	public function setcookie( $name, $value = '', $time = '', $path = COOKIEPATH, $cookie_domain = '', $secure = true, $http_only = true ) {
