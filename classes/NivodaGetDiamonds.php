@@ -13,6 +13,8 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 
 	public $diamond_api_endpoint = 'https://integrations.nivoda.net/api/diamonds';
 
+	public function __construct() {}
+
 	function convert_nivoda_to_vdb( $diamond ) {
 		$output = array();
 
