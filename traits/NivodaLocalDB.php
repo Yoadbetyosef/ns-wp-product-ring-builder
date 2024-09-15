@@ -115,6 +115,7 @@ trait NivodaLocalDB{
 		// Handle diamond type: Natural_Diamond or Lab
 		if ( isset( $args['type'] ) && in_array( $args['type'], array( 'Natural_Diamond', 'Lab' ), true ) ) {
 			$diamond_type = $args['type'] === 'Natural_Diamond' ? 'natural' : 'lab';
+
 			$query .= $wpdb->prepare( ' AND d_type = %s', $diamond_type );
 		}
 
@@ -122,7 +123,6 @@ trait NivodaLocalDB{
 		if ( isset( $args['shape'] ) && ! empty( $args['shape'] ) ) {
 			$shape = sanitize_text_field( $args['shape'] );
 
-			// Add the shape condition to the query
 			$query .= $wpdb->prepare( ' AND shape = %s', $shape );
 		}
 
