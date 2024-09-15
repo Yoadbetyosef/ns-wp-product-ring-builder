@@ -57,7 +57,7 @@ trait NivodaLocalDB{
 			$args_pagination['current_page'] = $args['page_number_nivoda'];
 		}
 
-		$pagination = $this->wpbb_paginate_links( $args_pagination );
+		$pagination = $this->get_pagination( $args_pagination );
 
 		if ( $pagination['total_rows_found'] && $pagination['total_rows_found'] >= 1 ) {
 			$results = $wpdb->get_results(
@@ -214,7 +214,7 @@ trait NivodaLocalDB{
 		return $diamond;
 	}
 
-	public function wpbb_paginate_links( $args ) {
+	public function get_pagination( $args ) {
 		global $wpdb;
 
 		$defaults = array(
