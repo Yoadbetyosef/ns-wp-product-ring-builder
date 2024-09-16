@@ -110,8 +110,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 				WC()->session->set( 'next_session', true );
 
 				WC()->session->set( 'next_diamond_id', $extra_data['diamond_id'] );
-
-				// $ring_size = isset( $extra_data['ring_size'] ) ? sanitize_text_field( $extra_data['ring_size'] ) : '';
 			}
 		}
 
@@ -246,17 +244,8 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		}
 
 		if ( ! (
-			$this->is_setting_product( $_product ) &&
-			isset( $_GET['stock_num'] )
-		) ) {
-			return $item_data;
-		}
-
-		if ( ! (
-				otw_woo_ring_builder()->diamonds &&
-				isset(
-					otw_woo_ring_builder()->diamonds->current_diamond
-				) &&
+			otw_woo_ring_builder()->diamonds &&
+			isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
 			otw_woo_ring_builder()->diamonds->current_diamond
 		) ) {
 			return $item_data;
@@ -335,12 +324,17 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 					otw_woo_ring_builder()->diamonds->get_current_diamond();
 				}
 
-				if ( otw_woo_ring_builder()->diamonds && isset( otw_woo_ring_builder()->diamonds->current_diamond ) && otw_woo_ring_builder()->diamonds->current_diamond ) {
+				if ( otw_woo_ring_builder()->diamonds &&
+					isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
+					otw_woo_ring_builder()->diamonds->current_diamond
+				) {
 					$diamond = otw_woo_ring_builder()->diamonds->current_diamond;
 
 					$_product = wc_get_product( $cart_item['data']->get_id() );
 
-					if ( $this->is_setting_product( $_product ) && ( ( (float) $cart_item['data']->get_price() ) <= (float) $_product->get_price() ) ) {
+					if ( $this->is_setting_product( $_product ) &&
+						( (float) $cart_item['data']->get_price() ) <= (float) $_product->get_price()
+					) {
 						$total_ring_price = ( (float) $diamond['total_sales_price'] ) + ( (float) $cart_item['data']->get_price() );
 
 						$cart_item['data']->set_price( $total_ring_price );

@@ -309,24 +309,19 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 	}
 
 	public function get_diamond_by_stock_num( $stock_num ) {
-		if ( isset( $this->current_diamond ) &&
+		if ( isset( $stock_num ) &&
+			isset( $this->current_diamond ) &&
 			$this->current_diamond &&
 			isset( $this->current_diamond['stock_num'] ) &&
-			$this->current_diamond['stock_num'] == $stock_num
+			$this->current_diamond['stock_num'] === $stock_num
 		) {
 			return $this->current_diamond;
 		}
 
-		if ( function_exists( 'WC' ) &&
-			isset( WC()->session ) &&
-			is_object( WC()->session )
-		) {
+		if ( function_exists( 'WC' ) && isset( WC()->session ) && is_object( WC()->session ) ) {
 			$sessioned_diamond = WC()->session->get( 'gcpb_current_diamond' );
 
-			if ( $sessioned_diamond &&
-				isset( $sessioned_diamond['stock_num'] ) &&
-				$_GET['stock_num'] == $sessioned_diamond['stock_num']
-			) {
+			if ( $sessioned_diamond && isset( $sessioned_diamond['stock_num'] ) ) {
 				$this->current_diamond = $sessioned_diamond;
 
 				return $this->current_diamond;
@@ -359,12 +354,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 	public function get_current_diamond( $diamond_id = null ) {
 		if ( isset( WC()->session ) && WC()->session->get( 'next_session' ) === true ) {
 			$stock_num = WC()->session->get( 'next_diamond_id' );
-		} else {
-			if ( ! ( isset( $_GET['stock_num'] ) && $_GET['stock_num'] ) ) {
-				return false;
-			}
-
-			$stock_num = $_GET['stock_num'];
 		}
 
 		$diamond = $this->get_diamond_by_stock_num( $stock_num );
