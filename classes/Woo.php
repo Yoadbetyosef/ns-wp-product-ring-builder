@@ -37,7 +37,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		add_action( 'woocommerce_before_calculate_totals', array( $this, 'before_calculate_totals' ), 11 );
 
 		// *
-		add_action( 'woocommerce_add_order_item_meta', array( $this, 'add_order_item_meta' ), 10, 3 );
+		add_action( 'woocommerce_new_order_item', array( $this, 'add_order_item_meta' ), 10, 3 );
 
 		// *
 		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'checkout_create_order_line_item' ), 10, 4 );
