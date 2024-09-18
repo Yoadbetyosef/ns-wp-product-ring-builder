@@ -23,8 +23,6 @@ trait NivodaLocalDB{
 			$query .= ' ORDER BY price ASC';
 		}
 
-		error_log( '** get_local_diamonds :: $query:' . $query );
-
 		$args_pagination = array(
 			'items_per_page' => 20,
 			'sql'            => $query,
