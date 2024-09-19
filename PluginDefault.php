@@ -267,13 +267,15 @@ class PluginDefault extends Plugin{
 
 		if ( $this->get_option( 'nivoda_api' ) ) {
 			$this->local_db_cron_init();
+
 			$this->start_cron_event();
 		}
 	}
 
 	public function PluginDeactivation() {
 		$this->local_db_cron_init();
-		$this->clear_scheduled_cron_jobs();
+
+		$this->end_cron_event();
 	}
 
 	public function plugins_loaded() {

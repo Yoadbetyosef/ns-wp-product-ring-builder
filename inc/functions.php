@@ -366,17 +366,17 @@ if ( ! function_exists( 'get_all_values_between_range' ) ) {
 	}
 }
 
-add_filter(
-	'gettext',
-	function ( $translated_text, $original_text, $domain ) {
-		if ( 'Checkout' === $original_text ) {
-			$translated_text = 'Secure Checkout';
-		}
-		return $translated_text;
-	},
-	10,
-	3
-);
+// add_filter(
+//  'gettext',
+//  function ( $translated_text, $original_text, $domain ) {
+//      if ( 'Checkout' === $original_text ) {
+//          $translated_text = 'Secure Checkout';
+//      }
+//      return $translated_text;
+//  },
+//  10,
+//  3
+// );
 
 function otw_woo_ring_builder() {
 	return \OTW\WooRingBuilder\Plugin::instance();

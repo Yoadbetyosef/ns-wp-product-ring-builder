@@ -18,8 +18,9 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		// add_action( 'init', array( $this, 'catch_url_params' ) );
 
 		// 1
-		add_action( 'wp_ajax_nopriv_gcpb_add_to_cart', array( $this, 'gcpb_add_to_cart' ) );
-		add_action( 'wp_ajax_gcpb_add_to_cart', array( $this, 'gcpb_add_to_cart' ) );
+		// add_action( 'wp_ajax_nopriv_gcpb_add_to_cart', array( $this, 'gcpb_add_to_cart' ) );
+
+		// add_action( 'wp_ajax_gcpb_add_to_cart', array( $this, 'gcpb_add_to_cart' ) );
 
 		// 2
 		add_filter( 'woocommerce_add_cart_item_data', array( $this, 'add_cart_item_data' ), 25, 2 );
@@ -42,7 +43,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		// *
 		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'checkout_create_order_line_item' ), 10, 4 );
 
-		add_filter( 'gettext', array( $this, 'gettext' ), 10, 3 );
+		// add_filter( 'gettext', array( $this, 'gettext' ), 10, 3 );
 	}
 
 	// *
@@ -361,18 +362,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		}
 	}
 
-	public function gettext( $translated_text, $original_text, $domain ) {
-		if ( 'Checkout' === $original_text ) {
-			$translated_text = 'Secure Checkout';
-		}
-
-		if ( 'Subtotal:' === $original_text ) {
-			$translated_text = 'Total:';
-		}
-
-		return $translated_text;
-	}
-
 	function admin_order_data_after_order_details( $order ) {
 		$delivery_order_id = wc_get_order_item_meta( $order->get_id(), 'diamond_data' );
 
@@ -403,11 +392,15 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		return false;
 	}
 
-	public function add_to_cart_redirect( $url ) {
-		if ( isset( $_GET['add-to-cart'] ) && $_GET['add-to-cart'] && isset( $_GET['product_id'] ) ) {
-			return wc_get_cart_url();
-		}
+	// public function gettext( $translated_text, $original_text, $domain ) {
+	//  if ( 'Checkout' === $original_text ) {
+	//      $translated_text = 'Secure Checkout';
+	//  }
 
-		return $url;
-	}
+	//  if ( 'Subtotal:' === $original_text ) {
+	//      $translated_text = 'Total:';
+	//  }
+
+	//  return $translated_text;
+	// }
 }

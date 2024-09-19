@@ -245,30 +245,4 @@ trait NivodaLocalDB{
 
 		return $args;
 	}
-
-	public function current_get_client_ip( $default = '' ) {
-		$ipaddress = '';
-		//HTTP_CF_IPCOUNTRY
-		if ( getenv( 'HTTP_CF_CONNECTING_IP' ) ) {
-			$ipaddress = getenv( 'HTTP_CF_CONNECTING_IP' );
-		} elseif ( getenv( 'HTTP_CLIENT_IP' ) ) {
-			$ipaddress = getenv( 'HTTP_CLIENT_IP' );
-		} elseif ( getenv( 'HTTP_X_FORWARDED_FOR' ) ) {
-			$ipaddress = getenv( 'HTTP_X_FORWARDED_FOR' );
-		} elseif ( getenv( 'HTTP_X_FORWARDED' ) ) {
-			$ipaddress = getenv( 'HTTP_X_FORWARDED' );
-		} elseif ( getenv( 'HTTP_FORWARDED_FOR' ) ) {
-			$ipaddress = getenv( 'HTTP_FORWARDED_FOR' );
-		} elseif ( getenv( 'HTTP_FORWARDED' ) ) {
-			$ipaddress = getenv( 'HTTP_FORWARDED' );
-		} elseif ( getenv( 'REMOTE_ADDR' ) ) {
-			$ipaddress = getenv( 'REMOTE_ADDR' );
-		} else {
-			$ipaddress = 'UNKNOWN';
-		}
-		if ( ! empty( $default ) && $default == $ipaddress ) {
-			return true;
-		}
-		return $ipaddress;
-	}
 }
