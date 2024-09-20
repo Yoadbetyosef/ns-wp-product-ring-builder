@@ -121,17 +121,17 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		$cart_items = WC()->cart->get_cart();
 
 		foreach ( $cart_items as $cart_key => $cart_item ) {
-			if ( $this->is_setting_product( $cart_item['data'] ) && $cart_key !== $cart_id ) {
-				WC()->cart->remove_cart_item( $cart_key );
-			}
+			// if ( $this->is_setting_product( $cart_item['data'] ) && $cart_key !== $cart_id ) {
+			//  WC()->cart->remove_cart_item( $cart_key );
+			// }
 
-			if ( $this->is_setting_product( $cart_item['data'] ) && $cart_key === $cart_id ) {
-				$cart_quantity = WC()->cart->get_cart_item_quantity( $cart_key );
+			// if ( $this->is_setting_product( $cart_item['data'] ) && $cart_key === $cart_id ) {
+			//  $cart_quantity = WC()->cart->get_cart_item_quantity( $cart_key );
 
-				if ( $cart_quantity > 1 ) {
-					WC()->cart->set_quantity( $cart_key, 1 );
-				}
-			}
+			//  if ( $cart_quantity > 1 ) {
+			//      WC()->cart->set_quantity( $cart_key, 1 );
+			//  }
+			// }
 		}
 	}
 
