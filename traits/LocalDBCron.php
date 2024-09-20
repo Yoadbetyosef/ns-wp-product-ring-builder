@@ -136,7 +136,9 @@ trait LocalDBCron {
 			}
 
 			error_log( $current_file['name'] . ' is being imported to db' );
-			error_log( $current_file['rows_imported'] . 'rows imported' );
+			error_log( $current_file['rows_imported'] . ' rows imported...' );
+			error_log( $current_file['rows'] . ' rows total to import so wow...' );
+			error_log( 'last nivoda update key: ' . $this->get_option( 'last_nivoda_update_key' ) );
 
 			$fileHandle = fopen( $current_file['absolute_path'], 'r' );
 
@@ -152,7 +154,7 @@ trait LocalDBCron {
 				fseek( $fileHandle, $current_file['last_position'] );
 			}
 
-			$maxLines = 10000;
+			$maxLines = 15000;
 
 			$columns = fgetcsv( $fileHandle );
 

@@ -120,12 +120,18 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 		$product_cats_ids = wc_get_product_term_ids( $parent_product->get_id(), 'product_cat' );
 
+		error_log( 'product_cat_ids' . print_r( $product_cats_ids, true ) );
+
+		error_log( 'setting_category' . $this->get_option( 'setting_category' ) );
+
 		if ( ! (
 			$product_cats_ids &&
 			is_array( $product_cats_ids ) &&
 			count( $product_cats_ids ) >= 1 &&
 			in_array( $this->get_option( 'setting_category' ), $product_cats_ids )
 		) ) {
+			error_log( 'add_cart_item_data: condition 1' );
+
 			return $cart_item_data;
 		}
 
@@ -134,6 +140,8 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 			isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
 			otw_woo_ring_builder()->diamonds->current_diamond
 		) ) {
+			error_log( 'add_cart_item_data: condition 2' );
+
 			otw_woo_ring_builder()->diamonds->get_current_diamond();
 		}
 
@@ -142,6 +150,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 			isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
 			otw_woo_ring_builder()->diamonds->current_diamond
 		) ) {
+			error_log( 'add_cart_item_data: condition 3' );
 			return $cart_item_data;
 		}
 
@@ -180,8 +189,16 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		$cart_items = WC()->cart->get_cart();
 
 		foreach ( $cart_items as $cart_key => $cart_item ) {
-			if ( $this->is_setting_product( $cart_item['data'] ) && $cart_key != $cart_id ) {
+			if ( $this->is_setting_product( $cart_item['data'] ) && $cart_key !== $cart_id ) {
 				WC()->cart->remove_cart_item( $cart_key );
+			}
+
+			if ( $this->is_setting_product( $cart_item['data'] ) && $cart_key === $cart_id ) {
+				$cart_quantity = WC()->cart->get_cart_item_quantity( $cart_key );
+
+				if ( $cart_quantity > 1 ) {
+					WC()->cart->set_quantity( $cart_key, 1 );
+				}
 			}
 		}
 	}
