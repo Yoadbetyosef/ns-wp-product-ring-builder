@@ -25,6 +25,8 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 		add_action( 'woocommerce_before_calculate_totals', array( $this, 'before_calculate_totals' ), 11 );
 
+		add_action( 'woocommerce_before_calculate_totals', array( $this, 'limit_setting_quantity_to_one' ), 99 );
+
 		add_action( 'woocommerce_new_order_item', array( $this, 'add_order_item_meta' ), 10, 3 );
 
 		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'checkout_create_order_line_item' ), 10, 4 );
@@ -296,14 +298,13 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		}
 	}
 
-	public function limit_quantity_to_one( $cart ) {
+	public function limit_setting_quantity_to_one( $cart ) {
 		foreach ( $cart->get_cart() as $cart_key => $cart_item ) {
 			if ( $this->is_setting_product( $cart_item['data'] ) && $cart_item['quantity'] > 1 ) {
 				WC()->cart->set_quantity( $cart_key, 1 );
 			}
 		}
 	}
-
 
 	public function add_order_item_meta( $item_id, $cart_item, $cart_item_key ) {
 		if ( isset( $cart_item['diamond'] ) ) {
