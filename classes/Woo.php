@@ -42,6 +42,8 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 	}
 
 	public function gcpb_add_to_cart() {
+		error_Log( 'gcpb_add_to_cart...' );
+
 		$data = array( 'error' => true );
 
 		if ( isset( $_POST['variation_id'] ) &&
