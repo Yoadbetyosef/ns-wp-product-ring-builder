@@ -91,6 +91,8 @@ trait LocalDBCron {
 
 			while ( $timestamp ) {
 				wp_unschedule_event( $timestamp, $hook );
+
+				$timestamp = wp_next_scheduled( $hook );
 			}
 		}
 	}
@@ -555,36 +557,53 @@ trait LocalDBCron {
 		$dir_files = $file_system->scandir( $nivoda_import_path );
 
 		if ( $dir_files && is_array( $dir_files ) && count( $dir_files ) >= 1 ) {
-			$files_list = array();
-
 			foreach ( $dir_files as $single_file ) {
 				if ( isset( $single_file['lastmodunix'] ) &&
-					$single_file['lastmodunix'] &&
-					isset( $single_file['type'] ) &&
-					$single_file['type'] == 'f' &&
-					isset( $single_file['name'] ) &&
-					(
-						$single_file['name'] === 'labgrown.csv' ||
-						$single_file['name'] === 'natural_diamonds.csv'
-					)
+				$single_file['lastmodunix'] &&
+				isset( $single_file['type'] ) &&
+				$single_file['type'] == 'f' &&
+				isset( $single_file['name'] ) &&
+				(
+					$single_file['name'] === 'labgrown.csv' ||
+					$single_file['name'] === 'natural_diamonds.csv'
+				)
 				) {
 					$db_lastmodunix = (int) $this->get_option( $single_file['name'] . 'lastmodunix' );
 
 					if ( $db_lastmodunix === $single_file['lastmodunix'] ) {
-						$rtval = copy(
-							$single_file['absolute_path'],
-							$nivoda_path . $single_file['name']
-						);
+						$absolute_path = $single_file['absolute_path'];
 
-						$rtval = copy(
-							$single_file['absolute_path'],
-							$single_file['absolute_path'] . '.bk'
-						);
+						$destination_path = $nivoda_path . $single_file['name'];
+
+						// 1. Copy file to root nivoda directory
+						if ( copy( $absolute_path, $destination_path ) ) {
+							error_log( "File copied to destination: {$destination_path}" );
+						} else {
+							error_log( "Failed to copy file: {$absolute_path} to {$destination_path}" );
+						}
+
+						// 2. Create a backup with a timestamp
+						$timestamp = date( 'YmdHis' );
+						$backup_path = $absolute_path . ".bk.{$timestamp}";
+
+						if ( copy( $absolute_path, $backup_path ) ) {
+							error_log( "Backup created with timestamp: {$backup_path}" );
+						} else {
+							error_log( "Failed to create backup for file: {$absolute_path}" );
+						}
+
+						// 3. Delete the original file from the import folder
+						if ( unlink( $absolute_path ) ) {
+							error_log( "Original file deleted: {$absolute_path}" );
+						} else {
+							error_log( "Failed to delete original file: {$absolute_path}" );
+						}
 					}
 				}
 			}
 		}
 	}
+
 
 	// RESET QUEUE AND START NEW IMPORT
 
