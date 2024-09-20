@@ -294,11 +294,11 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 				}
 
 				// Ensure the quantity of this product does not exceed 1
-				$cart_quantity = WC()->cart->get_cart_item_quantity( $cart_key );
+				// $cart_quantity = WC()->cart->get_cart_item_quantity( $cart_key );
 
-				if ( $cart_quantity > 1 ) {
-					WC()->cart->set_quantity( $cart_key, 1 );
-				}
+				// if ( $cart_quantity > 1 ) {
+				//  WC()->cart->set_quantity( $cart_key, 1 );
+				// }
 			}
 		}
 	}
