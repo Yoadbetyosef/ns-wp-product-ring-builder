@@ -154,7 +154,7 @@ trait LocalDBCron {
 				fseek( $fileHandle, $current_file['last_position'] );
 			}
 
-			$maxLines = 15000;
+			$maxLines = 10000;
 
 			$columns = fgetcsv( $fileHandle );
 
@@ -442,7 +442,7 @@ trait LocalDBCron {
 		if ( $last_update_key ) {
 			global $wpdb;
 
-			error_log( 'Deleting diamonds from last update key ' . $last_update_key );
+			error_log( 'Deleting old diamonds not belonging to ' . $last_update_key );
 
 			$query = 'DELETE FROM ' . $wpdb->prefix . "otw_diamonds WHERE last_update_key != '" . $last_update_key . "'";
 

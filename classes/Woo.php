@@ -34,19 +34,13 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		// 5
 		add_filter( 'woocommerce_get_item_data', array( $this, 'get_item_data' ), 10, 2 );
 
-		// *
 		add_action( 'woocommerce_before_calculate_totals', array( $this, 'before_calculate_totals' ), 11 );
 
-		// *
 		add_action( 'woocommerce_new_order_item', array( $this, 'add_order_item_meta' ), 10, 3 );
 
-		// *
 		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'checkout_create_order_line_item' ), 10, 4 );
-
-		// add_filter( 'gettext', array( $this, 'gettext' ), 10, 3 );
 	}
 
-	// *
 	public function gcpb_add_to_cart() {
 		$data = array( 'error' => true );
 
@@ -96,7 +90,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		die();
 	}
 
-	// *
 	public function add_cart_item_data( $cart_item_data, $product_id ) {
 		$parent_product = wc_get_product( $product_id );
 
@@ -163,7 +156,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		return $cart_item_data;
 	}
 
-	// *
 	public function woocommerce_add_to_cart(
 		$cart_id,
 		$product_id,
@@ -203,7 +195,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		}
 	}
 
-	// *
 	public function cart_item_price( $price_html, $cart_item, $cart_item_key ) {
 		if ( $this->is_setting_product( $cart_item['data'] ) ) {
 			if ( ! (
@@ -249,7 +240,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		return $price_html;
 	}
 
-	// *
 	public function get_item_data( $item_data, $cart_item ) {
 		if ( ! is_array( $item_data ) ) {
 			$item_data = array();
@@ -311,7 +301,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		return $item_data;
 	}
 
-	// *
 	public function checkout_create_order_line_item( $item, $cart_item_key, $values, $order ) {
 		if ( ! isset( $values['diamond'] ) ) {
 			return false;
@@ -330,9 +319,12 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		$item->add_meta_data( 'Diamond SKU: ', $values['diamond']['stock_num'] );
 	}
 
-	// *
 	public function before_calculate_totals( $cart ) {
+		error_log( 'before_calculate_totals' . print_r( $cart, true ) );
+
 		if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
+			error_log( 'before_calculate_totals exception. abort.' );
+
 			return;
 		}
 
@@ -357,38 +349,15 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 						$cart_item['data']->set_price( $total_ring_price );
 					}
-				} else {
-					$stone_archive_page = otw_woo_ring_builder()->get_option( 'stone_archive_page' );
-
-					$stone_single_page = otw_woo_ring_builder()->get_option( 'stone_single_page' );
-
-					$stone_single_page_full_url = get_permalink( $stone_archive_page );
-
-					wp_redirect( $stone_single_page_full_url );
-
-					exit();
 				}
 			}
 		}
 	}
 
-	// *
 	public function add_order_item_meta( $item_id, $cart_item, $cart_item_key ) {
 		if ( isset( $cart_item['diamond'] ) ) {
 			wc_add_order_item_meta( $item_id, 'diamond_data', $cart_item['diamond'] );
 		}
-	}
-
-	function admin_order_data_after_order_details( $order ) {
-		$delivery_order_id = wc_get_order_item_meta( $order->get_id(), 'diamond_data' );
-
-		db( $delivery_order_id );
-
-		exit();
-
-		$delivery_id = ! empty( $delivery_order_id ) ? $delivery_order_id : '<span style="color:red">' . __( 'Not yet.' ) . '</span>';
-
-		echo '<br clear="all"><p><strong>' . __( 'Delivery Order Id' ) . ':</strong> ' . $delivery_id . '</p>';
 	}
 
 	public function is_setting_product( $_product ) {
@@ -408,16 +377,4 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 		return false;
 	}
-
-	// public function gettext( $translated_text, $original_text, $domain ) {
-	//  if ( 'Checkout' === $original_text ) {
-	//      $translated_text = 'Secure Checkout';
-	//  }
-
-	//  if ( 'Subtotal:' === $original_text ) {
-	//      $translated_text = 'Total:';
-	//  }
-
-	//  return $translated_text;
-	// }
 }

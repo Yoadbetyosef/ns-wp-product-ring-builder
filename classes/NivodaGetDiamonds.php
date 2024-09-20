@@ -413,6 +413,7 @@ class NivodaGetDiamonds extends \OTW\WooRingBuilder\Plugin{
 				$output['base_sales_price'] = (float) number_format( ( (int) $diamond['price'] / 100 ), 0, '.', '' );
 			}
 		}
+
 		$output['color'] = '';
 		if ( isset( $diamond['diamond']['certificate'] ) && isset( $diamond['diamond']['certificate']['color'] ) && $diamond['diamond']['certificate']['color'] ) {
 			$output['color'] = $diamond['diamond']['certificate']['color'];
