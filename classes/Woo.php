@@ -121,17 +121,9 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		$cart_items = WC()->cart->get_cart();
 
 		foreach ( $cart_items as $cart_key => $cart_item ) {
-			// if ( $this->is_setting_product( $cart_item['data'] ) && $cart_key !== $cart_id ) {
-			//  WC()->cart->remove_cart_item( $cart_key );
-			// }
-
-			// if ( $this->is_setting_product( $cart_item['data'] ) && $cart_key === $cart_id ) {
-			//  $cart_quantity = WC()->cart->get_cart_item_quantity( $cart_key );
-
-			//  if ( $cart_quantity > 1 ) {
-			//      WC()->cart->set_quantity( $cart_key, 1 );
-			//  }
-			// }
+			if ( $this->is_setting_product( $cart_item['data'] ) && $cart_key !== $cart_id ) {
+				WC()->cart->remove_cart_item( $cart_key );
+			}
 		}
 	}
 
@@ -260,39 +252,57 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 	}
 
 	public function before_calculate_totals( $cart ) {
+		// Log the cart for debugging purposes
 		error_log( 'before_calculate_totals' . print_r( $cart, true ) );
 
+		// Prevent action from running in the admin or during non-AJAX calls
 		if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
 			error_log( 'before_calculate_totals exception. abort.' );
 
 			return;
 		}
 
-		foreach ( $cart->get_cart() as $cart_item ) {
+		// Loop through all items in the cart
+		foreach ( $cart->get_cart() as $cart_key => $cart_item ) {
+			// Check if the product is a setting product
 			if ( $this->is_setting_product( $cart_item['data'] ) ) {
-				if ( ! ( otw_woo_ring_builder()->diamonds && isset( otw_woo_ring_builder()->diamonds->current_diamond ) && otw_woo_ring_builder()->diamonds->current_diamond ) ) {
+
+				// Ensure the current diamond data is available
+				if ( ! (
+				otw_woo_ring_builder()->diamonds &&
+				isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
+				otw_woo_ring_builder()->diamonds->current_diamond )
+				) {
 					otw_woo_ring_builder()->diamonds->get_current_diamond();
 				}
 
+				// If the diamond data is available, adjust the price
 				if ( otw_woo_ring_builder()->diamonds &&
-					isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
-					otw_woo_ring_builder()->diamonds->current_diamond
+				isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
+				otw_woo_ring_builder()->diamonds->current_diamond
 				) {
 					$diamond = otw_woo_ring_builder()->diamonds->current_diamond;
 
 					$_product = wc_get_product( $cart_item['data']->get_id() );
 
-					if ( $this->is_setting_product( $_product ) &&
-						( (float) $cart_item['data']->get_price() ) <= (float) $_product->get_price()
-					) {
-						$total_ring_price = ( (float) $diamond['total_sales_price'] ) + ( (float) $cart_item['data']->get_price() );
+					// Set the new price if necessary
+					if ( (float) $cart_item['data']->get_price() <= (float) $_product->get_price() ) {
+						$total_ring_price = ( (float) $diamond['total_sales_price'] ) + (float) $cart_item['data']->get_price();
 
 						$cart_item['data']->set_price( $total_ring_price );
 					}
 				}
+
+				// Ensure the quantity of this product does not exceed 1
+				$cart_quantity = WC()->cart->get_cart_item_quantity( $cart_key );
+
+				if ( $cart_quantity > 1 ) {
+					WC()->cart->set_quantity( $cart_key, 1 );
+				}
 			}
 		}
 	}
+
 
 	public function add_order_item_meta( $item_id, $cart_item, $cart_item_key ) {
 		if ( isset( $cart_item['diamond'] ) ) {
