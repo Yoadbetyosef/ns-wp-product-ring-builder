@@ -18,9 +18,9 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		// add_action( 'init', array( $this, 'catch_url_params' ) );
 
 		// 1
-		// add_action( 'wp_ajax_nopriv_gcpb_add_to_cart', array( $this, 'gcpb_add_to_cart' ) );
+		add_action( 'wp_ajax_nopriv_gcpb_add_to_cart', array( $this, 'gcpb_add_to_cart' ) );
 
-		// add_action( 'wp_ajax_gcpb_add_to_cart', array( $this, 'gcpb_add_to_cart' ) );
+		add_action( 'wp_ajax_gcpb_add_to_cart', array( $this, 'gcpb_add_to_cart' ) );
 
 		// 2
 		add_filter( 'woocommerce_add_cart_item_data', array( $this, 'add_cart_item_data' ), 25, 2 );
@@ -185,13 +185,13 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 				WC()->cart->remove_cart_item( $cart_key );
 			}
 
-			if ( $this->is_setting_product( $cart_item['data'] ) && $cart_key === $cart_id ) {
-				$cart_quantity = WC()->cart->get_cart_item_quantity( $cart_key );
+			// if ( $this->is_setting_product( $cart_item['data'] ) && $cart_key === $cart_id ) {
+			//  $cart_quantity = WC()->cart->get_cart_item_quantity( $cart_key );
 
-				if ( $cart_quantity > 1 ) {
-					WC()->cart->set_quantity( $cart_key, 1 );
-				}
-			}
+			//  if ( $cart_quantity > 1 ) {
+			//      WC()->cart->set_quantity( $cart_key, 1 );
+			//  }
+			// }
 		}
 	}
 
