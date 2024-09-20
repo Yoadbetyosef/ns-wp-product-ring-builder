@@ -17,11 +17,11 @@ trait LocalDBCron {
 
 		add_filter( 'cron_schedules', array( $this, 'add_custom_cron_schedules' ) );
 
-		add_action( $this->prefix . '_every_one_minute', array( $this, 'every_one_minute_cron' ) );
+		add_action( $this->prefix . '_every_five_minutes', array( $this, 'every_five_minutes_cron' ) );
 
 		add_action( $this->prefix . '_every_one_hour', array( $this, 'every_one_hour_cron' ) );
 
-		add_action( $this->prefix . '_every_two_day', array( $this, 'every_two_day_cron' ) );
+		add_action( $this->prefix . '_every_one_day', array( $this, 'every_one_day_cron' ) );
 
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 	}
@@ -29,10 +29,10 @@ trait LocalDBCron {
 	// RUN CRON SCHEDULES
 
 	public function add_custom_cron_schedules( $schedules ) {
-		if ( ! isset( $schedules['every_one_minute'] ) ) {
-			$schedules['every_one_minute'] = array(
-				'interval' => 60,
-				'display'  => __( 'Every 1 minute' ),
+		if ( ! isset( $schedules['every_five_minutes'] ) ) {
+			$schedules['every_five_minutes'] = array(
+				'interval' => 60 * 5,
+				'display'  => __( 'Every 5 minutes' ),
 			);
 		}
 
@@ -43,17 +43,17 @@ trait LocalDBCron {
 			);
 		}
 
-		if ( ! isset( $schedules['every_two_day'] ) ) {
-			$schedules['every_two_day'] = array(
-				'interval' => 60 * 60 * 24 * 2,
-				'display'  => __( 'Every 2 day' ),
+		if ( ! isset( $schedules['every_one_day'] ) ) {
+			$schedules['every_one_day'] = array(
+				'interval' => 60 * 60 * 24,
+				'display'  => __( 'Every 1 day' ),
 			);
 		}
 
 		return $schedules;
 	}
 
-	public function every_one_minute_cron() {
+	public function every_five_minutes_cron() {
 		$this->run_csv_import();
 	}
 
@@ -61,15 +61,15 @@ trait LocalDBCron {
 		$this->nivoda_watch_import_dir();
 	}
 
-	public function every_two_day_cron() {
+	public function every_one_day_cron() {
 		$this->nivoda_reset_csv_queue();
 	}
 
 	public function start_cron_event() {
 		$events = array(
-			$this->prefix . '_every_two_day'    => 'every_two_day',
-			$this->prefix . '_every_one_hour'   => 'every_one_hour',
-			$this->prefix . '_every_one_minute' => 'every_one_minute',
+			$this->prefix . '_every_one_day'      => 'every_one_day',
+			$this->prefix . '_every_one_hour'     => 'every_one_hour',
+			$this->prefix . '_every_five_minutes' => 'every_five_minutes',
 		);
 
 		foreach ( $events as $hook => $recurrence ) {
@@ -81,9 +81,9 @@ trait LocalDBCron {
 
 	public function end_cron_event() {
 		$events = array(
-			$this->prefix . '_every_two_day',
+			$this->prefix . '_every_one_day',
 			$this->prefix . '_every_one_hour',
-			$this->prefix . '_every_one_minute',
+			$this->prefix . '_every_five_minutes',
 		);
 
 		foreach ( $events as $hook ) {
@@ -133,6 +133,9 @@ trait LocalDBCron {
 				return false;
 			}
 
+			error_log( $current_file['name'] . ' is being imported to db' );
+			error_log( $current_file['rows_imported'] . 'rows imported' );
+
 			$fileHandle = fopen( $current_file['absolute_path'], 'r' );
 
 			if ( ! $fileHandle || ! flock( $fileHandle, LOCK_EX ) ) {
@@ -147,7 +150,7 @@ trait LocalDBCron {
 				fseek( $fileHandle, $current_file['last_position'] );
 			}
 
-			$maxLines = 5000;
+			$maxLines = 10000;
 
 			$columns = fgetcsv( $fileHandle );
 
@@ -203,6 +206,8 @@ trait LocalDBCron {
 			$current_file['rows_imported'] >= $current_file['rows']
 			) {
 			$diamond_type = 'lab';
+
+			error_log( $current_file['name'] . ' file has been imported successfully in db' );
 
 			if ( $current_file['name'] === 'natural_diamonds.csv' ) {
 				$diamond_type = 'natural';
@@ -440,7 +445,6 @@ trait LocalDBCron {
 	}
 
 	public function add_file_import_queue( $files_list ) {
-
 		$first_file = reset( $files_list );
 
 		$list_worksheet_info = $this->get_worksheet_info(
@@ -492,9 +496,9 @@ trait LocalDBCron {
 
 		$file_system = \OTW\GeneralWooRingBuilder\FileSystem::instance();
 
-		$abs_path = ABSPATH . 'nivoda';
+		$nivoda_import_path = ABSPATH . 'nivoda/import';
 
-		$dir_files = $file_system->scandir( $abs_path );
+		$dir_files = $file_system->scandir( $nivoda_import_path );
 
 		if ( $dir_files && is_array( $dir_files ) && count( $dir_files ) >= 1 ) {
 			$files_list = array();
@@ -510,6 +514,8 @@ trait LocalDBCron {
 				$single_file['name'] === 'natural_diamonds.csv'
 				)
 				) {
+					error_log( 'Copying File to process csv import: ' . $single_file['name'] );
+
 					$db_lastmodunix = (int) $this->get_option( $single_file['name'] . 'lastmodunix' );
 
 					if ( $db_lastmodunix !== $single_file['lastmodunix'] ) {
