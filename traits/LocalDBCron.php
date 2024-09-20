@@ -200,6 +200,8 @@ trait LocalDBCron {
 			return false;
 		}
 
+		// REMOVE OLD DIAMOND PROCESS WHEN IMPORT IS OVER
+
 		if ( $current_file &&
 			isset( $current_file['rows'] ) &&
 			isset( $current_file['rows_imported'] ) &&
@@ -435,6 +437,8 @@ trait LocalDBCron {
 
 		if ( $last_update_key ) {
 			global $wpdb;
+
+			error_log( 'Deleting diamonds from last update key ' . $last_update_key );
 
 			$query = 'DELETE FROM ' . $wpdb->prefix . "otw_diamonds WHERE last_update_key != '" . $last_update_key . "'";
 
