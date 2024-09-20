@@ -15,23 +15,12 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 	}
 
 	public function init() {
-		// add_action( 'init', array( $this, 'catch_url_params' ) );
-
-		// 1
-		// add_action( 'wp_ajax_nopriv_gcpb_add_to_cart', array( $this, 'gcpb_add_to_cart' ) );
-
-		// add_action( 'wp_ajax_gcpb_add_to_cart', array( $this, 'gcpb_add_to_cart' ) );
-
-		// 2
 		add_filter( 'woocommerce_add_cart_item_data', array( $this, 'add_cart_item_data' ), 25, 2 );
 
-		// 3
 		add_action( 'woocommerce_add_to_cart', array( $this, 'woocommerce_add_to_cart' ), 99, 6 );
 
-		// 4
 		add_filter( 'woocommerce_cart_item_price', array( $this, 'cart_item_price' ), 10, 3 );
 
-		// 5
 		add_filter( 'woocommerce_get_item_data', array( $this, 'get_item_data' ), 10, 2 );
 
 		add_action( 'woocommerce_before_calculate_totals', array( $this, 'before_calculate_totals' ), 11 );
@@ -39,57 +28,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		add_action( 'woocommerce_new_order_item', array( $this, 'add_order_item_meta' ), 10, 3 );
 
 		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'checkout_create_order_line_item' ), 10, 4 );
-	}
-
-	public function gcpb_add_to_cart() {
-		error_Log( 'gcpb_add_to_cart...' );
-
-		$data = array( 'error' => true );
-
-		if ( isset( $_POST['variation_id'] ) &&
-			$_POST['variation_id'] &&
-			isset( $_POST['product_id'] ) &&
-			$_POST['product_id']
-		) {
-			$product_id = $_POST['product_id'];
-
-			$variation_id = $_POST['variation_id'];
-
-			$quantity = 1;
-
-			$passed_validation = apply_filters( 'woocommerce_add_to_cart_validation', true, $variation_id, $quantity );
-
-			$product_status = get_post_status( $product_id );
-
-			$cart_items = WC()->cart->get_cart();
-
-			foreach ( $cart_items as $cart_key => $cart_item ) {
-				if ( $this->is_setting_product( $cart_item['data'] ) ) {
-					WC()->cart->remove_cart_item( $cart_key );
-				}
-			}
-
-			if ( $passed_validation &&
-				WC()->cart->add_to_cart( $variation_id, $quantity ) &&
-				'publish' === $product_status
-			) {
-				do_action( 'woocommerce_ajax_added_to_cart', $variation_id );
-
-				$data = array( 'error' => false );
-
-				ob_start();
-
-				woocommerce_mini_cart();
-
-				$data['div.widget_shopping_cart_content'] = ob_get_clean();
-
-				$data['span.cart-items-count'] = WC()->cart->get_cart_contents_count();
-			}
-		}
-
-		wp_send_json( $data );
-
-		die();
 	}
 
 	public function add_cart_item_data( $cart_item_data, $product_id ) {
@@ -187,13 +125,13 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 				WC()->cart->remove_cart_item( $cart_key );
 			}
 
-			// if ( $this->is_setting_product( $cart_item['data'] ) && $cart_key === $cart_id ) {
-			//  $cart_quantity = WC()->cart->get_cart_item_quantity( $cart_key );
+			if ( $this->is_setting_product( $cart_item['data'] ) && $cart_key === $cart_id ) {
+				$cart_quantity = WC()->cart->get_cart_item_quantity( $cart_key );
 
-			//  if ( $cart_quantity > 1 ) {
-			//      WC()->cart->set_quantity( $cart_key, 1 );
-			//  }
-			// }
+				if ( $cart_quantity > 1 ) {
+					WC()->cart->set_quantity( $cart_key, 1 );
+				}
+			}
 		}
 	}
 
