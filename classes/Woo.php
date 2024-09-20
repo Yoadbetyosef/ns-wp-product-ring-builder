@@ -292,13 +292,14 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 						$cart_item['data']->set_price( $total_ring_price );
 					}
 				}
+			}
+		}
+	}
 
-				// Ensure the quantity of this product does not exceed 1
-				// $cart_quantity = WC()->cart->get_cart_item_quantity( $cart_key );
-
-				// if ( $cart_quantity > 1 ) {
-				//  WC()->cart->set_quantity( $cart_key, 1 );
-				// }
+	public function limit_quantity_to_one( $cart ) {
+		foreach ( $cart->get_cart() as $cart_key => $cart_item ) {
+			if ( $this->is_setting_product( $cart_item['data'] ) && $cart_item['quantity'] > 1 ) {
+				WC()->cart->set_quantity( $cart_key, 1 );
 			}
 		}
 	}
