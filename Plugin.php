@@ -121,6 +121,7 @@ class Plugin{
 
 		if ( ! ( isset( $this->woo ) && $this->woo && isset( $this->woo->current_selected_variation ) && $this->woo->current_selected_variation ) ) {
 			$variable_product = new \WC_Product_Variation( $variation_id );
+
 			if ( ! $variable_product ) {
 				return '';
 			}

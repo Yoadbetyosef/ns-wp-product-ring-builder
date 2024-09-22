@@ -504,11 +504,11 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 	public function exclude_diamond( $diamond ) {
 		$diamond_shape = strtolower( $diamond['shape'] );
 
+		$diamonds_api_shapes = gcpb_diamond_shapes_array();
+
 		if ( ! in_array( $diamond['clarity'], $this->diamonds_api_clarity ) ) {
 			return true;
 		}
-
-		$diamonds_api_shapes = gcpb_diamond_shapes_array();
 
 		if ( ! isset( $diamonds_api_shapes[ $diamond_shape ] ) ) {
 			return true;

@@ -252,7 +252,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 			$item->add_meta_data( 'Certificate', $values['diamond']['cert_num'] );
 		}
 
-		$item->add_meta_data( 'Diamond SKU: ', $values['diamond']['stock_num'] );
+		$item->add_meta_data( 'Diamond SKU', $values['diamond']['stock_num'] );
 	}
 
 	public function before_calculate_totals( $cart ) {
@@ -343,27 +343,27 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 			$diamond_id = '';
 
 			foreach ( $item->get_meta_data() as $meta ) {
-				if ( $meta->key === 'Diamond SKU:' ) {
+				if ( $meta->key === 'Diamond SKU' ) {
 						$diamond_id = $meta->value;
 
 						break;
 				}
 			}
 
-			if ( ! empty( $diamond_sku ) ) {
+			if ( ! empty( $diamond_id ) ) {
 				$table_name = $wpdb->prefix . 'otw_diamonds';
 
 				$result = $wpdb->update(
 					$table_name,
 					array( 'd_status' => 0 ),
-					array( 'stock_num' => $diamond_sku )
+					array( 'stock_num' => $diamond_id )
 				);
 			}
 
 			if ( $result === false ) {
-				error_log( 'Failed to update local DB for Diamond SKU: ' . $diamond_sku );
+				error_log( 'Failed to update local DB for Diamond SKU: ' . $diamond_id );
 			} else {
-				error_log( 'Successfully updated local DB for Diamond SKU: ' . $diamond_sku );
+				error_log( 'Successfully updated local DB for Diamond SKU: ' . $diamond_id );
 			}
 
 			setcookie(
