@@ -352,18 +352,28 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 			if ( ! empty( $diamond_id ) ) {
 				$table_name = $wpdb->prefix . 'otw_diamonds';
+				$table_name_purchased = $wpdb->prefix . 'otw_diamonds_purchased';
 
-				$result = $wpdb->update(
-					$table_name,
-					array( 'd_status' => 0 ),
-					array( 'stock_num' => $diamond_id )
+				$diamond_data = $wpdb->get_row(
+					$wpdb->prepare(
+						"SELECT * FROM $table_name WHERE stock_num = %s",
+						$diamond_id
+					),
+					ARRAY_A
 				);
-			}
 
-			if ( $result === false ) {
-				error_log( 'Failed to update local DB for Diamond SKU: ' . $diamond_id );
-			} else {
-				error_log( 'Successfully updated local DB for Diamond SKU: ' . $diamond_id );
+				if ( $diamond_data ) {
+					$insert_result = $wpdb->insert(
+						$table_name_purchased,
+						$diamond_data
+					);
+				}
+
+				if ( $insert_result === false ) {
+					error_log( 'Failed to insert diamond data into purchased table for SKU: ' . $diamond_id );
+				} else {
+						error_log( 'Successfully inserted diamond data into purchased table for SKU: ' . $diamond_id );
+				}
 			}
 
 			setcookie(
@@ -371,7 +381,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 				'true',
 				time() + ( 86400 * 30 ), // 30 days expiration
 				'/',
-				'.naturesparkle.com', // Set domain to your root domain for cross-subdomain sharing
+				'.naturesparkle.org', // Set domain to your root domain for cross-subdomain sharing
 				true, // Secure, required for SameSite=None
 				true  // HttpOnly, recommended for security
 			);
