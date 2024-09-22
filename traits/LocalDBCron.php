@@ -154,7 +154,7 @@ trait LocalDBCron {
 				fseek( $fileHandle, $current_file['last_position'] );
 			}
 
-			$maxLines = 10000;
+			$maxLines = 25000;
 
 			$columns = fgetcsv( $fileHandle );
 

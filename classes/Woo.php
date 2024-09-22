@@ -255,11 +255,11 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 	public function before_calculate_totals( $cart ) {
 		// Log the cart for debugging purposes
-		error_log( 'before_calculate_totals' . print_r( $cart, true ) );
+		// error_log( 'before_calculate_totals' . print_r( $cart, true ) );
 
 		// Prevent action from running in the admin or during non-AJAX calls
 		if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
-			error_log( 'before_calculate_totals exception. abort.' );
+			// error_log( 'before_calculate_totals exception. abort.' );
 
 			return;
 		}
