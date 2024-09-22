@@ -30,6 +30,8 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		add_action( 'woocommerce_new_order_item', array( $this, 'add_order_item_meta' ), 10, 3 );
 
 		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'checkout_create_order_line_item' ), 10, 4 );
+
+		add_action( 'woocommerce_thankyou', array( $this, 'wc_manage_order' ), 10, 1 );
 	}
 
 	public function add_cart_item_data( $cart_item_data, $product_id ) {
@@ -328,5 +330,15 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		}
 
 		return false;
+	}
+
+	public function wc_manage_order( $order_id ) {
+		$order = wc_get_order( $order_id );
+
+		error_log( '** new_order **' );
+
+		foreach ( $order->get_items() as $item_id => $item ) {
+			error_log( 'new_order_item: ' . print_r( $item, true ) );
+		}
 	}
 }
