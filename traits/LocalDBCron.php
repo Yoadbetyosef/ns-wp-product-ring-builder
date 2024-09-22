@@ -652,24 +652,14 @@ trait LocalDBCron {
 	public function create_custom_table() {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'otw_diamonds';
+		$tables = array(
+			$wpdb->prefix . 'otw_diamonds',
+			$wpdb->prefix . 'otw_diamonds_purchased',
+		);
 
-		$current_version = '1.1';
+		$charset_collate = $wpdb->get_charset_collate();
 
-		$table_version = $this->get_option( 'db_version' );
-
-		if ( ( $table_version !== $current_version ) ||
-		isset( $_GET['create_custom_table'] )
-		) {
-			if ( isset( $_GET['create_custom_table'] ) ) {
-				$wpdb->query(
-					$wpdb->prepare( 'DROP TABLE IF EXISTS %s', $table_name )
-				);
-			}
-
-			$charset_collate = $wpdb->get_charset_collate();
-
-			$sql = "CREATE TABLE $table_name (
+		$sql = "CREATE TABLE IF NOT EXISTS %s (
         api varchar(255) NULL,
         stock_num varchar(255) UNIQUE NULL,
         d_type varchar(255) NULL,
@@ -690,13 +680,14 @@ trait LocalDBCron {
         image_url TINYTEXT NULL,
         d_status tinyint(1) DEFAULT 1 NULL,
         last_update_key varchar(255) NULL
-      ) $charset_collate;";
+    ) $charset_collate;";
 
-			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-			dbDelta( $sql );
-
-			$this->update_option( 'db_version', $current_version );
+		foreach ( $tables as $table ) {
+			if ( $wpdb->get_var( "SHOW TABLES LIKE '$table'" ) !== $table ) {
+				dbDelta( $wpdb->prepare( $sql, $table ) );
+			}
 		}
 	}
 }

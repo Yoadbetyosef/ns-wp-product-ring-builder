@@ -518,16 +518,6 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 			return true;
 		}
 
-		$selected_setting_shapes = $this->get_current_selected_variation_shapes();
-
-		if ( $selected_setting_shapes &&
-			is_array( $selected_setting_shapes ) &&
-			count( $selected_setting_shapes ) >= 1 &&
-			! in_array( $diamond_shape, $selected_setting_shapes )
-		) {
-			return true;
-		}
-
 		return false;
 	}
 
