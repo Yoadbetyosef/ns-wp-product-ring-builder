@@ -333,12 +333,48 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 	}
 
 	public function wc_manage_order( $order_id ) {
+		global $wpdb;
+
 		$order = wc_get_order( $order_id );
 
 		error_log( '** new_order **' );
 
 		foreach ( $order->get_items() as $item_id => $item ) {
-			error_log( 'new_order_item: ' . print_r( $item, true ) );
+			$diamond_id = '';
+
+			foreach ( $item->get_meta_data() as $meta ) {
+				if ( $meta->key === 'Diamond SKU:' ) {
+						$diamond_id = $meta->value;
+
+						break;
+				}
+			}
+
+			if ( ! empty( $diamond_sku ) ) {
+				$table_name = $wpdb->prefix . 'otw_diamonds';
+
+				$result = $wpdb->update(
+					$table_name,
+					array( 'd_status' => 0 ),
+					array( 'stock_num' => $diamond_sku )
+				);
+			}
+
+			if ( $result === false ) {
+				error_log( 'Failed to update local DB for Diamond SKU: ' . $diamond_sku );
+			} else {
+				error_log( 'Successfully updated local DB for Diamond SKU: ' . $diamond_sku );
+			}
+
+			setcookie(
+				'nature_sparkle_order',
+				'true',
+				time() + ( 86400 * 30 ), // 30 days expiration
+				'/',
+				'.naturesparkle.com', // Set domain to your root domain for cross-subdomain sharing
+				true, // Secure, required for SameSite=None
+				true  // HttpOnly, recommended for security
+			);
 		}
 	}
 }
