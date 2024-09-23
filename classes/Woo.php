@@ -372,19 +372,9 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 				if ( $insert_result === false ) {
 					error_log( 'Failed to insert diamond data into purchased table for SKU: ' . $diamond_id );
 				} else {
-						error_log( 'Successfully inserted diamond data into purchased table for SKU: ' . $diamond_id );
+					error_log( 'Successfully inserted diamond data into purchased table for SKU: ' . $diamond_id );
 				}
 			}
-
-			setcookie(
-				'nature_sparkle_order',
-				'true',
-				time() + ( 86400 * 30 ), // 30 days expiration
-				'/',
-				'.naturesparkle.org', // Set domain to your root domain for cross-subdomain sharing
-				true, // Secure, required for SameSite=None
-				true  // HttpOnly, recommended for security
-			);
 		}
 	}
 }

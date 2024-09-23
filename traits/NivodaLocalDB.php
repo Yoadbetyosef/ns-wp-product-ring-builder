@@ -11,14 +11,24 @@ trait NivodaLocalDB{
 	public function get_local_diamonds( $args ) {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'otw_diamonds';
+		$diamond_table = $wpdb->prefix . 'otw_diamonds';
+		$diamond_table_purchased = $wpdb->prefix . 'otw_diamonds_purchased';
 
-		$query = "SELECT * FROM $table_name WHERE d_status=1";
+		$query = "
+        SELECT * 
+        FROM $diamond_table AS d
+        WHERE d.d_status = 1 
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM $diamond_table_purchased AS p 
+            WHERE p.stock_num = d.stock_num
+        )
+    ";
 
 		$query = $this->get_search_query( $query, $args );
 
 		if ( isset( $args['sortBy'] ) && isset( $args['sortOrder'] ) ) {
-			$query .= ' ORDER BY ' . $args['sortBy'] . ' ' . $args['sortOrder'];
+			$query .= ' ORDER BY ' . esc_sql( $args['sortBy'] ) . ' ' . esc_sql( $args['sortOrder'] );
 		} else {
 			$query .= ' ORDER BY price ASC';
 		}
@@ -56,18 +66,24 @@ trait NivodaLocalDB{
 	public function get_local_diamonds_min_max() {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'otw_diamonds';
+		$diamond_table = $wpdb->prefix . 'otw_diamonds';
+		$diamond_table_purchased = $wpdb->prefix . 'otw_diamonds_purchased';
 
 		$result = $wpdb->get_row(
-			'
+			"
 				SELECT 
 						MAX(price) AS highest_price, 
 						MIN(price) AS lowest_price, 
 						MAX(carat_size) AS highest_carat, 
 						MIN(carat_size) AS lowest_carat 
-				FROM ' . $wpdb->prefix . 'otw_diamonds
-				WHERE d_status = 1
-		'
+				FROM $diamond_table AS d
+				WHERE d.d_status = 1
+				AND NOT EXISTS (
+						SELECT 1 
+						FROM $diamond_table_purchased AS p 
+						WHERE p.stock_num = d.stock_num
+				)
+    "
 		);
 
 		if ( $result ) {
@@ -78,7 +94,10 @@ trait NivodaLocalDB{
 				'carat_min' => $result->lowest_carat,
 			);
 		}
+
+		return null; // Return null if no results found
 	}
+
 
 	public function get_local_diamond_by_stock_num( $stock_num ) {
 		global $wpdb;
