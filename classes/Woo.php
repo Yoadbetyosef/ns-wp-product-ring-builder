@@ -376,6 +376,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 			}
 		}
 
+		echo '<script>document.cookie = `ns_clear_cart=true; path=/; domain=.naturesparkle.org; secure; sameSite=strict;`;</script>';
 		echo '<script>document.cookie = `ns_clear_cart=true; path=/; domain=.naturesparkle.com; secure; sameSite=strict;`;</script>';
 	}
 }
