@@ -337,8 +337,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 		$order = wc_get_order( $order_id );
 
-		error_log( '** new_order **' );
-
 		foreach ( $order->get_items() as $item_id => $item ) {
 			$diamond_id = '';
 
@@ -352,6 +350,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 			if ( ! empty( $diamond_id ) ) {
 				$table_name = $wpdb->prefix . 'otw_diamonds';
+
 				$table_name_purchased = $wpdb->prefix . 'otw_diamonds_purchased';
 
 				$diamond_data = $wpdb->get_row(
@@ -376,5 +375,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 				}
 			}
 		}
+
+		echo '<script>document.cookie = `ns_clear_cart=true; path=/; domain=.naturesparkle.com; secure; sameSite=strict;`;</script>';
 	}
 }
