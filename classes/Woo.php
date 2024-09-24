@@ -57,9 +57,9 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 		$product_cats_ids = wc_get_product_term_ids( $parent_product->get_id(), 'product_cat' );
 
-		error_log( 'product_cat_ids' . print_r( $product_cats_ids, true ) );
+		// error_log( 'product_cat_ids ' . print_r( $product_cats_ids, true ) );
 
-		error_log( 'setting_category' . $this->get_option( 'setting_category' ) );
+		// error_log( 'setting_category ' . $this->get_option( 'setting_category' ) );
 
 		if ( ! (
 			$product_cats_ids &&

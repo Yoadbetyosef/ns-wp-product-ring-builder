@@ -104,6 +104,8 @@ trait LocalDBCron {
 
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 
+		error_log( 'run_csv_import' . $files_list );
+
 		if ( ! (
 				$files_list &&
 				is_array( $files_list ) &&
@@ -115,6 +117,8 @@ trait LocalDBCron {
 		// CHECK CURRENT FILE
 
 		$current_file = $this->get_option( 'current_import_file' );
+
+		error_log( 'run_csv_import [current_file]: ' . $current_file );
 
 		if ( ! $current_file ) {
 			$this->add_file_import_queue( $files_list );
