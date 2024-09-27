@@ -446,9 +446,9 @@ jQuery(document).ready(function($){
     function trigger_product_filter( add_query_params, filter_action = false ) {
  
         get_selected_setting_filter_mobile();
+
         var query_string = build_filter_query(add_query_params);
         
-        console.log(query_string);
         if(jQuery('body').hasClass('page-id-45109') || jQuery('body').hasClass('parent-pageid-45109')){
             if(getLocalStorage('eo_metal_attr') && query_string.indexOf('eo_metal_attr') === -1){
                 query_string += '&eo_metal_attr='+getLocalStorage('eo_metal_attr');
@@ -463,6 +463,7 @@ jQuery(document).ready(function($){
                 jQuery(".gcpb-shape-filter-container .gcpb-custom-filter-button[data-filter-value="+getLocalStorage('shape')+"]").addClass('selected');
             }
         }
+
         $.ajax({
             type: 'POST',
             url: ajax_ring_obj.ajaxurl,
