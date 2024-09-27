@@ -27,10 +27,10 @@ require_once plugin_dir_path( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'inc/autoload
 // run Plugin.php
 otw_woo_ring_builder();
 
-require PRB_DIR . 'includes/helper.php';
+// require PRB_DIR . 'includes/helper.php';
 
-require PRB_DIR . 'includes/class/class-ring-storage.php';
+// require PRB_DIR . 'includes/class/class-ring-storage.php';
 
-require PRB_DIR . 'includes/class/class-ring-builder.php';
+// require PRB_DIR . 'includes/class/class-ring-builder.php';
 
-require PRB_DIR . 'includes/class/class-ring-setting.php';
+// require PRB_DIR . 'includes/class/class-ring-setting.php';
