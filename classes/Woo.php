@@ -41,6 +41,8 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 			? sanitize_text_field( $_SERVER['HTTP_WOOCOMMERCE_PRODUCT_EXTRA_DATA'] )
 			: null;
 
+		error_log( 'woocommerce_product_extra_data: ' . $woocommerce_product_extra_data );
+
 		if ( isset( $woocommerce_product_extra_data ) ) {
 			$extra_data = json_decode( stripslashes( $woocommerce_product_extra_data ), true );
 
@@ -57,9 +59,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 		$product_cats_ids = wc_get_product_term_ids( $parent_product->get_id(), 'product_cat' );
 
-		// error_log( 'product_cat_ids ' . print_r( $product_cats_ids, true ) );
-
-		// error_log( 'setting_category ' . $this->get_option( 'setting_category' ) );
+		error_log( 'product_cats_ids' . print_r( $product_cats_ids, true ) );
 
 		if ( ! (
 			$product_cats_ids &&
@@ -67,7 +67,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 			count( $product_cats_ids ) >= 1 &&
 			in_array( $this->get_option( 'setting_category' ), $product_cats_ids )
 		) ) {
-			error_log( 'add_cart_item_data: condition 1' );
+			error_log( 'add_cart_item_data: condition 1' . print_r( $cart_item_data, true ) );
 
 			return $cart_item_data;
 		}
