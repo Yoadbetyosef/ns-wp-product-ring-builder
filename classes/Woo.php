@@ -50,6 +50,8 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 				WC()->session->set( 'next_session', true );
 
 				WC()->session->set( 'next_diamond_id', $extra_data['diamond_id'] );
+
+				WC()->session->set( 'gcpb_current_diamond', $extra_data['diamond_id'] );
 			}
 		}
 
