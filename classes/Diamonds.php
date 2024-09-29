@@ -352,6 +352,8 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 	public function get_current_diamond( $diamond_id = null ) {
 		if ( isset( WC()->session ) && WC()->session->get( 'next_session' ) === true ) {
 			$stock_num = WC()->session->get( 'next_diamond_id' );
+
+			error_log( 'get_current_diamond / $stock_num: ' . $stock_num );
 		}
 
 		$diamond = $this->get_diamond_by_stock_num( $stock_num );
