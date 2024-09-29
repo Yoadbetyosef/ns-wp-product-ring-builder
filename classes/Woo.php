@@ -366,12 +366,12 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 						$table_name_purchased,
 						$diamond_data
 					);
-				}
 
-				if ( $insert_result === false ) {
-					error_log( 'Failed to insert diamond data into purchased table for SKU: ' . $diamond_id );
-				} else {
-					error_log( 'Successfully inserted diamond data into purchased table for SKU: ' . $diamond_id );
+					if ( $insert_result === false ) {
+						error_log( 'Failed to insert diamond data into purchased table for SKU: ' . $diamond_id );
+					} else {
+						error_log( 'Successfully inserted diamond data into purchased table for SKU: ' . $diamond_id );
+					}
 				}
 			}
 		}
