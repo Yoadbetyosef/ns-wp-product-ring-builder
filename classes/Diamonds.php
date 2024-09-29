@@ -308,10 +308,10 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 
 	public function get_diamond_by_stock_num( $stock_num ) {
 		// if ( isset( $stock_num ) &&
-		//  isset( $this->current_diamond ) &&
-		//  $this->current_diamond &&
-		//  isset( $this->current_diamond['stock_num'] ) &&
-		//  $this->current_diamond['stock_num'] === $stock_num
+		// isset( $this->current_diamond ) &&
+		// $this->current_diamond &&
+		// isset( $this->current_diamond['stock_num'] ) &&
+		// $this->current_diamond['stock_num'] === $stock_num
 		// ) {
 		//  return $this->current_diamond;
 		// }
