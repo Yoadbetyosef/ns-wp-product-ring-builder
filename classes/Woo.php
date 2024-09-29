@@ -337,40 +337,46 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 		$order = wc_get_order( $order_id );
 
-		foreach ( $order->get_items() as $item_id => $item ) {
-			$diamond_id = '';
+		$has_tracked = get_post_meta( $order_id, '_has_tracked_purchase', true );
 
-			foreach ( $item->get_meta_data() as $meta ) {
-				if ( $meta->key === 'Diamond SKU' ) {
-						$diamond_id = $meta->value;
+		if ( ! $has_tracked ) {
+			update_post_meta( $order_id, '_has_tracked_purchase', 'yes' );
 
-						break;
+			foreach ( $order->get_items() as $item_id => $item ) {
+				$diamond_id = '';
+
+				foreach ( $item->get_meta_data() as $meta ) {
+					if ( $meta->key === 'Diamond SKU' ) {
+							$diamond_id = $meta->value;
+
+							break;
+					}
 				}
-			}
 
-			if ( ! empty( $diamond_id ) ) {
-				$table_name = $wpdb->prefix . 'otw_diamonds';
+				if ( ! empty( $diamond_id ) ) {
+					$table_name = $wpdb->prefix . 'otw_diamonds';
 
-				$table_name_purchased = $wpdb->prefix . 'otw_diamonds_purchased';
+					$table_name_purchased = $wpdb->prefix . 'otw_diamonds_purchased';
 
-				$diamond_data = $wpdb->get_row(
-					$wpdb->prepare(
-						"SELECT * FROM $table_name WHERE stock_num = %s",
-						$diamond_id
-					),
-					ARRAY_A
-				);
-
-				if ( $diamond_data ) {
-					$insert_result = $wpdb->insert(
-						$table_name_purchased,
-						$diamond_data
+					$diamond_data = $wpdb->get_row(
+						$wpdb->prepare(
+							"SELECT * FROM $table_name WHERE stock_num = %s",
+							$diamond_id
+						),
+						ARRAY_A
 					);
 
-					if ( $insert_result === false ) {
-						error_log( 'Failed to insert diamond data into purchased table for SKU: ' . $diamond_id );
-					} else {
-						error_log( 'Successfully inserted diamond data into purchased table for SKU: ' . $diamond_id );
+					if ( $diamond_data ) {
+						$insert_result = $wpdb->insert(
+							$table_name_purchased,
+							$diamond_data
+						);
+
+						if ( $insert_result === false ) {
+							error_log( 'Failed to insert diamond data into purchased table for SKU: ' . $diamond_id );
+						} else {
+							error_log( 'Successfully inserted diamond data into purchased table for SKU: ' . $diamond_id );
+						}
 					}
 				}
 			}
