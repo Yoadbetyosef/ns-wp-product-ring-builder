@@ -326,14 +326,19 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 		//  }
 		// }
 
+		error_log( 'get_diamond_by_stock_num / stock_num: ' . $stock_num );
+
 		if ( $this->is_nivoda_diamond( $stock_num ) ) {
 			$diamond = otw_woo_ring_builder()->nivoda_diamonds->get_diamond_by_stock_num( $stock_num );
 		} else {
 			$diamond = otw_woo_ring_builder()->vdb_diamonds->get_diamond_by_stock_num( $stock_num );
 		}
 
+		error_log( 'get_diamond_by_stock_num / diamond: ' . $diamond );
+
 		if ( ! is_array( $diamond ) ) {
 			$error_message = 'Sorry, we could not connect with diamonds API';
+
 			return $error_message;
 		}
 
