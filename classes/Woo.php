@@ -36,8 +36,9 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 	public function add_cart_item_data( $cart_item_data, $product_id ) {
 		$parent_product = wc_get_product( $product_id );
+		$extraData = array()
 
-		error_log( 'add_cart_item_data ' );
+		error_log( 'add_cart_item_data' );
 
 		$woocommerce_product_extra_data = isset( $_SERVER['HTTP_WOOCOMMERCE_PRODUCT_EXTRA_DATA'] )
 			? sanitize_text_field( $_SERVER['HTTP_WOOCOMMERCE_PRODUCT_EXTRA_DATA'] )
@@ -46,7 +47,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		if ( isset( $woocommerce_product_extra_data ) ) {
 			$extra_data = json_decode( stripslashes( $woocommerce_product_extra_data ), true );
 
-			error_log( 'add_cart_item_data - EXTRADATA' . $extra_Data );
+			error_log( 'add_cart_item_data - EXTRADATA' . print_r( $extra_Data, true ) );
 
 			if ( json_last_error() === JSON_ERROR_NONE ) {
 				WC()->session->set( 'next_session', true );
@@ -77,7 +78,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		) ) {
 			error_log( 'add_cart_item_data: condition 2' );
 
-			otw_woo_ring_builder()->diamonds->get_current_diamond();
+			otw_woo_ring_builder()->diamonds->get_current_diamond( $extra_data['diamond_id'] );
 		}
 
 		if ( ! (
