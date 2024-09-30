@@ -37,14 +37,16 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 	public function add_cart_item_data( $cart_item_data, $product_id ) {
 		$parent_product = wc_get_product( $product_id );
 
+		error_log( 'add_cart_item_data ' );
+
 		$woocommerce_product_extra_data = isset( $_SERVER['HTTP_WOOCOMMERCE_PRODUCT_EXTRA_DATA'] )
 			? sanitize_text_field( $_SERVER['HTTP_WOOCOMMERCE_PRODUCT_EXTRA_DATA'] )
 			: null;
 
-		// error_log( 'woocommerce_product_extra_data: ' . $woocommerce_product_extra_data );
-
 		if ( isset( $woocommerce_product_extra_data ) ) {
 			$extra_data = json_decode( stripslashes( $woocommerce_product_extra_data ), true );
+
+			error_log( 'add_cart_item_data - EXTRADATA' . $extra_Data );
 
 			if ( json_last_error() === JSON_ERROR_NONE ) {
 				WC()->session->set( 'next_session', true );
@@ -59,16 +61,12 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 		$product_cats_ids = wc_get_product_term_ids( $parent_product->get_id(), 'product_cat' );
 
-		// error_log( 'product_cats_ids' . print_r( $product_cats_ids, true ) );
-
 		if ( ! (
 			$product_cats_ids &&
 			is_array( $product_cats_ids ) &&
 			count( $product_cats_ids ) >= 1 &&
 			in_array( $this->get_option( 'setting_category' ), $product_cats_ids )
 		) ) {
-			// error_log( 'add_cart_item_data: condition 1' . print_r( $cart_item_data, true ) );
-
 			return $cart_item_data;
 		}
 
@@ -77,7 +75,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 			isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
 			otw_woo_ring_builder()->diamonds->current_diamond
 		) ) {
-			// error_log( 'add_cart_item_data: condition 2' );
+			error_log( 'add_cart_item_data: condition 2' );
 
 			otw_woo_ring_builder()->diamonds->get_current_diamond();
 		}
@@ -88,6 +86,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 			otw_woo_ring_builder()->diamonds->current_diamond
 		) ) {
 			error_log( 'add_cart_item_data: condition 3' );
+
 			return $cart_item_data;
 		}
 
@@ -340,8 +339,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		$has_tracked = get_post_meta( $order_id, '_has_tracked_purchase', true );
 
 		if ( ! $has_tracked ) {
-			update_post_meta( $order_id, '_has_tracked_purchase', 'yes' );
-
 			foreach ( $order->get_items() as $item_id => $item ) {
 				$diamond_id = '';
 
