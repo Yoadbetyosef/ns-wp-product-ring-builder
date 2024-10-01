@@ -45,6 +45,8 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 			? sanitize_text_field( $_SERVER['HTTP_WOOCOMMERCE_PRODUCT_EXTRA_DATA'] )
 			: null;
 
+		error_log( '$woocommerce_product_extra_data' . print_r( $woocommerce_product_extra_data, true ) );
+
 		if ( isset( $woocommerce_product_extra_data ) ) {
 			$extra_data = json_decode( stripslashes( $woocommerce_product_extra_data ), true );
 
