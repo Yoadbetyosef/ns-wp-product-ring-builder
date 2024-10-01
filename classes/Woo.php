@@ -36,7 +36,8 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 	public function add_cart_item_data( $cart_item_data, $product_id ) {
 		$parent_product = wc_get_product( $product_id );
-		$extraData = array()
+
+		$extraData = array();
 
 		error_log( 'add_cart_item_data' );
 
