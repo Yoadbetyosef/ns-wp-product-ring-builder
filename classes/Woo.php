@@ -35,11 +35,11 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 	}
 
 	public function add_cart_item_data( $cart_item_data, $product_id ) {
+		error_log( '** add_cart_item_data ** ' );
+
 		$parent_product = wc_get_product( $product_id );
 
-		$extraData = array();
-
-		error_log( 'add_cart_item_data' );
+		$extra_data = array();
 
 		$woocommerce_product_extra_data = isset( $_SERVER['HTTP_WOOCOMMERCE_PRODUCT_EXTRA_DATA'] )
 			? sanitize_text_field( $_SERVER['HTTP_WOOCOMMERCE_PRODUCT_EXTRA_DATA'] )
@@ -48,7 +48,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		if ( isset( $woocommerce_product_extra_data ) ) {
 			$extra_data = json_decode( stripslashes( $woocommerce_product_extra_data ), true );
 
-			error_log( 'add_cart_item_data - EXTRADATA' . print_r( $extra_Data, true ) );
+			error_log( 'add_cart_item_data - EXTRADATA' . print_r( $extra_data, true ) );
 
 			if ( json_last_error() === JSON_ERROR_NONE ) {
 				WC()->session->set( 'next_session', true );
