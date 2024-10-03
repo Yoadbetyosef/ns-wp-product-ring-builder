@@ -148,11 +148,14 @@ trait LocalDBCron {
 
 			$fileHandle = fopen( $current_file['absolute_path'], 'r' );
 
-			if ( ! $fileHandle || ! flock( $fileHandle, LOCK_EX ) ) {
-				if ( $fileHandle ) {
-					fclose( $fileHandle );
-				}
+			if ( ! $fileHandle ) {
+				error_log( 'Failed to open file: ' . $current_file['absolute_path'] );
+				return false;
+			}
 
+			if ( ! flock( $fileHandle, LOCK_EX ) ) {
+				error_log( 'Failed to lock file: ' . $current_file['absolute_path'] );
+				fclose( $fileHandle );
 				return false;
 			}
 
