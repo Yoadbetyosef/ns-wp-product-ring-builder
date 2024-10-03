@@ -231,7 +231,11 @@ trait LocalDBCron {
 
 			$this->start_time = null;
 
-			error_log( $current_file['name'] . ' file has been imported successfully in db in ' . round( $execution_time, 2 ) . ' seconds.' );
+			$file_name = $current_file['name'];
+
+			$duration = round( $execution_time, 2 );
+
+			error_log( $file_name . ' imported successfully in ' . $duration . ' sec.' );
 
 			if ( $current_file['name'] === 'natural_diamonds.csv' ) {
 				$diamond_type = 'natural';
