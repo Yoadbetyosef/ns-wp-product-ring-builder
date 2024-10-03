@@ -213,14 +213,6 @@ trait LocalDBCron {
 
 			fclose( $fileHandle );
 
-			$end_time = microtime( true );
-
-			$execution_time = $end_time - $this->start_time;
-
-			$this->start_time = null;
-
-			error_log( "Import of {$current_file['name']} completed in " . round( $execution_time, 2 ) . ' seconds.' );
-
 			return false;
 		}
 
@@ -233,7 +225,13 @@ trait LocalDBCron {
 			) {
 			$diamond_type = 'lab';
 
-			error_log( $current_file['name'] . ' file has been imported successfully in db' );
+			$end_time = microtime( true );
+
+			$execution_time = $end_time - $this->start_time;
+
+			$this->start_time = null;
+
+			error_log( $current_file['name'] . ' file has been imported successfully in db in ' . round( $execution_time, 2 ) . ' seconds.' );
 
 			if ( $current_file['name'] === 'natural_diamonds.csv' ) {
 				$diamond_type = 'natural';
