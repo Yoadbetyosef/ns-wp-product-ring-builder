@@ -71,6 +71,8 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 			count( $product_cats_ids ) >= 1 &&
 			in_array( $this->get_option( 'setting_category' ), $product_cats_ids )
 		) ) {
+			error_log( 'return default product in cart item...' );
+
 			return $cart_item_data;
 		}
 

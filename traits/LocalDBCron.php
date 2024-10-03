@@ -6,6 +6,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 trait LocalDBCron {
+	protected $start_time;
+
 	public function local_db_cron_init() {
 		if ( ! $this->nivoda_diamonds ) {
 			$this->nivoda_diamonds = \OTW\WooRingBuilder\Classes\NivodaGetDiamonds::instance();
@@ -140,6 +142,10 @@ trait LocalDBCron {
 			error_log( $current_file['rows'] . ' rows total to import so wow...' );
 			error_log( 'last nivoda update key: ' . $this->get_option( 'last_nivoda_update_key' ) );
 
+			if ( ! $this->start_time ) {
+				$this->start_time = microtime( true );
+			}
+
 			$fileHandle = fopen( $current_file['absolute_path'], 'r' );
 
 			if ( ! $fileHandle || ! flock( $fileHandle, LOCK_EX ) ) {
@@ -176,10 +182,10 @@ trait LocalDBCron {
 				}
 
 				if ( count( $current_file['headers'] ) === count( $columns ) ) {
-					$db_diamond = array_combine( $current_file['headers'], $columns );
+					$diamondData = array_combine( $current_file['headers'], $columns );
 
-					if ( $db_diamond !== false ) {
-						$formated_diamond = $this->format_new_diamond( $db_diamond );
+					if ( $diamondData !== false ) {
+						$formated_diamond = $this->format_new_diamond( $diamondData );
 
 						if ( $formated_diamond !== false ) {
 							$this->add_new_diamond(
@@ -200,6 +206,14 @@ trait LocalDBCron {
 			}
 
 			fclose( $fileHandle );
+
+			$end_time = microtime( true );
+
+			$execution_time = $end_time - $this->$start_time;
+
+			$this->start_time = null;
+
+			error_log( "Import of {$current_file['name']} completed in " . round( $execution_time, 2 ) . ' seconds.' );
 
 			return false;
 		}
@@ -299,7 +313,7 @@ trait LocalDBCron {
 		return $worksheetInfo;
 	}
 
-	public function format_new_diamond( $db_diamond ) {
+	public function format_new_diamond( $diamondData ) {
 		$required_fields = array(
 			'markup_price',
 			'price',
@@ -313,7 +327,7 @@ trait LocalDBCron {
 		);
 
 		foreach ( $required_fields as $field ) {
-			if ( empty( $db_diamond[ $field ] ) ) {
+			if ( empty( $diamondData[ $field ] ) ) {
 				return false;
 			}
 		}
@@ -329,31 +343,31 @@ trait LocalDBCron {
 			'image'  => 'https://example.com/default_image.webp',
 		);
 
-		$db_diamond = array_merge( $defaults, $db_diamond );
+		$diamondData = array_merge( $defaults, $diamondData );
 
 		$diamond = array(
-			'id'           => $db_diamond['stock_id'],
+			'id'           => $diamondData['stock_id'],
 			'upload'       => 'csv',
-			'markup_price' => $db_diamond['markup_price'],
-			'price'        => $db_diamond['price'],
+			'markup_price' => $diamondData['markup_price'],
+			'price'        => $diamondData['price'],
 			'diamond'      => array(
 				'certificate' => array(
-					'video'    => $db_diamond['video'],
-					'image'    => $db_diamond['image'],
-					'carats'   => $db_diamond['carats'],
-					'shape'    => $db_diamond['shape'],
-					'color'    => $db_diamond['col'],
-					'clarity'  => $db_diamond['clar'],
-					'symmetry' => $db_diamond['symm'],
-					'length'   => $db_diamond['length'],
-					'width'    => $db_diamond['width'],
-					'lab'      => $db_diamond['lab'],
+					'video'    => $diamondData['video'],
+					'image'    => $diamondData['image'],
+					'carats'   => $diamondData['carats'],
+					'shape'    => $diamondData['shape'],
+					'color'    => $diamondData['col'],
+					'clarity'  => $diamondData['clar'],
+					'symmetry' => $diamondData['symm'],
+					'length'   => $diamondData['length'],
+					'width'    => $diamondData['width'],
+					'lab'      => $diamondData['lab'],
 				),
 			),
 		);
 
-		if ( isset( $db_diamond['pdf'] ) ) {
-			$diamond['diamond']['certificate']['pdfUrl'] = $db_diamond['pdf'];
+		if ( isset( $diamondData['pdf'] ) ) {
+			$diamond['diamond']['certificate']['pdfUrl'] = $diamondData['pdf'];
 		}
 
 		if ( ! $this->nivoda_diamonds ) {
@@ -366,8 +380,8 @@ trait LocalDBCron {
 
 		$formated_diamond = $this->nivoda_diamonds->convert_nivoda_to_vdb( $diamond );
 
-		if ( isset( $db_diamond['lg'] ) && $db_diamond['lg'] ) {
-			$formated_diamond['lg'] = $db_diamond['lg'];
+		if ( isset( $diamondData['lg'] ) && $diamondData['lg'] ) {
+			$formated_diamond['lg'] = $diamondData['lg'];
 		}
 
 		return $formated_diamond;
