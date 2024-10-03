@@ -150,12 +150,15 @@ trait LocalDBCron {
 
 			if ( ! $fileHandle ) {
 				error_log( 'Failed to open file: ' . $current_file['absolute_path'] );
+
 				return false;
 			}
 
 			if ( ! flock( $fileHandle, LOCK_EX ) ) {
 				error_log( 'Failed to lock file: ' . $current_file['absolute_path'] );
+
 				fclose( $fileHandle );
+
 				return false;
 			}
 
