@@ -215,7 +215,7 @@ trait LocalDBCron {
 
 			$end_time = microtime( true );
 
-			$execution_time = $end_time - $this->$start_time;
+			$execution_time = $end_time - $this->start_time;
 
 			$this->start_time = null;
 
