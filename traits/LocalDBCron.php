@@ -6,8 +6,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 trait LocalDBCron {
-	protected $start_time;
-
 	public function local_db_cron_init() {
 		if ( ! $this->nivoda_diamonds ) {
 			$this->nivoda_diamonds = \OTW\WooRingBuilder\Classes\NivodaGetDiamonds::instance();
@@ -21,9 +19,9 @@ trait LocalDBCron {
 
 		add_action( $this->prefix . '_every_five_minutes', array( $this, 'every_five_minutes_cron' ) );
 
-		add_action( $this->prefix . '_every_one_hour', array( $this, 'every_one_hour_cron' ) );
+		add_action( $this->prefix . '_every_five_hours', array( $this, 'every_five_hours_cron' ) );
 
-		add_action( $this->prefix . '_every_one_day', array( $this, 'every_one_day_cron' ) );
+		add_action( $this->prefix . '_every_one_hour', array( $this, 'every_one_hour_cron' ) );
 
 		$files_list = $this->get_option( 'import_nivoda_csv_files' );
 	}
@@ -38,17 +36,17 @@ trait LocalDBCron {
 			);
 		}
 
+		if ( ! isset( $schedules['every_five_hours'] ) ) {
+			$schedules['every_one_day'] = array(
+				'interval' => 60 * 60 * 5,
+				'display'  => __( 'Every 5 hours' ),
+			);
+		}
+
 		if ( ! isset( $schedules['every_one_hour'] ) ) {
 			$schedules['every_one_hour'] = array(
 				'interval' => 60 * 60,
 				'display'  => __( 'Every 1 hour' ),
-			);
-		}
-
-		if ( ! isset( $schedules['every_one_day'] ) ) {
-			$schedules['every_one_day'] = array(
-				'interval' => 60 * 60 * 24,
-				'display'  => __( 'Every 1 day' ),
 			);
 		}
 
@@ -63,13 +61,13 @@ trait LocalDBCron {
 		$this->nivoda_watch_import_dir();
 	}
 
-	public function every_one_day_cron() {
+	public function every_five_hours_cron() {
 		$this->nivoda_reset_csv_queue();
 	}
 
 	public function start_cron_event() {
 		$events = array(
-			$this->prefix . '_every_one_day'      => 'every_one_day',
+			$this->prefix . '_every_five_hours'   => 'every_five_hours',
 			$this->prefix . '_every_one_hour'     => 'every_one_hour',
 			$this->prefix . '_every_five_minutes' => 'every_five_minutes',
 		);
@@ -83,8 +81,8 @@ trait LocalDBCron {
 
 	public function end_cron_event() {
 		$events = array(
-			$this->prefix . '_every_one_day',
 			$this->prefix . '_every_one_hour',
+			$this->prefix . '_every_five_hours',
 			$this->prefix . '_every_five_minutes',
 		);
 
@@ -141,10 +139,6 @@ trait LocalDBCron {
 			error_log( $current_file['rows_imported'] . ' rows imported...' );
 			error_log( $current_file['rows'] . ' rows total to import so wow...' );
 			error_log( 'last nivoda update key: ' . $this->get_option( 'last_nivoda_update_key' ) );
-
-			if ( ! $this->start_time ) {
-				$this->start_time = microtime( true );
-			}
 
 			$fileHandle = fopen( $current_file['absolute_path'], 'r' );
 
@@ -225,17 +219,9 @@ trait LocalDBCron {
 			) {
 			$diamond_type = 'lab';
 
-			$end_time = microtime( true );
-
-			$execution_time = $end_time - $this->start_time;
-
-			$this->start_time = null;
-
 			$file_name = $current_file['name'];
 
-			$duration = round( $execution_time, 2 );
-
-			error_log( $file_name . ' imported successfully in ' . $duration . ' sec.' );
+			error_log( $file_name . ' imported successfully' );
 
 			if ( $current_file['name'] === 'natural_diamonds.csv' ) {
 				$diamond_type = 'natural';
