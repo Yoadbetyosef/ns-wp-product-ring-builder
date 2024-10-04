@@ -37,7 +37,7 @@ trait LocalDBCron {
 		}
 
 		if ( ! isset( $schedules['every_five_hours'] ) ) {
-			$schedules['every_one_day'] = array(
+			$schedules['every_five_hours'] = array(
 				'interval' => 60 * 60 * 5,
 				'display'  => __( 'Every 5 hours' ),
 			);
