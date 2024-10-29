@@ -331,7 +331,8 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 
 		$this->current_diamond = $diamond;
 
-		if ( function_exists( 'WC' ) &&
+		if ( is_array( $diamond ) &&
+			function_exists( 'WC' ) &&
 			isset( WC()->session ) &&
 			is_object( WC()->session )
 		) {
@@ -342,8 +343,10 @@ class Diamonds extends \OTW\WooRingBuilder\Plugin {
 	}
 
 	public function get_current_diamond( $stock_num = null ) {
-		if ( isset( WC()->session ) && WC()->session->get( 'next_session' ) === true ) {
-			$stock_num = WC()->session->get( 'next_diamond_id' );
+		if ( is_null( $stock_num ) ) {
+			if ( isset( WC()->session ) && WC()->session->get( 'next_session' ) === true ) {
+				$stock_num = WC()->session->get( 'next_diamond_id' );
+			}
 		}
 
 		$diamond = $this->get_diamond_by_stock_num( $stock_num );

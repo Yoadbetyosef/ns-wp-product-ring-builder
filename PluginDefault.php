@@ -10,7 +10,7 @@ class PluginDefault extends Plugin{
 	use \OTW\WooRingBuilder\Traits\LocalDBCron;
 
 	public function __construct() {
-		$this->set_get_variables();
+		// $this->set_get_variables();
 
 		add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ) );
 
@@ -18,16 +18,16 @@ class PluginDefault extends Plugin{
 			add_filter( 'plugin_action_links_' . plugin_basename( OTW_WOO_RING_BUILDER_PLUGIN_FILE ), array( $this, 'plugin_action_links' ) );
 
 			register_activation_hook( plugin_basename( OTW_WOO_RING_BUILDER_PLUGIN_FILE ), array( $this, 'PluginActivation' ) );
+
 			register_deactivation_hook( plugin_basename( OTW_WOO_RING_BUILDER_PLUGIN_FILE ), array( $this, 'PluginDeactivation' ) );
 
 			\OTW\WooRingBuilder\Admin\PageSettings::instance();
+
 			\OTW\WooRingBuilder\Admin\VariationsMetaData::instance();
 
 			add_action( 'admin_enqueue_scripts', array( $this, 'wp_admin_style_scripts' ) );
 
 			add_filter( 'upload_mimes', array( $this, 'upload_mimes' ) );
-		} else {
-			add_action( 'wp_enqueue_scripts', array( $this, 'wp_admin_style_scripts' ) );
 		}
 
 		if ( session_status() === PHP_SESSION_NONE && ! headers_sent() ) {
@@ -51,145 +51,145 @@ class PluginDefault extends Plugin{
 		$this->empty_cart();
 	}
 
-	public function set_get_variables() {
-		if ( isset( $_GET['setting_data'] ) && $_GET['setting_data'] == 'reset_all' ) {
-			$this->delete_setting_cookies();
+	// public function set_get_variables() {
+	//  if ( isset( $_GET['setting_data'] ) && $_GET['setting_data'] == 'reset_all' ) {
+	//      $this->delete_setting_cookies();
 
-			$this->delete_diamond_cookies();
-		}
+	//      $this->delete_diamond_cookies();
+	//  }
 
-		if ( isset( $_GET['setting_data'] ) && $_GET['setting_data'] == 'reset_diamond' ) {
-			$this->delete_diamond_cookies();
-		}
+	//  if ( isset( $_GET['setting_data'] ) && $_GET['setting_data'] == 'reset_diamond' ) {
+	//      $this->delete_diamond_cookies();
+	//  }
 
-		if ( isset( $_GET['setting_data'] ) && $_GET['setting_data'] == 'reset_setting' ) {
-			$this->delete_setting_cookies();
-		}
+	//  if ( isset( $_GET['setting_data'] ) && $_GET['setting_data'] == 'reset_setting' ) {
+	//      $this->delete_setting_cookies();
+	//  }
 
-		if ( isset( $_COOKIE['product_id'] ) && $_COOKIE['product_id'] ) {
-			$_COOKIE['old_product_id'] = $_COOKIE['product_id'];
+	//  if ( isset( $_COOKIE['product_id'] ) && $_COOKIE['product_id'] ) {
+	//      $_COOKIE['old_product_id'] = $_COOKIE['product_id'];
 
-			if ( ! isset( $_GET['product_id'] ) ) {
-				$_GET['product_id'] = $_COOKIE['product_id'];
-			}
-		}
+	//      if ( ! isset( $_GET['product_id'] ) ) {
+	//          $_GET['product_id'] = $_COOKIE['product_id'];
+	//      }
+	//  }
 
-		if ( isset( $_COOKIE['variation_id'] ) && $_COOKIE['variation_id'] ) {
-			$_COOKIE['old_variation_id'] = $_COOKIE['variation_id'];
+	//  if ( isset( $_COOKIE['variation_id'] ) && $_COOKIE['variation_id'] ) {
+	//      $_COOKIE['old_variation_id'] = $_COOKIE['variation_id'];
 
-			if ( ! isset( $_GET['variation_id'] ) ) {
-				$_GET['variation_id'] = $_COOKIE['variation_id'];
-			}
-		}
+	//      if ( ! isset( $_GET['variation_id'] ) ) {
+	//          $_GET['variation_id'] = $_COOKIE['variation_id'];
+	//      }
+	//  }
 
-		if ( isset( $_COOKIE['stock_num'] ) && $_COOKIE['stock_num'] ) {
-			$_COOKIE['old_stock_num'] = $_COOKIE['stock_num'];
+	//  if ( isset( $_COOKIE['stock_num'] ) && $_COOKIE['stock_num'] ) {
+	//      $_COOKIE['old_stock_num'] = $_COOKIE['stock_num'];
 
-			if ( ! isset( $_GET['stock_num'] ) ) {
-				$_GET['stock_num'] = $_COOKIE['stock_num'];
-			}
-		}
+	//      if ( ! isset( $_GET['stock_num'] ) ) {
+	//          $_GET['stock_num'] = $_COOKIE['stock_num'];
+	//      }
+	//  }
 
-		if ( isset( $_GET['stock_num'] ) ) {
-			$this->update_variation_with_new_shape();
-		}
+	//  if ( isset( $_GET['stock_num'] ) ) {
+	//      $this->update_variation_with_new_shape();
+	//  }
 
-		$this->wp_footer_cookies();
-	}
+	//  $this->wp_footer_cookies();
+	// }
 
-	public function update_variation_with_new_shape() {
-		if ( isset( $_GET['stock_num'] ) && $_GET['stock_num'] ) {
-			add_action(
-				'init',
-				function () {
-					otw_woo_ring_builder()->diamonds->get_current_diamond();
+	// public function update_variation_with_new_shape() {
+	//  if ( isset( $_GET['stock_num'] ) && $_GET['stock_num'] ) {
+	//      add_action(
+	//          'init',
+	//          function () {
+	//              otw_woo_ring_builder()->diamonds->get_current_diamond();
 
-					if ( otw_woo_ring_builder()->diamonds &&
-					isset(
-						otw_woo_ring_builder()->diamonds->current_diamond
-					) &&
-					otw_woo_ring_builder()->diamonds->current_diamond
-					) {
-						$diamond = otw_woo_ring_builder()->diamonds->current_diamond;
+	//              if ( otw_woo_ring_builder()->diamonds &&
+	//              isset(
+	//                  otw_woo_ring_builder()->diamonds->current_diamond
+	//              ) &&
+	//              otw_woo_ring_builder()->diamonds->current_diamond
+	//              ) {
+	//                  $diamond = otw_woo_ring_builder()->diamonds->current_diamond;
 
-						if ( isset( $_GET['variation_id'] ) &&
-						$_GET['variation_id'] &&
-						isset( $_GET['product_id'] ) &&
-						$_GET['product_id']
-						) {
-							$current_shape = otw_woo_ring_builder()->get_current_selected_variation_shape();
+	//                  if ( isset( $_GET['variation_id'] ) &&
+	//                  $_GET['variation_id'] &&
+	//                  isset( $_GET['product_id'] ) &&
+	//                  $_GET['product_id']
+	//                  ) {
+	//                      $current_shape = otw_woo_ring_builder()->get_current_selected_variation_shape();
 
-							$diamond_shape = strtolower( $diamond['shape'] );
+	//                      $diamond_shape = strtolower( $diamond['shape'] );
 
-							if ( $current_shape &&
-							$diamond['shape'] &&
-							strtolower( $current_shape ) != $diamond_shape &&
-							class_exists( 'WC_Data_Store' )
-							) {
-								if ( ( isset( $_COOKIE['old_stock_num'] ) && $_COOKIE['old_stock_num'] != $_GET['stock_num'] ) ||
-								! isset( $_COOKIE['stock_num'] ) ||
-								( isset( $_COOKIE['old_variation_id'] ) && $_COOKIE['old_variation_id'] == $_GET['variation_id'] )
-								) {
-									$parent_product = wc_get_product( $_GET['product_id'] );
-									$data_store = \WC_Data_Store::load( 'product' );
-									$variable_product = new \WC_Product_Variation( $_GET['variation_id'] );
+	//                      if ( $current_shape &&
+	//                      $diamond['shape'] &&
+	//                      strtolower( $current_shape ) != $diamond_shape &&
+	//                      class_exists( 'WC_Data_Store' )
+	//                      ) {
+	//                          if ( ( isset( $_COOKIE['old_stock_num'] ) && $_COOKIE['old_stock_num'] != $_GET['stock_num'] ) ||
+	//                          ! isset( $_COOKIE['stock_num'] ) ||
+	//                          ( isset( $_COOKIE['old_variation_id'] ) && $_COOKIE['old_variation_id'] == $_GET['variation_id'] )
+	//                          ) {
+	//                              $parent_product = wc_get_product( $_GET['product_id'] );
+	//                              $data_store = \WC_Data_Store::load( 'product' );
+	//                              $variable_product = new \WC_Product_Variation( $_GET['variation_id'] );
 
-									if ( $parent_product && $variable_product ) {
-										$attributes = $variable_product->get_attributes();
-										$tax_attributes = array( 'attribute_pa_shape' => $diamond_shape );
-										foreach ( $attributes as $key => $attribute ) {
-											if ( $key == 'pa_shape' ) {
-													continue;
-											}
-											$tax_attributes[ 'attribute_' . $key ] = $attribute;
-										}
+	//                              if ( $parent_product && $variable_product ) {
+	//                                  $attributes = $variable_product->get_attributes();
+	//                                  $tax_attributes = array( 'attribute_pa_shape' => $diamond_shape );
+	//                                  foreach ( $attributes as $key => $attribute ) {
+	//                                      if ( $key == 'pa_shape' ) {
+	//                                              continue;
+	//                                      }
+	//                                      $tax_attributes[ 'attribute_' . $key ] = $attribute;
+	//                                  }
 
-										$found_products = $data_store->find_matching_product_variation( $parent_product, $tax_attributes );
+	//                                  $found_products = $data_store->find_matching_product_variation( $parent_product, $tax_attributes );
 
-										if ( $found_products && is_integer( $found_products ) ) {
-											$_GET['variation_id'] = $found_products;
-											otw_woo_ring_builder()->woo->current_selected_variation = null;
-											$current_selected_shape = strtolower( otw_woo_ring_builder()->get_current_selected_variation_shape() );
-											$this->setcookie( 'variation_id', $found_products );
-										}
-									}
-								} else {
-									$this->delete_diamond_cookies();
-									otw_woo_ring_builder()->diamonds->current_diamond = null;
-									return true;
-								}
-							}
-						}
-					}
-				}
-			);
+	//                                  if ( $found_products && is_integer( $found_products ) ) {
+	//                                      $_GET['variation_id'] = $found_products;
+	//                                      otw_woo_ring_builder()->woo->current_selected_variation = null;
+	//                                      $current_selected_shape = strtolower( otw_woo_ring_builder()->get_current_selected_variation_shape() );
+	//                                      $this->setcookie( 'variation_id', $found_products );
+	//                                  }
+	//                              }
+	//                          } else {
+	//                              $this->delete_diamond_cookies();
+	//                              otw_woo_ring_builder()->diamonds->current_diamond = null;
+	//                              return true;
+	//                          }
+	//                      }
+	//                  }
+	//              }
+	//          }
+	//      );
 
-		}
-	}
+	//  }
+	// }
 
-	public function wp_footer_cookies() {
-		if ( isset( $_GET['product_id'] ) && $_GET['product_id'] ) {
-			$this->setcookie( 'product_id', $_GET['product_id'] );
-		}
+	// public function wp_footer_cookies() {
+	//  if ( isset( $_GET['product_id'] ) && $_GET['product_id'] ) {
+	//      $this->setcookie( 'product_id', $_GET['product_id'] );
+	//  }
 
-		if ( isset( $_GET['variation_id'] ) && $_GET['variation_id'] ) {
-			$this->setcookie( 'variation_id', $_GET['variation_id'] );
-		}
+	//  if ( isset( $_GET['variation_id'] ) && $_GET['variation_id'] ) {
+	//      $this->setcookie( 'variation_id', $_GET['variation_id'] );
+	//  }
 
-		if ( isset( $_GET['stock_num'] ) && $_GET['stock_num'] ) {
-			$this->setcookie( 'stock_num', $_GET['stock_num'] );
-		}
+	//  if ( isset( $_GET['stock_num'] ) && $_GET['stock_num'] ) {
+	//      $this->setcookie( 'stock_num', $_GET['stock_num'] );
+	//  }
 
-		if ( isset( $_GET['first_step'] ) && $_GET['first_step'] == 'stone' ) {
-			$this->setcookie( 'first_step', 'stone' );
+	//  if ( isset( $_GET['first_step'] ) && $_GET['first_step'] == 'stone' ) {
+	//      $this->setcookie( 'first_step', 'stone' );
 
-			$_COOKIE['first_step'] = 'stone';
-		} elseif ( isset( $_GET['first_step'] ) && $_GET['first_step'] == 'setting' ) {
-			$this->setcookie( 'first_step', 'setting' );
+	//      $_COOKIE['first_step'] = 'stone';
+	//  } elseif ( isset( $_GET['first_step'] ) && $_GET['first_step'] == 'setting' ) {
+	//      $this->setcookie( 'first_step', 'setting' );
 
-			$_COOKIE['first_step'] = 'setting';
-		}
-	}
+	//      $_COOKIE['first_step'] = 'setting';
+	//  }
+	// }
 
 	function upload_mimes( $mimes ) {
 		$mimes['glb']  = 'application/octet-stream';
@@ -241,38 +241,6 @@ class PluginDefault extends Plugin{
 
 			wp_enqueue_style( 'bbwp_fields_css', plugin_dir_url( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'assets/admin/css/bbwp_fields.css', array(), '1.0.0' );
 		} else {
-			// wp_register_script( 'pixotronics', 'https://dist.pixotronics.com/webgi/runtime/viewer-0.7.86.js', array( 'jquery' ), '0.7.86' );
-
-			// wp_register_script( 'swiper_otw', plugin_dir_url( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'assets/js/swiper.min.js', array( 'jquery' ), '5.3.6' );
-
-			// wp_enqueue_style( 'swiper_css_otw', plugin_dir_url( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'assets/css/swiper.min.css' );
-
-			// wp_enqueue_style( 'lightbox-css', plugin_dir_url( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'assets/css/lightbox.min.css', array(), '2.11.4' );
-
-			// wp_register_script( 'lightbox', plugin_dir_url( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'assets/js/lightbox.min.js', array( 'jquery' ), '2.11.4' );
-
-			// wp_enqueue_script( 'lightbox' );
-
-			// wp_register_script( 'touch-punch', 'https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js', array( 'jquery-ui-slider' ), '0.2.3' );
-
-			// $script_abs_path = plugin_dir_path( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'assets/frontend/js/script.js';
-
-			// wp_register_script( $this->prefix( 'script' ), plugin_dir_url( OTW_WOO_RING_BUILDER_PLUGIN_FILE ) . 'assets/frontend/js/script.js', array( 'jquery', 'swiper_otw' ), get_file_time( $script_abs_path ) );
-
-			// wp_enqueue_script( 'pixotronics' );
-
-			// if ( is_page( $this->get_option( 'stone_archive_page' ) ) ) {
-			//  wp_enqueue_script( 'jquery-ui-slider' );
-
-			//  wp_enqueue_script( 'touch-punch' );
-			// }
-
-			// wp_enqueue_script( $this->prefix( 'script' ) );
-
-			// $wp_scripts = wp_scripts();
-
-			// wp_enqueue_style( 'jquery-ui-css', '//code.jquery.com/ui/' . $wp_scripts->registered['jquery-ui-core']->ver . '/themes/base/jquery-ui.css', false, $wp_scripts->registered['jquery-ui-core']->ver, false );
-
 			global $wp_query;
 
 			$js_variables = array(
@@ -301,18 +269,6 @@ class PluginDefault extends Plugin{
 					}
 				}
 			}
-
-			// if ( gcpb_get_current_first_step() == 'stone' || isset( $_GET['stock_num'] ) ) {
-			//  otw_woo_ring_builder()->diamonds->get_current_diamond();
-
-			//  if ( otw_woo_ring_builder()->diamonds && isset( otw_woo_ring_builder()->diamonds->current_diamond ) && otw_woo_ring_builder()->diamonds->current_diamond ) {
-			//      $diamond = otw_woo_ring_builder()->diamonds->current_diamond;
-
-			//      if ( isset( $diamond['shape'] ) && $diamond['shape'] ) {
-			//          $js_variables['diamond_shape'] = strtolower( $diamond['shape'] );
-			//      }
-			//  }
-			// }
 
 			$js_variables['diamond_min_price_filter'] = 300;
 			$js_variables['diamond_max_price_filter'] = 42000;

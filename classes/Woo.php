@@ -45,12 +45,10 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 			? sanitize_text_field( $_SERVER['HTTP_WOOCOMMERCE_PRODUCT_EXTRA_DATA'] )
 			: null;
 
-		error_log( '$woocommerce_product_extra_data' . print_r( $woocommerce_product_extra_data, true ) );
-
 		if ( isset( $woocommerce_product_extra_data ) ) {
 			$extra_data = json_decode( stripslashes( $woocommerce_product_extra_data ), true );
 
-			error_log( 'add_cart_item_data - EXTRADATA' . print_r( $extra_data, true ) );
+			error_log( 'add_cart_item_data - EXTRA DATA: ' . print_r( $extra_data, true ) );
 
 			if ( json_last_error() === JSON_ERROR_NONE ) {
 				WC()->session->set( 'next_session', true );
@@ -136,51 +134,6 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		}
 	}
 
-	public function cart_item_price( $price_html, $cart_item, $cart_item_key ) {
-		if ( $this->is_setting_product( $cart_item['data'] ) ) {
-			if ( ! (
-				otw_woo_ring_builder()->diamonds &&
-				isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
-				otw_woo_ring_builder()->diamonds->current_diamond
-			) ) {
-				otw_woo_ring_builder()->diamonds->get_current_diamond();
-			}
-
-			if ( otw_woo_ring_builder()->diamonds &&
-				isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
-				otw_woo_ring_builder()->diamonds->current_diamond
-			) {
-				$diamond = otw_woo_ring_builder()->diamonds->current_diamond;
-
-				$_product = wc_get_product( $cart_item['data']->get_id() );
-
-				if ( $this->is_setting_product( $_product ) &&
-					( ( (float) $cart_item['data']->get_price() ) <= (float) $_product->get_price() )
-				) {
-					$total_ring_price = ( (float) $diamond['total_sales_price'] ) + ( (float) $cart_item['data']->get_price() );
-
-					return wc_price( $total_ring_price );
-				}
-			}
-		}
-
-		return $price_html;
-
-		if ( isset( $cart_item['custom_price'] ) ) {
-			$args = array( 'price' => 40 );
-
-			if ( WC()->cart->display_prices_including_tax() ) {
-				$product_price = wc_get_price_including_tax( $cart_item['data'], $args );
-			} else {
-				$product_price = wc_get_price_excluding_tax( $cart_item['data'], $args );
-			}
-
-			return wc_price( $product_price );
-		}
-
-		return $price_html;
-	}
-
 	public function get_item_data( $item_data, $cart_item ) {
 		if ( ! is_array( $item_data ) ) {
 			$item_data = array();
@@ -260,9 +213,44 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		$item->add_meta_data( 'Diamond SKU', $values['diamond']['stock_num'] );
 	}
 
+	public function cart_item_price( $price_html, $cart_item, $cart_item_key ) {
+		error_log( '** cart_item_price ** ' );
+
+		error_log( 'cart_item_price: ' . $cart_item['data'] );
+
+		if ( $this->is_setting_product( $cart_item['data'] ) ) {
+			if ( ! (
+				otw_woo_ring_builder()->diamonds &&
+				isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
+				otw_woo_ring_builder()->diamonds->current_diamond
+			) ) {
+				otw_woo_ring_builder()->diamonds->get_current_diamond();
+			}
+
+			if ( otw_woo_ring_builder()->diamonds &&
+				isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
+				otw_woo_ring_builder()->diamonds->current_diamond
+			) {
+				$diamond = otw_woo_ring_builder()->diamonds->current_diamond;
+
+				$_product = wc_get_product( $cart_item['data']->get_id() );
+
+				if ( $this->is_setting_product( $_product ) &&
+					( ( (float) $cart_item['data']->get_price() ) <= (float) $_product->get_price() )
+				) {
+					$total_ring_price = ( (float) $diamond['total_sales_price'] ) + ( (float) $cart_item['data']->get_price() );
+
+					return wc_price( $total_ring_price );
+				}
+			}
+		}
+
+		return $price_html;
+	}
+
 	public function before_calculate_totals( $cart ) {
 		// Log the cart for debugging purposes
-		// error_log( 'before_calculate_totals' . print_r( $cart, true ) );
+		error_log( 'before_calculate_totals' . print_r( $cart, true ) );
 
 		// Prevent action from running in the admin or during non-AJAX calls
 		if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
@@ -273,6 +261,8 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 		// Loop through all items in the cart
 		foreach ( $cart->get_cart() as $cart_key => $cart_item ) {
+			error_log( 'before_calculate_totals: cart_item: ' . print_r( $cart_item, true ) );
+
 			// Check if the product is a setting product
 			if ( $this->is_setting_product( $cart_item['data'] ) ) {
 
@@ -338,6 +328,8 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 	}
 
 	public function wc_manage_order( $order_id ) {
+		error_log( 'wc_manage_order: order_id: ' . $order_id );
+
 		global $wpdb;
 
 		$order = wc_get_order( $order_id );
@@ -384,8 +376,5 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 				}
 			}
 		}
-
-		echo '<script>document.cookie = `ns_clear_cart=true; path=/; domain=.naturesparkle.org; secure; sameSite=strict;`;</script>';
-		echo '<script>document.cookie = `ns_clear_cart=true; path=/; domain=.naturesparkle.com; secure; sameSite=strict;`;</script>';
 	}
 }
