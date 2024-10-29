@@ -255,7 +255,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 	public function before_calculate_totals( $cart ) {
 		// Log the cart for debugging purposes
-		error_log( 'before_calculate_totals' . print_r( $cart, true ) );
+		error_log( '** before_calculate_totals **' );
 
 		// Prevent action from running in the admin or during non-AJAX calls
 		if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
@@ -268,7 +268,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		foreach ( $cart->get_cart() as $cart_key => $cart_item ) {
 			// Check if the product is a setting product
 			if ( $this->is_setting_product( $cart_item['data'] ) ) {
-				error_log( 'before_calculate_totals: cart_item: ' . print_r( $cart_item, true ) );
+				error_log( 'before_calculate_totals: cart_item: ' . print_r( $cart_item['data'], true ) );
 
 				$stock_num = isset( $cart_item['diamond']['stock_num'] ) ? $cart_item['diamond']['stock_num'] : null;
 
@@ -295,6 +295,8 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 						$total_ring_price = ( (float) $diamond['total_sales_price'] ) + (float) $cart_item['data']->get_price();
 
 						$cart_item['data']->set_price( $total_ring_price );
+
+						error_log( 'before_calculate_totals: cart_item (after logic): ' . print_r( $cart_item['data'], true ) );
 					}
 				}
 			}
