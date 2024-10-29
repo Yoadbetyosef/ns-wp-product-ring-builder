@@ -265,10 +265,9 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 		// Loop through all items in the cart
 		foreach ( $cart->get_cart() as $cart_key => $cart_item ) {
-			error_log( 'before_calculate_totals: cart_item: ' . print_r( $cart_item, true ) );
-
 			// Check if the product is a setting product
 			if ( $this->is_setting_product( $cart_item['data'] ) ) {
+				error_log( 'before_calculate_totals: cart_item: ' . print_r( $cart_item, true ) );
 
 				// Ensure the current diamond data is available
 				if ( ! (
