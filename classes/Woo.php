@@ -229,7 +229,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 				otw_woo_ring_builder()->diamonds->get_current_diamond();
 			}
 
-			error_log( 'current diamond: ' . otw_woo_ring_builder()->diamonds->current_diamond );
+			error_log( 'current diamond: ' . print_r( otw_woo_ring_builder()->diamonds->current_diamond, true ) );
 
 			if ( otw_woo_ring_builder()->diamonds &&
 				isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
@@ -242,6 +242,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 				if ( $this->is_setting_product( $_product ) &&
 					( ( (float) $cart_item['data']->get_price() ) <= (float) $_product->get_price() )
 				) {
+
 					$total_ring_price = ( (float) $diamond['total_sales_price'] ) + ( (float) $cart_item['data']->get_price() );
 
 					return wc_price( $total_ring_price );
@@ -269,13 +270,15 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 			if ( $this->is_setting_product( $cart_item['data'] ) ) {
 				error_log( 'before_calculate_totals: cart_item: ' . print_r( $cart_item, true ) );
 
+				$stock_num = isset( $cart_item['diamond']['stock_num'] ) ? $cart_item['diamond']['stock_num'] : null;
+
 				// Ensure the current diamond data is available
 				if ( ! (
 				otw_woo_ring_builder()->diamonds &&
 				isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
 				otw_woo_ring_builder()->diamonds->current_diamond )
 				) {
-					otw_woo_ring_builder()->diamonds->get_current_diamond();
+					otw_woo_ring_builder()->diamonds->get_current_diamond( $stock_num );
 				}
 
 				// If the diamond data is available, adjust the price
