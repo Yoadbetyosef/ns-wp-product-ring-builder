@@ -268,9 +268,11 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		foreach ( $cart->get_cart() as $cart_key => $cart_item ) {
 			// Check if the product is a setting product
 			if ( $this->is_setting_product( $cart_item['data'] ) ) {
-				error_log( 'before_calculate_totals: cart_item: ' . print_r( $cart_item['data'], true ) );
+				error_log( 'before_calculate_totals: cart_item: ' . print_r( $cart_item, true ) );
 
 				$stock_num = isset( $cart_item['diamond']['stock_num'] ) ? $cart_item['diamond']['stock_num'] : null;
+
+				error_log( 'stock_num: ' . $stock_num );
 
 				// Ensure the current diamond data is available
 				if ( ! (
@@ -296,7 +298,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 
 						$cart_item['data']->set_price( $total_ring_price );
 
-						error_log( 'before_calculate_totals: cart_item (after logic): ' . print_r( $cart_item['data'], true ) );
+						error_log( 'before_calculate_totals: cart_item (after logic): ' . print_r( $cart_item, true ) );
 					}
 				}
 			}
