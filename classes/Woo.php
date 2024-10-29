@@ -219,6 +219,8 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 		error_log( 'cart_item_price: ' . $cart_item['data'] );
 
 		if ( $this->is_setting_product( $cart_item['data'] ) ) {
+			error_log( 'current diamond: ' . otw_woo_ring_builder()->diamonds->current_diamond );
+
 			if ( ! (
 				otw_woo_ring_builder()->diamonds &&
 				isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
@@ -226,6 +228,8 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 			) ) {
 				otw_woo_ring_builder()->diamonds->get_current_diamond();
 			}
+
+			error_log( 'current diamond: ' . otw_woo_ring_builder()->diamonds->current_diamond );
 
 			if ( otw_woo_ring_builder()->diamonds &&
 				isset( otw_woo_ring_builder()->diamonds->current_diamond ) &&
