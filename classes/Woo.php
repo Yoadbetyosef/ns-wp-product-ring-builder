@@ -216,7 +216,7 @@ class Woo extends \OTW\WooRingBuilder\Plugin {
 	public function cart_item_price( $price_html, $cart_item, $cart_item_key ) {
 		error_log( '** cart_item_price ** ' );
 
-		error_log( 'cart_item_price: ' . $cart_item['data'] );
+		error_log( 'cart_item_data: ' . $cart_item['data'] );
 
 		if ( $this->is_setting_product( $cart_item['data'] ) ) {
 			error_log( 'current diamond: ' . print_r( otw_woo_ring_builder()->diamonds->current_diamond, true ) );
